@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "hermesbaby"
+version = "0.1.0"
+description = "The Software Engineers' Typewriter"
+authors = ["Alexander Mann-Wahrenberg (basejumpa) <alexander.mannwahrenberg@gmail.com>"]
+license = "The MIT License (MIT)"
+readme = "README.rst"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
