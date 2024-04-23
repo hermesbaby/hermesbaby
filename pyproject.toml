@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "hermesbaby"
-version = "0.1.0"
+version = "0.1.1"
 description = "The Software Engineers' Typewriter"
 authors = ["Alexander Mann-Wahrenberg (basejumpa) <alexander.mannwahrenberg@gmail.com>"]
 license = "MIT"
@@ -9,6 +9,9 @@ readme = "README.rst"
 [tool.poetry.dependencies]
 python = "^3.10"
 sphinx = "^7.3.7"
+
+[tool.poetry.scripts]
+hb = "hermesbaby.cli:main"
 
 [build-system]
 requires = [

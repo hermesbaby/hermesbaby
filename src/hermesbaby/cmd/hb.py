@@ -5,3 +5,6 @@ def main():
     args = parser.parse_args()
     print("Welcome to HermesBaby command line tool!")
     # Your command line tool logic here
+
+if __name__ == "__main__":
+    main()

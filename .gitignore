@@ -54,5 +54,4 @@ MANIFEST
 .python-version
 
 .pypirc
-poetry.lock
 _git/
