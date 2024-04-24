@@ -24,6 +24,8 @@ Quickstart
     # Start editing ./docs/index.rst ...
 ```
 
+
+```rst
 See what's possible
 ===================
 
