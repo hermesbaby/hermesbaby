@@ -23,3 +23,15 @@ Quickstart
     hermesbaby preview
     # Start editing ./docs/index.rst ...
 ```
+
+See what's possible
+===================
+
+.. code-block:: bash
+
+    cd
+    hermesbaby new SeeWhatsPossible --template showcase
+    cd SeeWhatsPossible
+    hermesbaby preview
+    # Investigate preview in browser and sources in editor
+```
