@@ -1,0 +1,23 @@
+@startuml
+
+left to right direction
+
+actor "SoftwareEngineer" as se
+
+rectangle HermesBaby {
+    usecase "Author" as uc_author
+    usecase "Author architecture documentation" as uc_ad
+    usecase "Author contribution guide" as uc_cg
+    usecase "Author design documentation" as uc_dd
+    usecase "Author user guide" as uc_ug
+    usecase "Author project manual" as uc_pm
+}
+
+se --> uc_author
+uc_ad --|> uc_author
+uc_cg --|> uc_author
+uc_dd --|> uc_author
+uc_ug --|> uc_author
+uc_pm --|> uc_author
+
+@enduml
