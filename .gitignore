@@ -55,3 +55,11 @@ MANIFEST
 
 .pypirc
 _git/
+
+# Per-project VS Code environments
+# Local (scope is this repository some kind of "virtual" extensions and user settings)
+# Appear when you (cwd is VS Code project's root) start VS Code as
+# $ code --extensions-dir .extensions/ --user-data-dir .user/ --profile profile-$(whoami) .
+# Advantage: Do not touch your system's VS Code environment. Same as with pipenv
+.extensions/
+.user/
