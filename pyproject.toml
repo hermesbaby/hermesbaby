@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "hermesbaby"
-version = "0.2.0"
+version = "0.3.0"
 description = "The Software Engineers' Typewriter"
 authors = ["Alexander Mann-Wahrenberg (basejumpa) <alexander.mannwahrenberg@gmail.com>"]
 license = "MIT"
@@ -33,6 +33,7 @@ beautifulsoup4 = "^4.12.3"
 sphinx-autobuild = { version = "^2024.4.16", optional = true }
 esbonio = { version = "^0.16.4", optional = true }
 ipykernel = { version = "^6.29.4", optional = true }
+sphinxcontrib-details-directive = "^0.1.0"
 
 [tool.poetry.extras]
 dev = [
