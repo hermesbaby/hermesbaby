@@ -1,3 +1,21 @@
+..
+    ################################################################
+    #                                                              #
+    #  This file is part of hermesbaby                             #
+    #                       the software engineer's typewriter     #
+    #                                                              #
+    #  Copyright (c) 2024 Alexander Mann-Wahrenberg (basejumpa)    #
+    #                                                              #
+    #      https://github.com/basejumpa                            #
+    #                                                              #
+    #  License(s)                                                  #
+    #                                                              #
+    #  - MIT for contents used as software                         #
+    #  - CC BY-SA-4.0 for contents used as method or otherwise     #
+    #                                                              #
+    ################################################################
+
+
 .. todo:: THIS IS SUPPOSED TO BE AN EXAMPLE. MODIFY IT ACCORDING TO YOUR NEEDS!
 
    The document assumes you are using a source repository service that promotes a
@@ -23,9 +41,8 @@
    releases.
 
 
-============
 Contributing
-============
+############
 
 Welcome to ``HermesBaby`` contributor's guide.
 
@@ -44,7 +61,7 @@ guidelines.
 
 
 Issue Reports
-=============
+*************
 
 If you experience bugs or general issues with ``HermesBaby``, please have a look
 on the `issue tracker`_. If you don't see anything useful there, please feel
@@ -63,7 +80,7 @@ you help us to identify the root cause of the issue.
 
 
 Documentation Improvements
-==========================
+**************************
 
 You can help improve ``HermesBaby`` docs by making them more readable and coherent, or
 by adding missing information and correcting mistakes.
@@ -104,7 +121,7 @@ and use Python's built-in web server for a preview in your web browser
 
 
 Code Contributions
-==================
+******************
 
 .. todo:: Please include a reference or explanation about the internals of the project.
 
@@ -113,14 +130,15 @@ Code Contributions
    quickly.
 
 Submit an issue
----------------
+===============
 
 Before you work on any non-trivial code contribution it's best to first create
 a report in the `issue tracker`_ to start a discussion on the subject.
 This often provides additional considerations and avoids unnecessary work.
 
+
 Create an environment
----------------------
+=====================
 
 Before you start coding, we recommend creating an isolated `virtual
 environment`_ to avoid any problems with your installed Python packages.
@@ -134,8 +152,9 @@ or Miniconda_::
     conda create -n HermesBaby python=3 six virtualenv pytest pytest-cov
     conda activate HermesBaby
 
+
 Clone the repository
---------------------
+====================
 
 #. Create an user account on |the repository service| if you do not already have one.
 #. Fork the project repository_: click on the *Fork* button near the top of the
@@ -161,8 +180,9 @@ Clone the repository
    ``HermesBaby`` comes with a lot of hooks configured to automatically help the
    developer to check the code being written.
 
+
 Implement your changes
-----------------------
+======================
 
 #. Create a branch to hold your changes::
 
@@ -208,8 +228,9 @@ Implement your changes
    You can also use |tox|_ to run several other pre-configured tasks in the
    repository. Try ``tox -av`` to see a list of the available checks.
 
+
 Submit your contribution
-------------------------
+========================
 
 #. If everything works fine, push your local branch to |the repository service| with::
 
@@ -226,7 +247,7 @@ Submit your contribution
 
 
 Troubleshooting
----------------
+===============
 
 The following tips can be used when facing problems to build or test the
 package:
@@ -273,10 +294,10 @@ package:
 
 
 Maintainer tasks
-================
+****************
 
 Releases
---------
+========
 
 .. todo:: This section assumes you are using PyPI to publicly release your package.
 
@@ -351,3 +372,4 @@ on PyPI_, the following steps can be used to release a new version for
 
 .. _GitHub web interface: https://docs.github.com/en/repositories/working-with-files/managing-files/editing-files
 .. _GitHub's code editor: https://docs.github.com/en/repositories/working-with-files/managing-files/editing-files
+

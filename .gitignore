@@ -1,3 +1,19 @@
+################################################################
+#                                                              #
+#  This file is part of hermesbaby                             #
+#                       the software engineer's typewriter     #
+#                                                              #
+#  Copyright (c) 2024 Alexander Mann-Wahrenberg (basejumpa)    #
+#                                                              #
+#      https://github.com/basejumpa                            #
+#                                                              #
+#  License(s)                                                  #
+#                                                              #
+#  - MIT for contents used as software                         #
+#  - CC BY-SA-4.0 for contents used as method or otherwise     #
+#                                                              #
+################################################################
+
 # Temporary and binary files
 *~
 *.py[cod]
@@ -56,10 +72,5 @@ MANIFEST
 .pypirc
 _git/
 
-# Per-project VS Code environments
-# Local (scope is this repository some kind of "virtual" extensions and user settings)
-# Appear when you (cwd is VS Code project's root) start VS Code as
-# $ code --extensions-dir .extensions/ --user-data-dir .user/ --profile profile-$(whoami) .
-# Advantage: Do not touch your system's VS Code environment. Same as with pipenv
-.extensions/
-.user/
+### EOF
+

@@ -1,36 +1,78 @@
+################################################################
+#                                                              #
+#  This file is part of hermesbaby                             #
+#                       the software engineer's typewriter     #
+#                                                              #
+#  Copyright (c) 2024 Alexander Mann-Wahrenberg (basejumpa)    #
+#                                                              #
+#      https://github.com/basejumpa                            #
+#                                                              #
+#  License(s)                                                  #
+#                                                              #
+#  - MIT for contents used as software                         #
+#  - CC BY-SA-4.0 for contents used as method or otherwise     #
+#                                                              #
+################################################################
+
 [tool.poetry]
 name = "hermesbaby"
-version = "0.3.0"
+version = "0.4.1"
 description = "The Software Engineers' Typewriter"
 authors = ["Alexander Mann-Wahrenberg (basejumpa) <alexander.mannwahrenberg@gmail.com>"]
-license = "MIT"
+license = "MIT, CC BY-SA-4.0"
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
+
 sphinx = "7.2.6"  # Currently fixed version pf Sphinx in order to avoid crashes due to "unpickable configuration value. See https://github.com/sphinx-doc/sphinx/issues/12300
+
+sphinx-material = "^0.0.36"
+pydata-sphinx-theme = "^0.15.4"
+
+sphinx-design = "^0.6.0"
+
 tzlocal = "^5.2"
 gitpython = "^3.1.43"
-mlx-traceability = "^11.2.0"
+setuptools = "^69.5.1"
+
+sphinx-copybutton = "^0.5.2"
+sphinxcontrib-bibtex = "^2.6.2"
+
 sphinxcontrib-drawio = "^0.0.17"
 sphinxcontrib-plantuml = "^0.29"
 pillow = "^10.3.0"
 sphinxcontrib-mermaid = "^0.9.2"
-myst-nb = "^1.1.0"
-sphinx-copybutton = "^0.5.2"
+sphinxcontrib-svg2pdfconverter = "^1.2.2"
+
+sphinxext-rediraffe = "^0.2.7"
+
+ablog = "^0.11.10"
+sphinx-sitemap = "^2.6.0"
+
 sphinxcontrib-datatemplates = "^0.11.0"
 sphinx-datatables = "^0.2.1"
-sphinxcontrib-svg2pdfconverter = "^1.2.2"
+
+mlx-traceability = "^11.2.0"
 sphinx-needs = "^2.0.0"
+sphinx-tags = "^0.3.1"
+
+sphinx-mdinclude = "^0.6.1"
 myst-parser = "^2.0.0"
-sphinx-material = "^0.0.36"
-setuptools = "^69.5.1"
-sphinxcontrib-bibtex = "^2.6.2"
+myst-nb = "^1.1.0"
+
+sphinxcontrib-youtube = "^1.4.1"
+
+
 jupyter-sphinx = "^0.5.3"
+
 beautifulsoup4 = "^4.12.3"
 
 ### Extra "dev"
 sphinx-autobuild = { version = "^2024.4.16", optional = true }
+kconfiglib = "^14.1.0"
+windows-curses = "^2.3.3"
+pyyaml = "^6.0.1"
 esbonio = { version = "^0.16.4", optional = true }
 ipykernel = { version = "^6.29.4", optional = true }
 sphinxcontrib-details-directive = "^0.1.0"
@@ -60,3 +102,4 @@ build-backend = "setuptools.build_meta"
 # For smarter version schemes and other configuration options,
 # check out https://github.com/pypa/setuptools_scm
 version_scheme = "no-guess-dev"
+
