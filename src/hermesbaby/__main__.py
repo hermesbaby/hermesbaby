@@ -142,7 +142,6 @@ def parse_arguments():
     parser.add_argument('--version', action='store_true', help="Show program's version number and exit.")
 
     return parser
-
 def main():
     parser = parse_arguments()
 
@@ -163,9 +162,9 @@ def main():
 
     args = parser.parse_args()
 
-    # Convert job argument to int or 'auto'
+    # Convert job argument to int or 'auto' if it is a string
     jobs = args.jobs
-    if jobs.isdigit():
+    if isinstance(jobs, str) and jobs.isdigit():
         jobs = int(jobs)
 
     # Prepare config overrides from the -D option
@@ -178,7 +177,26 @@ def main():
     # Ensure sourcedir and outputdir are provided
     if not args.sourcedir or not args.outputdir:
         sys.stderr.write("usage: hermesbaby [OPTIONS] SOURCEDIR OUTPUTDIR [FILENAMES...]\n")
+        sys.exit(2)
 
-      
+    # Run the Sphinx build with parsed arguments
+    run_sphinx_build(
+        src_dir=args.sourcedir,
+        out_dir=args.outputdir,
+        builder=args.builder,
+        filenames=args.filenames,
+        conf_dir=args.confdir,
+        doctree_dir=args.doctreedir,
+        force_all=args.a,
+        fresh_env=args.E,
+        parallel=jobs,
+        confoverrides=confoverrides,
+        verbosity=args.v,
+        warning_file=args.warnings_file,
+        warning_as_error=args.W,
+        keep_going=args.keep_going,
+        tags=args.tag
+    )
+
 if __name__ == "__main__":
     main()
