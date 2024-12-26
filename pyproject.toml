@@ -14,7 +14,21 @@
 #                                                              #
 ################################################################
 
-__pycache__/
-*.pyc
+[tool.poetry]
+name = "hermesbaby"
+version = "2024.12.26"
+description = "The Software and Systems Engineers' Typewriter"
+authors = ["basejumpa <alexander.mannwahrenberg@gmail.com>"]
+readme = "README.md"
+packages = [{include = "hermesbaby", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
 
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -14,7 +14,7 @@
 #                                                              #
 ################################################################
 
-__pycache__/
-*.pyc
-
+[virtualenvs]
+in-project = true
+always-copy = true
 

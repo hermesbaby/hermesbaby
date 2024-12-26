@@ -8,12 +8,12 @@ Meant to be the authoring environment to get our work done.
 
 Do our daily written communication in
 
-- personal notes, 
+- personal notes,
 - engineering notebooks,
 - software documentations,
 - technical articles,
 - any other kinds of specifications or
-- books. 
+- books.
 
 
 ## Installation
@@ -51,7 +51,7 @@ poetry add hermesbaby --group dev
 Check environment for prerequisites
 
 ```bash
-hermesbaby check-environment
+hermesbaby check-env
 ```
 
 Close the gaps by installing the missing tools. You may use the help hermesbaby gave you to do so.
@@ -63,10 +63,10 @@ python3 -m hermesbaby
 hb
 ```
 
-Start your first piece of virtual paper
+Start your first new virtual piece of writing
 
 ```bash
-hb init hello
+hb new hello
 cd hello
-hb html-live 
+hb html-live
 ```
