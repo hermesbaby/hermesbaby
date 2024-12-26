@@ -3,6 +3,7 @@ import sys
 import os
 import multiprocessing
 from sphinx.application import Sphinx
+from sphinx_autobuild  import __main__ as sphinx_autobuild # Import sphinx-autobuild
 
 def run_sphinx_build(
     src_dir, out_dir, builder='html', filenames=None, conf_dir=None, doctree_dir=None,
@@ -53,6 +54,65 @@ def run_sphinx_build(
         print(f"Error during Sphinx build: {e}")
         sys.exit(1)
 
+def run_sphinx_autobuild(args, autobuild_options):
+    """
+    Run sphinx-autobuild with the specified arguments.
+    """
+    autobuild_args = [
+        args.sourcedir,
+        args.outputdir,
+        *args.filenames,
+        '-b', args.builder,
+    ]
+
+    if args.a:
+        autobuild_args.append('-a')
+    if args.E:
+        autobuild_args.append('-E')
+    if args.doctreedir:
+        autobuild_args.extend(['-d', args.doctreedir])
+    if args.jobs:
+        autobuild_args.extend(['-j', str(args.jobs)])  # Convert jobs to string
+    if args.confdir:
+        autobuild_args.extend(['-c', args.confdir])
+    if args.C:
+        autobuild_args.append('-C')
+    if args.D:
+        for setting in args.D:
+            autobuild_args.extend(['-D', setting])
+    if args.A:
+        for val in args.A:
+            autobuild_args.extend(['-A', val])
+    if args.tag:
+        for tag in args.tag:
+            autobuild_args.extend(['-t', tag])
+    if args.n:
+        autobuild_args.append('-n')
+
+    # Additional autobuild options, converted to strings where needed
+    if autobuild_options.port:
+        autobuild_args.extend(['--port', str(autobuild_options.port)])
+    if autobuild_options.host:
+        autobuild_args.extend(['--host', autobuild_options.host])
+    if autobuild_options.re_ignore:
+        autobuild_args.extend(['--re-ignore', autobuild_options.re_ignore])
+    if autobuild_options.ignore:
+        autobuild_args.extend(['--ignore', autobuild_options.ignore])
+    if autobuild_options.no_initial:
+        autobuild_args.append('--no-initial')
+    if autobuild_options.open_browser:
+        autobuild_args.append('--open-browser')
+    if autobuild_options.delay:
+        autobuild_args.extend(['--delay', str(autobuild_options.delay)])  # Convert delay to string
+    if autobuild_options.watch:
+        autobuild_args.extend(['--watch', autobuild_options.watch])
+    if autobuild_options.pre_build:
+        autobuild_args.extend(['--pre-build', autobuild_options.pre_build])
+
+    # Run sphinx-autobuild
+    sphinx_autobuild.main(autobuild_args)
+
+
 def print_help():
     help_text = """
 usage: hermesbaby [OPTIONS] SOURCEDIR OUTPUTDIR [FILENAMES...]
@@ -98,7 +158,19 @@ console output options:
   -T                show full traceback on exception
   -P                run Pdb on exception
 
-For more information, visit <https://hermesbaby.github.io/>.
+autobuild options:
+  --autobuild       automatically rebuild the documentation and serve it with live reload
+  --port PORT       port to serve documentation on (0 for a free port)
+  --host HOST       hostname to serve documentation on
+  --re-ignore RE_IGNORE
+                    regex for files to ignore when watching for changes
+  --ignore IGNORE   glob for files to ignore when watching for changes
+  --no-initial      skip the initial build
+  --open-browser    open the browser after building documentation
+  --delay DELAY     how long to wait before opening the browser
+  --watch DIR       additional directories to watch
+  --pre-build COMMAND
+                    additional command(s) to run prior to building documentation
 """.strip()  # Strip trailing newlines to ensure no extra newline at the end
     print(help_text)
 
@@ -136,12 +208,25 @@ def parse_arguments():
     parser.add_argument('-T', action='store_true', help="Show full traceback on exception.")
     parser.add_argument('-P', action='store_true', help="Run Pdb on exception.")
 
+    # Autobuild options
+    parser.add_argument('--autobuild', action='store_true', help="Automatically rebuild and serve documentation with live reload.")
+    parser.add_argument('--port', help="Port to serve documentation on (0 for free port).")
+    parser.add_argument('--host', help="Hostname to serve documentation on.")
+    parser.add_argument('--re-ignore', help="Regex for files to ignore when watching for changes.")
+    parser.add_argument('--ignore', help="Glob for files to ignore when watching for changes.")
+    parser.add_argument('--no-initial', action='store_true', help="Skip the initial build.")
+    parser.add_argument('--open-browser', action='store_true', help="Open the browser after building documentation.")
+    parser.add_argument('--delay', help="How long to wait before opening the browser.")
+    parser.add_argument('--watch', help="Additional directories to watch.")
+    parser.add_argument('--pre-build', help="Additional command(s) to run prior to building the documentation.")
+
     # Positional argument for specific filenames
     parser.add_argument('filenames', nargs='*', help="List of specific files to rebuild. Ignored if -a is specified.")
 
     parser.add_argument('--version', action='store_true', help="Show program's version number and exit.")
 
     return parser
+
 def main():
     parser = parse_arguments()
 
@@ -162,7 +247,13 @@ def main():
 
     args = parser.parse_args()
 
-    # Convert job argument to int or 'auto' if it is a string
+    # If --autobuild is specified, run sphinx-autobuild
+    if args.autobuild:
+        run_sphinx_autobuild(args, autobuild_options=args)
+        return
+
+    # Normal build process
+    # Convert job argument to int or 'auto'
     jobs = args.jobs
     if isinstance(jobs, str) and jobs.isdigit():
         jobs = int(jobs)

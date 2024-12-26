@@ -69,13 +69,13 @@ jupyter-sphinx = "^0.5.3"
 beautifulsoup4 = "^4.12.3"
 
 ### Extra "dev"
-sphinx-autobuild = { version = "^2024.4.16", optional = true }
 kconfiglib = "^14.1.0"
 windows-curses = "^2.3.3"
 pyyaml = "^6.0.1"
 esbonio = { version = "^0.16.4", optional = true }
 ipykernel = { version = "^6.29.4", optional = true }
 sphinxcontrib-details-directive = "^0.1.0"
+sphinx-autobuild = "^2024.9.19"
 
 [tool.poetry.extras]
 dev = [
