@@ -30,6 +30,7 @@ hb = "hermesbaby.__main__:main"
 
 [tool.poetry.dependencies]
 python = "^3.10"
+paver = "^1.3.4"
 
 
 [tool.poetry.group.dev.dependencies]
