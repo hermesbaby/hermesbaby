@@ -22,12 +22,19 @@ authors = ["basejumpa <alexander.mannwahrenberg@gmail.com>"]
 readme = "README.md"
 packages = [{include = "hermesbaby", from = "src"}]
 
+
+[tool.poetry.scripts]
+hermesbaby = "hermesbaby.__main__:main"
+hb = "hermesbaby.__main__:main"
+
+
 [tool.poetry.dependencies]
 python = "^3.10"
 
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
+
 
 [build-system]
 requires = ["poetry-core"]
