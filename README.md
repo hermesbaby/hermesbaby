@@ -8,7 +8,7 @@ Meant to be the authoring environment to get our work done.
 
 Do our daily written communication in
 
-- personal notes,
+- notes,
 - engineering notebooks,
 - software documentations,
 - technical articles,

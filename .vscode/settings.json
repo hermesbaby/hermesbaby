@@ -70,6 +70,7 @@
         },
         "editor.defaultFormatter": "ms-python.black-formatter"
     },
+
     "python.testing.pytestArgs": [
         "tests"
     ],
