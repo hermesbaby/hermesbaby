@@ -16,16 +16,60 @@
 
 {
 
-   "files.exclude": {
-      "**/__pycache__/": true,
-      "**/*.pyc": true,
-      ".pytest_cache": true,
-      ".venv/": true,
-      ".extensions/": true,
-      ".user/": true,
-      "poetry.lock": true
-   },
+    "files.exclude": {
+        "**/__pycache__/": true,
+        "**/*.pyc": true,
+        ".pytest_cache": true,
+        ".venv/": true,
+        ".extensions/": true,
+        ".user/": true,
+        "poetry.lock": true
+    },
 
+    "vsicons.presets.hideExplorerArrows": true,
+    "vsicons.presets.foldersAllDefaultIcon": true,
+
+    "terminal.integrated.defaultProfile.windows": "Git Bash",
+    "terminal.integrated.fontFamily": "CaskaydiaCove Nerd Font",
+
+    "explorer.copyRelativePathSeparator": "/",
+
+    "editor.fontFamily": "CaskaydiaCove Nerd Font", // Default is "Consolas, 'Courier New', monospace"
+    "editor.fontSize": 12, // default is 14
+
+    "editor.renderControlCharacters": true,
+    "editor.renderWhitespace": "all",
+    "editor.wordWrap": "bounded",
+
+    "code-eol.newlineCharacter": "¬",
+    "code-eol.returnCharacter": "¤",
+    "code-eol.crlfCharacter": "¤¬",
+
+    "indentRainbow.excludedLanguages": ["yaml"],
+
+
+    // Extension: solomonkinard.git-blame
+    "git-blame.config.ignoreWhitespace": true,
+    "git-blame.config.inlineBlameStartColumn": 100,
+    "git-blame.gitWebUrl": "https://example.com/$ID",
+    "git-blame.showStatusBar": false,
+
+
+    // Built-In since VSCode 1.96.0
+    "git.blame.editorDecoration.enabled": true,
+    "git.blame.editorDecoration.template": "${subject} (${authorDateAgo}, ${authorName})",
+    "git.blame.editorDecoration.foreground": "#ff0000",
+    "git.blame.statusBarItem.enabled": true,
+    "git.blame.statusBarItem.template": "${hashShort} (${authorDateAgo}, ${authorName})",
+
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": "explicit"
+        },
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
     "python.testing.pytestArgs": [
         "tests"
     ],
