@@ -4,6 +4,13 @@ from pathlib import Path
 import tempfile
 import shutil
 
+from typer.testing import CliRunner
+
+
+@pytest.fixture(scope="function")
+def cli_runner():
+    yield CliRunner()
+
 
 @pytest.fixture(scope="function")
 def temp_dir():

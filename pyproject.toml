@@ -24,16 +24,16 @@ packages = [{include = "hermesbaby", from = "src"}]
 
 
 [tool.poetry.scripts]
-hermesbaby = "hermesbaby.__main__:main"
-hb = "hermesbaby.__main__:main"
+hermesbaby = "hermesbaby.__main__:app"
+hb = "hermesbaby.__main__:app"
 
 
 [tool.poetry.dependencies]
 python = "^3.10"
-paver = "^1.3.4"
 cookiecutter = "^2.6.0"
 sphinx = "^8.1.3"
 sphinx-autobuild = "^2024.10.3"
+typer = "^0.15.1"
 
 
 [tool.poetry.group.dev.dependencies]
