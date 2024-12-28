@@ -93,6 +93,24 @@ def new(
 
 
 @app.command()
+def configure(ctx: typer.Context):
+    """Configure the project"""
+
+    _load_config()
+
+    # Set environment variable KCONFIG_CONFIG to the value of CFG_CONFIG_CUSTOM_FILE
+    os.environ["KCONFIG_CONFIG"] = CFG_CONFIG_CUSTOM_FILE
+
+    # Start "guiconfig" as a subprocess:
+    # - Pass the Kconfig instance to it
+    # - Write the configuration to CFG_CONFIG_CUSTOM_FILE
+    command = f"guiconfig {config_file}"
+    print(command)
+    result = subprocess.run(command.split())
+    sys.exit(result.returncode)
+
+
+@app.command()
 def html(ctx: typer.Context):
     """Build HTML documentation"""
 
