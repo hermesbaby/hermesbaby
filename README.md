@@ -68,5 +68,5 @@ Start your first new virtual piece of writing
 ```bash
 hb new hello
 cd hello
-hb html-live
+hb html_live
 ```

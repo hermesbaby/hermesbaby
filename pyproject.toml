@@ -32,6 +32,8 @@ hb = "hermesbaby.__main__:main"
 python = "^3.10"
 paver = "^1.3.4"
 cookiecutter = "^2.6.0"
+sphinx = "^8.1.3"
+sphinx-autobuild = "^2024.10.3"
 
 
 [tool.poetry.group.dev.dependencies]
