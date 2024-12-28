@@ -25,8 +25,10 @@ from cookiecutter.main import cookiecutter
 
 
 CFG_CONFIG_CUSTOM_FILE = ".hermesbaby"
+CFG_CONFIG_DIR = Path(__file__).parent.parent.parent / "config"
 
-config_file = Path(__file__).parent.parent.parent / "config" / "Kconfig"
+
+config_file = CFG_CONFIG_DIR / "Kconfig"
 kconfig = kconfiglib.Kconfig(str(config_file))
 
 
@@ -122,7 +124,7 @@ def html(ctx: typer.Context):
         sphinx-build \
         -j 10 \
         -W \
-        -c {kconfig.syms["BUILD__DIRS__CONFIG"].str_value} \
+        -c {str(CFG_CONFIG_DIR)} \
         {kconfig.syms["BUILD__DIRS__SOURCE"].str_value} \
         {build_dir} \
     """
@@ -143,7 +145,7 @@ def html_live(ctx: typer.Context):
         sphinx-autobuild \
         -j 10 \
         -W \
-        -c {kconfig.syms["BUILD__DIRS__CONFIG"].str_value} \
+        -c {str(CFG_CONFIG_DIR)} \
         {kconfig.syms["BUILD__DIRS__SOURCE"].str_value} \
         {build_dir} \
         --re-ignore '_tags/.*' \
