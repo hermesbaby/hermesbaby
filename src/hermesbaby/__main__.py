@@ -1,15 +1,42 @@
+################################################################
+#                                                              #
+#  This file is part of HermesBaby                             #
+#                       the software engineer's typewriter     #
+#                                                              #
+#      https://github.com/hermesbaby                           #
+#                                                              #
+#  Copyright (c) 2024 Alexander Mann-Wahrenberg (basejumpa)    #
+#                                                              #
+#  License(s)                                                  #
+#                                                              #
+#  - MIT for contents used as software                         #
+#  - CC BY-SA-4.0 for contents used as method or otherwise     #
+#                                                              #
+################################################################
+
 import os
 from pathlib import Path
 import shutil
 import subprocess
 import sys
+import kconfiglib
 import typer
 from cookiecutter.main import cookiecutter
 
-CFG_DIR_SOURCE = "docs"
-CFG_DIR_CONFIG = "docs"
-CFG_DIR_BUILD = "out/docs"
-CFG_PORT_HTML_LIVE = 1976
+
+CFG_CONFIG_CUSTOM_FILE = ".hermesbaby"
+
+config_file = Path(__file__).parent.parent.parent / "config" / "Kconfig"
+kconfig = kconfiglib.Kconfig(str(config_file))
+
+
+def _load_config():
+    global kconfig
+    current_dir = Path(os.getcwd())
+    hermesbaby_config_file = current_dir / CFG_CONFIG_CUSTOM_FILE
+    if hermesbaby_config_file.exists():
+        kconfig.load_config(str(hermesbaby_config_file))
+
 
 app = typer.Typer(
     help="The Software and Systems Engineers' Typewriter", no_args_is_help=True
@@ -33,6 +60,8 @@ def new(
     ),
 ):
     """Create a new project"""
+
+    _load_config()
 
     if directory is None:
         directory = "."
@@ -66,17 +95,20 @@ def new(
 @app.command()
 def html(ctx: typer.Context):
     """Build HTML documentation"""
-    current_work_dir = Path.cwd()
-    build_dir = Path(CFG_DIR_BUILD) / ctx.info_name
+
+    _load_config()
+
+    build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
     build_dir.mkdir(parents=True, exist_ok=True)
     command = f"""
         sphinx-build \
         -j 10 \
         -W \
-        -c {CFG_DIR_CONFIG} \
-        {CFG_DIR_SOURCE} \
+        -c {kconfig.syms["BUILD__DIRS__CONFIG"].str_value} \
+        {kconfig.syms["BUILD__DIRS__SOURCE"].str_value} \
         {build_dir} \
     """
+    print(command)
     result = subprocess.run(command.split())
     sys.exit(result.returncode)
 
@@ -84,19 +116,23 @@ def html(ctx: typer.Context):
 @app.command()
 def html_live(ctx: typer.Context):
     """Build HTML documentation with live reload"""
-    build_dir = Path(CFG_DIR_BUILD) / ctx.info_name
+
+    _load_config()
+
+    build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
     build_dir.mkdir(parents=True, exist_ok=True)
     command = f"""
         sphinx-autobuild \
         -j 10 \
         -W \
-        -c {CFG_DIR_CONFIG} \
-        {CFG_DIR_SOURCE} \
+        -c {kconfig.syms["BUILD__DIRS__CONFIG"].str_value} \
+        {kconfig.syms["BUILD__DIRS__SOURCE"].str_value} \
         {build_dir} \
         --re-ignore '_tags/.*' \
-        --port {CFG_PORT_HTML_LIVE} \
+        --port {int(kconfig.syms["BUILD__PORTS__HTML__LIVE"].str_value)} \
         --open-browser
     """
+    print(command)
     result = subprocess.run(command.split())
     sys.exit(result.returncode)
 
@@ -104,8 +140,11 @@ def html_live(ctx: typer.Context):
 @app.command()
 def clean():
     """Clean the build directory"""
-    if Path(CFG_DIR_BUILD).exists():
-        shutil.rmtree(CFG_DIR_BUILD)
+
+    _load_config()
+
+    if Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value).exists():
+        shutil.rmtree(kconfig.syms["BUILD__DIRS__BUILD"].str_value)
 
 
 if __name__ == "__main__":

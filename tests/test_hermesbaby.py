@@ -1,6 +1,21 @@
+################################################################
+#                                                              #
+#  This file is part of HermesBaby                             #
+#                       the software engineer's typewriter     #
+#                                                              #
+#      https://github.com/hermesbaby                           #
+#                                                              #
+#  Copyright (c) 2024 Alexander Mann-Wahrenberg (basejumpa)    #
+#                                                              #
+#  License(s)                                                  #
+#                                                              #
+#  - MIT for contents used as software                         #
+#  - CC BY-SA-4.0 for contents used as method or otherwise     #
+#                                                              #
+################################################################
+
 import os
 import pytest
-import requests
 import subprocess
 import time
 from pathlib import Path
@@ -90,7 +105,29 @@ def test_task_html(cli_runner, temp_dir):
     assert result.exit_code == 0, "Setup failed"
 
     result = cli_runner.invoke(app, ["html"])
+    assert result.exit_code == 0, "Call failed"
 
     index_html = temp_dir / "out" / "docs" / "html" / "index.html"
+    assert index_html.exists(), f"Build output does not exist: {index_html}"
 
+
+def test_task_config_file(cli_runner, temp_dir):
+
+    from src.hermesbaby.__main__ import app
+
+    # Create a file ".hermesbaby" and write some content
+    build_dir = "my-own-build-dir"
+
+    config_file = temp_dir / ".hermesbaby"
+    with config_file.open("w") as f:
+        f.write(f'CONFIG_BUILD__DIRS__BUILD="{build_dir}"' + os.linesep)
+
+    # Run the "new" command to set up the project
+    result = cli_runner.invoke(app, ["new"])
+    assert result.exit_code == 0, "Setup failed"
+
+    result = cli_runner.invoke(app, ["html"])
+    assert result.exit_code == 0, "Call failed"
+
+    index_html = temp_dir / build_dir / "html" / "index.html"
     assert index_html.exists(), f"Build output does not exist: {index_html}"

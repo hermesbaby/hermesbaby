@@ -14,33 +14,26 @@
 #                                                              #
 ################################################################
 
-[tool.poetry]
-name = "hermesbaby"
-version = "2024.12.26"
-description = "The Software and Systems Engineers' Typewriter"
-authors = ["basejumpa <alexander.mannwahrenberg@gmail.com>"]
-readme = "README.md"
-packages = [{include = "hermesbaby", from = "src"}]
+menu "Build"
 
+config BUILD__DIRS__SOURCE
+    string "Source Directory"
+    default "docs"
 
-[tool.poetry.scripts]
-hermesbaby = "hermesbaby.__main__:app"
-hb = "hermesbaby.__main__:app"
+config BUILD__DIRS__CONFIG
+    string "Config Directory"
+    default "docs"
 
+config BUILD__DIRS__BUILD
+    string "Build Directory"
+    default "out/docs"
 
-[tool.poetry.dependencies]
-python = "^3.10"
-cookiecutter = "^2.6.0"
-sphinx = "^8.1.3"
-sphinx-autobuild = "^2024.10.3"
-typer = "^0.15.1"
-kconfiglib = "^14.1.0"
+config BUILD__PORTS__HTML__LIVE
+    int "Port for live preview of HTML build"
+    default 1976
 
+config BUILD__PORTS__PRESENTATION__LIVE
+    int "Port for live preview of presentation build"
+    default 1973
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.4"
-
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+endmenu

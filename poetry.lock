@@ -339,6 +339,17 @@ MarkupSafe = ">=2.0"
 i18n = ["Babel (>=2.7)"]
 
 [[package]]
+name = "kconfiglib"
+version = "14.1.0"
+description = "A flexible Python Kconfig implementation"
+optional = false
+python-versions = ">=2.7,!=3.0.*,!=3.1.*"
+files = [
+    {file = "kconfiglib-14.1.0-py2.py3-none-any.whl", hash = "sha256:edcd35a20e7e138a9a9e96149027f805f785e818d2eae400b6fa8b0c8845114a"},
+    {file = "kconfiglib-14.1.0.tar.gz", hash = "sha256:bed2cc2216f538eca4255a83a4588d8823563cdd50114f86cf1a2674e602c93c"},
+]
+
+[[package]]
 name = "markdown-it-py"
 version = "3.0.0"
 description = "Python port of markdown-it. Markdown parsing, done right!"
@@ -1141,4 +1152,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "5ae030fe8778d085394291f7db619526772f1be9c1d65508ffdf97e4ccccca42"
+content-hash = "46e8657cb38ec8c257bbb274bf7e0d941faf54b1c9de74b8c1d889d7c0eb3370"
