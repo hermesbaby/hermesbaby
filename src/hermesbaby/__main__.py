@@ -40,6 +40,10 @@ def _load_config():
         kconfig.load_config(str(hermesbaby_config_file))
 
 
+def _set_env():
+    os.environ["HERMESBABY_CWD"] = os.getcwd()
+
+
 app = typer.Typer(
     help="The Software and Systems Engineers' Typewriter", no_args_is_help=True
 )
@@ -63,6 +67,7 @@ def new(
 ):
     """Create a new project"""
 
+    _set_env()
     _load_config()
 
     if directory is None:
@@ -98,6 +103,7 @@ def new(
 def configure(ctx: typer.Context):
     """Configure the project"""
 
+    _set_env()
     _load_config()
 
     # Set environment variable KCONFIG_CONFIG to the value of CFG_CONFIG_CUSTOM_FILE
@@ -116,17 +122,18 @@ def configure(ctx: typer.Context):
 def html(ctx: typer.Context):
     """Build HTML documentation"""
 
+    _set_env()
     _load_config()
 
     build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
     build_dir.mkdir(parents=True, exist_ok=True)
     command = f"""
-        sphinx-build \
-        -j 10 \
-        -W \
-        -c {str(CFG_CONFIG_DIR)} \
-        {kconfig.syms["BUILD__DIRS__SOURCE"].str_value} \
-        {build_dir} \
+        sphinx-build
+        -j 10
+        -W
+        -c {str(CFG_CONFIG_DIR)}
+        {kconfig.syms["BUILD__DIRS__SOURCE"].str_value}
+        {build_dir}
     """
     print(command)
     result = subprocess.run(command.split())
@@ -137,19 +144,21 @@ def html(ctx: typer.Context):
 def html_live(ctx: typer.Context):
     """Build HTML documentation with live reload"""
 
+    _set_env()
     _load_config()
 
     build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
     build_dir.mkdir(parents=True, exist_ok=True)
     command = f"""
-        sphinx-autobuild \
-        -j 10 \
-        -W \
-        -c {str(CFG_CONFIG_DIR)} \
-        {kconfig.syms["BUILD__DIRS__SOURCE"].str_value} \
-        {build_dir} \
-        --re-ignore '_tags/.*' \
-        --port {int(kconfig.syms["BUILD__PORTS__HTML__LIVE"].str_value)} \
+        sphinx-autobuild
+        -j 10
+        -W
+        -c {str(CFG_CONFIG_DIR)}
+        {kconfig.syms["BUILD__DIRS__SOURCE"].str_value}
+        {build_dir}
+        --watch {str(CFG_CONFIG_DIR)}
+        --re-ignore '_tags/.*'
+        --port {int(kconfig.syms["BUILD__PORTS__HTML__LIVE"].str_value)}
         --open-browser
     """
     print(command)

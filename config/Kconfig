@@ -14,6 +14,94 @@
 #                                                              #
 ################################################################
 
+
+menu "Document"
+
+config DOC__TITLE
+    string "Title"
+    default "The Default Title"
+
+
+config DOC__AUTHOR
+    string "Author"
+    default "The Default Author"
+
+
+config DOC__YEAR
+    int "Year"
+    default 1976
+
+
+config DOC__PROJECT
+    string "Project"
+    default "The Default Project"
+
+
+config DOC__LANGUAGE
+    string
+    default "en" if DOC_LANGUAGE_ENGLISH
+    default "de" if DOC_LANGUAGE_GERMAN
+
+    choice
+        prompt "Language"
+        default DOC_LANGUAGE_ENGLISH
+
+    config DOC_LANGUAGE_ENGLISH
+        bool "English"
+
+    config DOC_LANGUAGE_GERMAN
+        bool "German"
+
+    endchoice
+
+
+config DOC__CONFIDENTIALITY_LEVEL_LABEL
+    string
+    default "Confidentiality level" if DOC_LANGUAGE_ENGLISH
+    default "Vertraulichkeitsstufe" if DOC_LANGUAGE_GERMAN
+
+config DOC__CONFIDENTIALITY_LEVEL
+    string
+    default "Public"                if DOC_LANGUAGE_ENGLISH && DOC__CONFIDENTIALITY_PUBLIC
+    default "Internal"              if DOC_LANGUAGE_ENGLISH && DOC__CONFIDENTIALITY_INTERNAL
+    default "Confidential"          if DOC_LANGUAGE_ENGLISH && DOC__CONFIDENTIALITY_CONFIDENTIAL
+    default "Strictly confidential" if DOC_LANGUAGE_ENGLISH && DOC__CONFIDENTIALITY_STRICTLY_CONFIDENTIAL
+    default "Öffentlich"            if DOC_LANGUAGE_GERMAN  && DOC__CONFIDENTIALITY_PUBLIC
+    default "Intern"                if DOC_LANGUAGE_GERMAN  && DOC__CONFIDENTIALITY_INTERNAL
+    default "Vertraulich"           if DOC_LANGUAGE_GERMAN  && DOC__CONFIDENTIALITY_CONFIDENTIAL
+    default "Streng vertraulich"    if DOC_LANGUAGE_GERMAN  && DOC__CONFIDENTIALITY_STRICTLY_CONFIDENTIAL
+
+    choice
+        prompt "Confidentiality Level"
+        default DOC__CONFIDENTIALITY_STRICTLY_CONFIDENTIAL
+
+    config DOC__CONFIDENTIALITY_PUBLIC
+        bool "Public"
+        help
+            The document is public.
+
+    config DOC__CONFIDENTIALITY_INTERNAL
+        bool "Internal"
+        help
+            The document is internal.
+
+    config DOC__CONFIDENTIALITY_CONFIDENTIAL
+        bool "Confidential"
+        help
+            The document is confidential.
+
+    config DOC__CONFIDENTIALITY_STRICTLY_CONFIDENTIAL
+        bool "Strictly confidential"
+        help
+            The document is strictly confidential.
+
+    endchoice
+
+
+endmenu
+
+
+
 menu "Build"
 
 config BUILD__DIRS__SOURCE
