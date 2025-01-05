@@ -16,11 +16,19 @@
 
 [tool.poetry]
 name = "hermesbaby"
-version = "2024.12.26"
+version = "2025.01.07"
 description = "The Software and Systems Engineers' Typewriter"
 authors = ["basejumpa <alexander.mannwahrenberg@gmail.com>"]
 readme = "README.md"
-packages = [{include = "hermesbaby", from = "src"}]
+packages = [
+    {include = "hermesbaby", from = "src"}
+]
+include = [
+    "README.md",
+    "LICENSES.md",
+    "licenses/**",
+    "templates/**"
+]
 
 
 [tool.poetry.scripts]
@@ -30,11 +38,45 @@ hb = "hermesbaby.__main__:app"
 
 [tool.poetry.dependencies]
 python = "^3.10"
+atlassian-python-api = "^3.41.14"
+beautifulsoup4 = "^4.12.3"
 cookiecutter = "^2.6.0"
-sphinx = "^8.1.3"
-sphinx-autobuild = "^2024.10.3"
-typer = "^0.15.1"
+gitpython = "^3.1.43"
+jupyter-sphinx = "^0.5.3"
 kconfiglib = "^14.1.0"
+myst-nb = "^1.1.0"
+myst-parser = "^2.0.0"
+pandas = "^2.2.2"
+pillow = "^10.3.0"
+pip-system-certs = "^4.0"
+pyad = "^0.6.0"
+pytz = "^2024.1"
+pyyaml = "^6.0.1"
+robotframeworklexer = "^1.1"
+setuptools = "^69.5.1"
+sphinx = "7.2.6"  # Currently fixed version pf Sphinx in order to avoid crashes due to "unpickable configuration value. See https://github.com/sphinx-doc/sphinx/issues/12300
+sphinx-autobuild = "^2024.10.3"
+sphinx-copybutton = "^0.5.2"
+sphinx-datatables = "^0.2.1"
+sphinx-design = "^0.6.0"
+sphinx-material = "^0.0.36"
+sphinx-mdinclude = "^0.6.1"
+sphinx-needs = "^2.0.0"
+sphinx-tags = "^0.3.1"
+sphinx-toolbox = "^3.7.0"
+sphinxcontrib-bibtex = "^2.6.2"
+sphinxcontrib-datatemplates = "^0.11.0"
+sphinxcontrib-details-directive = "^0.1.0"
+sphinxcontrib-drawio = "^0.0.17"
+sphinxcontrib-mermaid = "^0.9.2"
+sphinxcontrib-plantuml = "^0.29"
+sphinxcontrib-svg2pdfconverter = "^1.2.2"
+sphinxext-rediraffe = "^0.2.7"
+sphinxfeed-lsaffre = "^0.3.5"
+typer = "^0.15.1"
+windows-curses = { version = "^2.3.3", markers = "sys_platform == 'win32'" }
+tzlocal = "^5.2"
+mlx-traceability = "^11.7.0"
 
 
 [tool.poetry.group.dev.dependencies]

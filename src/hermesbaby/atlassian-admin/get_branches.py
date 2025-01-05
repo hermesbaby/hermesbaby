@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 ################################################################
 #                                                              #
 #  This file is part of HermesBaby                             #
@@ -14,9 +16,9 @@
 #                                                              #
 ################################################################
 
-.devcontainer/.startup.log
-__pycache__/
-*.pyc
+# -*- coding: utf-8 -*-
+"""TODO: Add description here"""
 
-dist/
-
+# TODO: Implement this! See docs/Makefile and there the target publish-clean-orphans for requirements and user/external interfaces.
+print("TODO: Implement this!")
+exit(1)

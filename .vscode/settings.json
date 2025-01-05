@@ -20,7 +20,7 @@
         "**/__pycache__/": true,
         "**/*.pyc": true,
         ".pytest_cache": true,
-        ".venv/": true,
+        ".venv/": false,
         ".extensions/": true,
         ".user/": true,
         "poetry.lock": true

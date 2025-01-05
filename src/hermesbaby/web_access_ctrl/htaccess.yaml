@@ -1,0 +1,7 @@
+ldap-user:
+    - some-user
+    - some-other-user
+
+ldap-group:
+    - SOME_Group
+    - some_o-THER-gROUP

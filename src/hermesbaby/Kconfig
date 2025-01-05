@@ -14,7 +14,6 @@
 #                                                              #
 ################################################################
 
-
 menu "Document"
 
 config DOC__TITLE
@@ -102,10 +101,67 @@ endmenu
 
 
 
+menu "CM"
+
+config CM__TICKET_KEY
+    string "Ticket Key"
+    default "PRJ"
+
+endmenu
+
+
+
+menu "SCM"
+
+config SCM__HOST
+    string "Host (with port if necessary)"
+    default "host.some.com:4711"
+
+
+config SCM__OWNER_KIND
+    string
+    default "projects" if SCM__PROJECT
+    default "users"    if SCM__USER
+
+    choice
+        prompt "Kind of owner"
+        default SCM__PROJECT
+
+    config SCM__PROJECT
+        bool "project"
+
+    config SCM__USER
+        bool "user"
+
+    endchoice
+
+
+config SCM__OWNER
+    string "Owner"
+    default "SomeOwner"
+
+
+config SCM__REPO
+    string "Repository"
+    default "SomeRepository"
+
+
+config SCM__REPO__URL_GIT_CLIENT
+    string "URL to repository for git client"
+    default "https://github.com/hermesbaby/some-doc.git"
+
+endmenu
+
+
+
 menu "Build"
 
 config BUILD__DIRS__SOURCE
     string "Source Directory"
+    default "docs"
+
+config BUILD__DIRS__CONFIG
+    string "Config Directory"
     default "docs"
 
 config BUILD__DIRS__BUILD
@@ -116,4 +172,73 @@ config BUILD__PORTS__HTML__LIVE
     int "Port for live preview of HTML build"
     default 1976
 
+config BUILD__PORTS__PRESENTATION__LIVE
+    int "Port for live preview of presentation build"
+    default 1973
+
 endmenu
+
+
+menu "Link Patterns"
+
+config LINK_PATTERNS__JIRA
+    string "Link Pattern for :jira:"
+    default "https://github.com/hermesbaby/hermesbaby/issues/%s"
+
+config LINK_PATTERNS__REPO
+    string "Link Pattern for :repo:"
+    default "https://github.com/%s.git"
+
+config LINK_PATTERNS__USER
+    string "Link Pattern for :user:"
+    default "https://github.com/%s"
+
+endmenu
+
+
+menu "Styling"
+
+config STYLING__COLOR_PRIMARY
+    string "Primary Color"
+    default ""
+    help
+        The primary color of the document.
+        Leave empty for default color.
+        Options are red, pink, purple, deep-purple, indigo, blue,
+        light-blue, cyan, teal, green, light-green, lime, yellow, amber,
+        orange, deep-orange, brown, grey, blue-grey, and white.
+
+config STYLING__COLOR_ACCENT
+    string "Accent Color"
+    default ""
+    help
+        The accent color of the document.
+        Leave empty for default color.
+        Options are red, pink, purple, deep-purple, indigo, blue,
+        light-blue, cyan, teal, green, light-green, lime, yellow, amber,
+        orange, deep-orange, brown, grey, blue-grey, and white.
+
+endmenu
+
+
+
+menu "Publish"
+
+config PUBLISH__HOST
+    string "Host (with port if necessary)"
+    default "docs.some-host.com"
+
+config PUBLISH__CROSS_REFERENCES__USER
+    string "Inter Crossreference User"
+    default "intersphinx"
+    help
+        User which has access to cross reference index files of intersphinx `object.inv`
+
+config PUBLISH__CROSS_REFERENCES__PASSWORD
+    string "Inter Crossreference Password"
+    default "xnihpsretni"
+    help
+        Password of the user which has access to cross reference index files of intersphinx `object.inv`
+
+endmenu
+

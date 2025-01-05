@@ -1,0 +1,38 @@
+{
+    "buckets": [
+        {
+            "Name": "main",
+            "Source": "https://github.com/ScoopInstaller/Main"
+        },
+        {
+            "Name": "extras",
+            "Source": "https://github.com/ScoopInstaller/Extras"
+        },
+        {
+            "Name": "java",
+            "Source": "https://github.com/ScoopInstaller/Java"
+        },
+        {
+            "Name": "Versions",
+            "Source": "https://github.com/ScoopInstaller/Versions"
+        }
+    ],
+    "apps": [
+        {
+            "Source": "main",
+            "Name": "nodejs"
+        },
+        {
+            "Source": "java",
+            "Name": "openjdk"
+        },
+        {
+            "Source": "extras",
+            "Name": "draw.io"
+        },
+        {
+            "Source": "main",
+            "Name": "graphviz"
+        }
+    ]
+}

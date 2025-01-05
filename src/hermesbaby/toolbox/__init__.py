@@ -13,10 +13,3 @@
 #  - CC BY-SA-4.0 for contents used as method or otherwise     #
 #                                                              #
 ################################################################
-
-.devcontainer/.startup.log
-__pycache__/
-*.pyc
-
-dist/
-
