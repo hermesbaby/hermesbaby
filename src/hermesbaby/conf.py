@@ -131,7 +131,7 @@ _git_repo_version = ""
 _git_commit_sha_short = "n.a."
 _git_branch = "n.a."
 try:
-    _repo = git.Repo(search_parent_directories=True)
+    _repo = git.Repo(_src_realpath, search_parent_directories=True)
     try:
         _git_upstream_repo_url = _repo.remotes.origin.url
     except:
