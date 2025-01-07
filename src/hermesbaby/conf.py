@@ -47,16 +47,20 @@ if os.path.exists(hermesbaby_config_file):
     kconfig.load_config(hermesbaby_config_file)
     logger.info(f"Using configuration {hermesbaby_config_file}")
 else:
-    logger.info(f"File {hermesbaby_config_file} does not exist. Using default configuration only.")
+    logger.info(
+        f"File {hermesbaby_config_file} does not exist. Using default configuration only."
+    )
 
 
 ### PATHS #####################################################################
 
-_src_realpath = os.path.realpath(os.path.join(_cwd_realpath, kconfig.syms['BUILD__DIRS__SOURCE'].str_value))
+_src_realpath = os.path.realpath(
+    os.path.join(_cwd_realpath, kconfig.syms["BUILD__DIRS__SOURCE"].str_value)
+)
 
 
 def winning_config_realpath(filename: str) -> str:
-    """ Precedence: User overrides built-in."""
+    """Precedence: User overrides built-in."""
 
     config_realpath_user = os.path.join(_src_realpath, filename)
     config_realpath_builtin = os.path.join(_conf_realpath, filename)
@@ -65,6 +69,7 @@ def winning_config_realpath(filename: str) -> str:
         return config_realpath_user
     else:
         return config_realpath_builtin
+
 
 ###############################################################################
 
@@ -103,7 +108,7 @@ if False:
 
 builder = "dirhtml"
 if "-b" in sys.argv:
-    builder = sys.argv[sys.argv.index("-b")+1]
+    builder = sys.argv[sys.argv.index("-b") + 1]
 
 ### Project information #######################################################
 # @see https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -153,21 +158,23 @@ _commit = _git_repo_version
 if "" == _commit:
     _commit = _git_commit_sha_short
 
-project   = kconfig.syms['DOC__PROJECT'].str_value
-author    = kconfig.syms['DOC__AUTHOR'].str_value
-copyright = f"{kconfig.syms['DOC__YEAR'].str_value}, {kconfig.syms['DOC__AUTHOR'].str_value}"
+project = kconfig.syms["DOC__PROJECT"].str_value
+author = kconfig.syms["DOC__AUTHOR"].str_value
+copyright = (
+    f"{kconfig.syms['DOC__YEAR'].str_value}, {kconfig.syms['DOC__AUTHOR'].str_value}"
+)
 
 
 _confidential_level = f"{kconfig.syms['DOC__CONFIDENTIALITY_LEVEL_LABEL'].str_value}: {kconfig.syms['DOC__CONFIDENTIALITY_LEVEL'].str_value}"
 
 ### Construct meta-data header:
 
-_metadata   = f"commit: {_commit} | branch: {_git_branch} | printed at {_print_out_timestamp} by {_username} | {_confidential_level}"
+_metadata = f"commit: {_commit} | branch: {_git_branch} | printed at {_print_out_timestamp} by {_username} | {_confidential_level}"
 
 ## Add CI information
 # Indicator is the environment variable "BUILD_NUMBER" which is set by the CI/CD system.
 
-_build_number = os.environ.get('BUILD_NUMBER')
+_build_number = os.environ.get("BUILD_NUMBER")
 if _build_number is not None:
     _metadata += f" | Jenkins build-no: {_build_number}"
 
@@ -187,15 +194,11 @@ rst_prolog = f"""
 # @see https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 # @see https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-language
-language = kconfig.syms['DOC__LANGUAGE'].str_value
+language = kconfig.syms["DOC__LANGUAGE"].str_value
 
 templates_path = []
 
-source_suffix = [
-    ".rst",
-    ".md",
-    ".ipynb"
-]
+source_suffix = [".rst", ".md", ".ipynb"]
 
 exclude_patterns = [
     "README.md",
@@ -227,14 +230,14 @@ html_theme = "sphinx_material"
 # Esbonio language server we use in VSCode for previewing crashes when using the "sphinx_material" theme.
 # We use environment variable "VSCODE_CLI" to detect if we are in the VSCode environment.
 
-if os.environ.get('VSCODE_CLI') is not None:
-    pass #html_theme = "classic"
+if os.environ.get("VSCODE_CLI") is not None:
+    pass  # html_theme = "classic"
 
 
 # The theme settings are theme specific. So wrap their settings into if-clauses for easy
 # switching of themes.
-if "sphinx_material" == html_theme: ###########################################
-# @eee https://bashtage.github.io/sphinx-material/customization.html
+if "sphinx_material" == html_theme:  ###########################################
+    # @eee https://bashtage.github.io/sphinx-material/customization.html
 
     html_sidebars = {
         "**": ["logo-text.html", "globaltoc.html", "localtoc.html", "searchbox.html"]
@@ -242,38 +245,38 @@ if "sphinx_material" == html_theme: ###########################################
 
     html_theme_options = {
         "repo_name": "Code",
-
         "globaltoc_depth": 3,
         "globaltoc_collapse": "true",
         "globaltoc_includehidden": "true",
-
-        #"localtoc_label_text": "Seiteninhalt",
+        # "localtoc_label_text": "Seiteninhalt",
         "localtoc_label_text": "Auf dieser Seite",
     }
 
     ## repo_url ###########################################
-    html_theme_options["repo_url"] = f"https://{kconfig.syms['SCM__HOST'].str_value}/{kconfig.syms['SCM__OWNER_KIND'].str_value}/{kconfig.syms['SCM__OWNER'].str_value}/repos/{kconfig.syms['SCM__REPO'].str_value}/browse"
+    html_theme_options["repo_url"] = (
+        f"https://{kconfig.syms['SCM__HOST'].str_value}/{kconfig.syms['SCM__OWNER_KIND'].str_value}/{kconfig.syms['SCM__OWNER'].str_value}/repos/{kconfig.syms['SCM__REPO'].str_value}/browse"
+    )
 
     ## nav_title ##########################################
-    html_theme_options["nav_title"] = kconfig.syms['DOC__TITLE'].str_value
+    html_theme_options["nav_title"] = kconfig.syms["DOC__TITLE"].str_value
 
-    if "" != kconfig.syms['STYLING__COLOR_PRIMARY'].str_value:
-        html_theme_options["color_primary"] = kconfig.syms['STYLING__COLOR_PRIMARY'].str_value
+    if "" != kconfig.syms["STYLING__COLOR_PRIMARY"].str_value:
+        html_theme_options["color_primary"] = kconfig.syms[
+            "STYLING__COLOR_PRIMARY"
+        ].str_value
 
-    if "" != kconfig.syms['STYLING__COLOR_ACCENT'].str_value:
-        html_theme_options["color_accent"] = kconfig.syms['STYLING__COLOR_ACCENT'].str_value
+    if "" != kconfig.syms["STYLING__COLOR_ACCENT"].str_value:
+        html_theme_options["color_accent"] = kconfig.syms[
+            "STYLING__COLOR_ACCENT"
+        ].str_value
 
     html_title = f"{_metadata}"
 
-elif "classic" == html_theme: #################################################
-    html_sidebars = {
-        "**": []
-    }
+elif "classic" == html_theme:  #################################################
+    html_sidebars = {"**": []}
 
-elif "pydata_sphinx_theme" == html_theme: #####################################
-    html_theme_options = {
-    "show_toc_level": 2
-    }
+elif "pydata_sphinx_theme" == html_theme:  #####################################
+    html_theme_options = {"show_toc_level": 2}
 
     pass
 
@@ -293,11 +296,9 @@ if os.path.exists(web_root_dir):
 # @see more settings at https://www.sphinx-doc.org/en/master/latex.html#the-latex-elements-configuration-setting
 
 latex_elements = {
-
-    "papersize"   : "a4paper",
-    "pointsize"   : "12pt",
-
-    "preamble" : r"""
+    "papersize": "a4paper",
+    "pointsize": "12pt",
+    "preamble": r"""
 \setlength{\headheight}{15pt}
 \addtolength{\topmargin}{-3pt}
 \usepackage[utf8]{inputenc}
@@ -336,29 +337,30 @@ latex_elements = {
 \makeatother
 
 
-"""
+""",
 }
+
 
 # @see https://chatgpt.com/share/1ed3fcdf-0405-45a3-9fd6-fcb97d7e793c
 def sanitize_filename(internal_string):
     # Normalize the string to decompose special characters (like umlauts)
     normalized_string = internal_string
-    #normalized_string = unicodedata.normalize('NFKD', internal_string)
+    # normalized_string = unicodedata.normalize('NFKD', internal_string)
 
     # Encode the normalized string to ASCII bytes, ignoring non-ASCII characters
-    ascii_bytes = normalized_string.encode('ascii', 'ignore')
+    ascii_bytes = normalized_string.encode("ascii", "ignore")
 
     # Decode the bytes back to a string
-    ascii_string = ascii_bytes.decode('ascii')
+    ascii_string = ascii_bytes.decode("ascii")
 
     # Replace spaces and other undesirable characters with underscores
-    safe_string = re.sub(r'[^\w\s-]', '', ascii_string).strip().lower()
-    safe_string = re.sub(r'[-\s]+', '_', safe_string)
+    safe_string = re.sub(r"[^\w\s-]", "", ascii_string).strip().lower()
+    safe_string = re.sub(r"[-\s]+", "_", safe_string)
 
     return safe_string
 
 
-_pdf_basename = sanitize_filename(kconfig.syms['DOC__TITLE'].str_value)
+_pdf_basename = sanitize_filename(kconfig.syms["DOC__TITLE"].str_value)
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto, manual, or own class]).
@@ -366,16 +368,16 @@ latex_documents = [
     (
         "index",
         f"{_pdf_basename}.tex",
-        kconfig.syms['DOC__TITLE'].str_value,
+        kconfig.syms["DOC__TITLE"].str_value,
         author,
-        "manual"
+        "manual",
     ),
     (
         "00-Project-Manual/index",
         f"Projekthandbuch-{project}.tex",
         project,
         author,
-        "manual"
+        "manual",
     ),
 ]
 
@@ -418,16 +420,16 @@ if os.path.exists(redirects_file):
 extensions.append("sphinxfeed")
 
 # mandatory options
-feed_base_url     = f"https://{kconfig.syms['PUBLISH__HOST'].str_value}"
-feed_description  = f"{kconfig.syms['DOC__TITLE'].str_value}"
-feed_author       = kconfig.syms['DOC__AUTHOR'].str_value
+feed_base_url = f"https://{kconfig.syms['PUBLISH__HOST'].str_value}"
+feed_description = f"{kconfig.syms['DOC__TITLE'].str_value}"
+feed_author = kconfig.syms["DOC__AUTHOR"].str_value
 
 # optional options
-feed_field_name      = _print_out_timestamp
-feed_filename        = "rss.xml"
+feed_field_name = _print_out_timestamp
+feed_filename = "rss.xml"
 feed_entry_permalink = True
-feed_use_atom        = True
-use_dirhtml          = False
+feed_use_atom = True
+use_dirhtml = False
 
 
 ### Draw diagrams with "draw.io" ##############################################
@@ -452,12 +454,14 @@ if "Linux" == platform.system():
 
 ## Settings regarding the output
 
-drawio_default_export_scale = 100   # Default: 100
+drawio_default_export_scale = 100  # Default: 100
 drawio_default_transparency = True  # Default: False
-drawio_builder_export_format = {    # dict ( builder: format (one out of: ["png", "jpg", "svg", "pdf"]) )
-    "html": "svg",
-    "latex": "pdf",
-}
+drawio_builder_export_format = (
+    {  # dict ( builder: format (one out of: ["png", "jpg", "svg", "pdf"]) )
+        "html": "svg",
+        "latex": "pdf",
+    }
+)
 
 
 ### Embedd diagrams as code in plantuml language with "plantuml" #############
@@ -469,7 +473,7 @@ extensions.append("sphinxcontrib.plantuml")
 
 ## Settings regarding run in headless mode
 
-_plantuml_config_file="plantuml.config"
+_plantuml_config_file = "plantuml.config"
 
 
 plantuml = f"java -jar {os.path.join(_tools_realpath, 'plantuml.jar')} -config {winning_config_realpath(_plantuml_config_file)}"
@@ -493,10 +497,13 @@ extensions.append("sphinxcontrib.mermaid")
 
 mermaid_output_format = "svg"
 
+
 def setup_app__mermaid(app):
-    app.connect('builder-inited', _mermaid_on_builder_inited)
+    app.connect("builder-inited", _mermaid_on_builder_inited)
+
 
 app_setups.append(setup_app__mermaid)
+
 
 def _mermaid_on_builder_inited(app):
 
@@ -504,22 +511,23 @@ def _mermaid_on_builder_inited(app):
         # Override setting(s)
         app.config.mermaid_output_format = "pdf"
 
+
 # This allows commands other than binary executables to be executed on Windows.
 # Does work on Windows, only.
 if "Windows" == platform.system():
     mermaid_cmd_shell = "True"
 
 # For individual parameters, a list of parameters can be added. Refer to https://github.com/mermaidjs/mermaid.cli#options.
-mermaid_params =  []
+mermaid_params = []
 
 # Make it work under Linux as root (in CI in docker container)
 # Works on Windows with any user as well.
 mermaid_params += ["-p", winning_config_realpath("puppeteer.config.json")]
 
 # Styling
-mermaid_params += [ "--backgroundColor", "transparent"]
+mermaid_params += ["--backgroundColor", "transparent"]
 mermaid_params += ["--theme", "forest"]
-mermaid_params += ["--width", "400" ]
+mermaid_params += ["--width", "400"]
 
 mermaid_d3_zoom = True
 
@@ -568,12 +576,12 @@ tags_page_header = "Tags"
 tags_page_title = "Seiten getaggt mit"
 
 tags_badge_colors = {
-    "in_work"        : "warrning",
-    "draft"          : "dark",
-    "in_review"      : "primary",
-    "approved"       : "success",
-    "info"           : "info",
-    "in_doubt"       : "danger",
+    "in_work": "warrning",
+    "draft": "dark",
+    "in_review": "primary",
+    "approved": "success",
+    "info": "info",
+    "in_doubt": "danger",
 }
 
 
@@ -591,7 +599,8 @@ from sphinx.highlighting import lexers
 # Register lexer for *.robot files
 
 from robotframeworklexer import RobotFrameworkLexer
-lexers['robot'] = RobotFrameworkLexer()
+
+lexers["robot"] = RobotFrameworkLexer()
 
 
 # Register <next-lexer-to-come>
@@ -613,8 +622,9 @@ extensions.append("sphinxcontrib.bibtex")
 bibtex_bibfiles = []
 
 bibtex_bibfiles_candidates = [
-    os.path.join(_src_realpath,  "references.bib"),
+    os.path.join(_src_realpath, "references.bib"),
 ]
+
 
 def append_existing_files(file_list, filenames_to_check):
     for filename in filenames_to_check:
@@ -622,6 +632,7 @@ def append_existing_files(file_list, filenames_to_check):
             file_list.append(filename)
         else:
             logger.info(f"There is no '{filename}'.")
+
 
 append_existing_files(bibtex_bibfiles, bibtex_bibfiles_candidates)
 
@@ -638,9 +649,9 @@ extensions.append("sphinxcontrib.inkscapeconverter")
 extensions.append("sphinx.ext.extlinks")
 
 extlinks = {
-    "jira": (kconfig.syms['LINK_PATTERNS__JIRA'].str_value,"%s"),
-    "repo": (kconfig.syms['LINK_PATTERNS__REPO'].str_value,"%s"),
-    "user": (kconfig.syms['LINK_PATTERNS__USER'].str_value, "%s"),
+    "jira": (kconfig.syms["LINK_PATTERNS__JIRA"].str_value, "%s"),
+    "repo": (kconfig.syms["LINK_PATTERNS__REPO"].str_value, "%s"),
+    "user": (kconfig.syms["LINK_PATTERNS__USER"].str_value, "%s"),
 }
 
 extlinks_detect_hardcoded_links = False
@@ -652,7 +663,10 @@ extlinks_detect_hardcoded_links = False
 
 _intersphinx_delayed_log_messages = []
 
-def _intersphinx_populate_mapping(config_path: str, user: str = None, password: str = None):
+
+def _intersphinx_populate_mapping(
+    config_path: str, user: str = None, password: str = None
+):
     """Populate intersphinx_mapping with tuples (URL, None)"""
 
     REF_INDEX_FILE = "objects.inv"
@@ -662,19 +676,32 @@ def _intersphinx_populate_mapping(config_path: str, user: str = None, password: 
     # Read in the YAML file
     config_data = None
     try:
-        with open(config_path, 'r', encoding='utf-8') as config_file:
+        with open(config_path, "r", encoding="utf-8") as config_file:
             config_data = yaml.safe_load(config_file)
             ret_val = {
-                spec['identifier']: (spec['url'], None)
-                for spec in config_data.get('specifications', [])
+                spec["identifier"]: (spec["url"], None)
+                for spec in config_data.get("specifications", [])
             }
-            _intersphinx_delayed_log_messages.append( dict(level="info", text=f"Loaded intersphinx mappings from {config_path}") )
+            _intersphinx_delayed_log_messages.append(
+                dict(
+                    level="info", text=f"Loaded intersphinx mappings from {config_path}"
+                )
+            )
     except FileNotFoundError:
-        _intersphinx_delayed_log_messages.append( dict(level="info", text=f"{config_path} not found. 'intersphinx' stays disabled.") )
+        _intersphinx_delayed_log_messages.append(
+            dict(
+                level="info",
+                text=f"{config_path} not found. 'intersphinx' stays disabled.",
+            )
+        )
     except yaml.YAMLError as e:
-        _intersphinx_delayed_log_messages.append( dict(level="error", text=f"Error parsing YAML from {config_path}: {e}") )
+        _intersphinx_delayed_log_messages.append(
+            dict(level="error", text=f"Error parsing YAML from {config_path}: {e}")
+        )
     except KeyError as e:
-        _intersphinx_delayed_log_messages.append( dict(level="error", text=f"Missing expected key in YAML data: {e}") )
+        _intersphinx_delayed_log_messages.append(
+            dict(level="error", text=f"Missing expected key in YAML data: {e}")
+        )
 
     # Inject user and password into URLs
     if user and password:
@@ -693,11 +720,23 @@ def _intersphinx_populate_mapping(config_path: str, user: str = None, password: 
         try:
             response = requests.head(f"{url}/{REF_INDEX_FILE}", verify=False)
             if response.status_code == 200:
-                _intersphinx_delayed_log_messages.append( dict(level="info", text=f"Found cross-reference index file at {url_wo_auth} (HTTP {response.status_code})") )
+                _intersphinx_delayed_log_messages.append(
+                    dict(
+                        level="info",
+                        text=f"Found cross-reference index file at {url_wo_auth} (HTTP {response.status_code})",
+                    )
+                )
             else:
-                _intersphinx_delayed_log_messages.append( dict(level="warning", text=f"Cross-reference index file not found at {url_wo_auth} (HTTP {response.status_code}). Check {{config_path}}") )
+                _intersphinx_delayed_log_messages.append(
+                    dict(
+                        level="warning",
+                        text=f"Cross-reference index file not found at {url_wo_auth} (HTTP {response.status_code}). Check {{config_path}}",
+                    )
+                )
         except requests.exceptions.RequestException as e:
-            _intersphinx_delayed_log_messages.append( dict(level="error", text=f"Error while probing {url_wo_auth}: {e}") )
+            _intersphinx_delayed_log_messages.append(
+                dict(level="error", text=f"Error while probing {url_wo_auth}: {e}")
+            )
 
     return ret_val
 
@@ -717,10 +756,10 @@ def setup_app__intersphinx(app):
 
 
 intersphinx_mapping = _intersphinx_populate_mapping(
-        config_path = os.path.join(_conf_realpath, 'cross-doc-ref.config.yaml'),
-        user=kconfig.syms['PUBLISH__CROSS_REFERENCES__USER'].str_value,
-        password=kconfig.syms['PUBLISH__CROSS_REFERENCES__PASSWORD'].str_value
-    )
+    config_path=os.path.join(_conf_realpath, "cross-doc-ref.config.yaml"),
+    user=kconfig.syms["PUBLISH__CROSS_REFERENCES__USER"].str_value,
+    password=kconfig.syms["PUBLISH__CROSS_REFERENCES__PASSWORD"].str_value,
+)
 
 
 def _intersphinx__workaround_corporate_ssl_certificates():
@@ -736,18 +775,19 @@ def _intersphinx__workaround_corporate_ssl_certificates():
 
     fetch_inventory = patched_fetch_inventory
 
+
 # TODO: Activate (if activated this will lead to necessity of working communication to the hosts specified in the cross-doc-ref.config.yaml) ). Do not activate before a tolerance is built in to enable a "limb-build" when no connection is available.
 # TODO: Also introduce a dedicated kconfig.syms['PUBLISH__CROSS_REFERENCES__ENABLE'].str_value to enable/disable the intersphinx feature.
 if False:
-  app_setups.append(setup_app__intersphinx)
+    app_setups.append(setup_app__intersphinx)
 
 
 # Activate intersphinx in case configuration file exists and there is at least one entry below `specifications`
 # TODO: Activate after issue with ssl certificates on CIBS is solved
 if False:
-  if intersphinx_mapping:
-    extensions.append("sphinx.ext.intersphinx")
-    _intersphinx__workaround_corporate_ssl_certificates()
+    if intersphinx_mapping:
+        extensions.append("sphinx.ext.intersphinx")
+        _intersphinx__workaround_corporate_ssl_certificates()
 
 
 ### Link documentation items with "mlx.traceability" ##########################
@@ -757,18 +797,20 @@ extensions.append("mlx.traceability")
 
 import mlx.traceability
 
-html_static_path.append(os.path.join(os.path.dirname(mlx.traceability.__file__), "assets"))
+html_static_path.append(
+    os.path.join(os.path.dirname(mlx.traceability.__file__), "assets")
+)
 
 traceability_relationships = {
-    'jira': '',
+    "jira": "",
 }
 
 traceability_relationship_to_string = {
-    'jira': 'JIRA item',
+    "jira": "JIRA item",
 }
 
 traceability_external_relationship_to_url = {
-    'jira': 'https://jira.yourcompany.com/browse/field1',
+    "jira": "https://jira.yourcompany.com/browse/field1",
 }
 
 traceability_render_relationship_per_item = True
@@ -787,16 +829,56 @@ needs_title_optional = True
 
 needs_types = [
     # Own items
-    dict(directive="usecase", title="UseCase", prefix="UC_", color="#FFFFFF", style="usecase"),
-    dict(directive="block", title="Block", prefix="BLOCK_", color="#FFFFFF", style="component"),
-    dict(directive="connection", title="Connection", prefix="CON_", color="#FFFFFF", style="interface"),
-    dict(directive="component", title="Component", prefix="COMP_", color="#FFFFFF", style="component"),
-    dict(directive="interface", title="Interface", prefix="IF_", color="#FFFFFF", style="interface"),
-
+    dict(
+        directive="usecase",
+        title="UseCase",
+        prefix="UC_",
+        color="#FFFFFF",
+        style="usecase",
+    ),
+    dict(
+        directive="block",
+        title="Block",
+        prefix="BLOCK_",
+        color="#FFFFFF",
+        style="component",
+    ),
+    dict(
+        directive="connection",
+        title="Connection",
+        prefix="CON_",
+        color="#FFFFFF",
+        style="interface",
+    ),
+    dict(
+        directive="component",
+        title="Component",
+        prefix="COMP_",
+        color="#FFFFFF",
+        style="component",
+    ),
+    dict(
+        directive="interface",
+        title="Interface",
+        prefix="IF_",
+        color="#FFFFFF",
+        style="interface",
+    ),
     # Incoming items
-    dict(directive="jira_spec", title="JIRA-Spec", prefix="JIRA_SPEC", color="#FFFFFF", style="file"),
-
-    dict(directive="jira_req", title="JIRA-Req", prefix="JIRA_REQ_", color="#FFFFFF", style="file")
+    dict(
+        directive="jira_spec",
+        title="JIRA-Spec",
+        prefix="JIRA_SPEC",
+        color="#FFFFFF",
+        style="file",
+    ),
+    dict(
+        directive="jira_req",
+        title="JIRA-Req",
+        prefix="JIRA_REQ_",
+        color="#FFFFFF",
+        style="file",
+    ),
 ]
 
 ## Wishes to be implemented in the future in sphinx_needs:
@@ -805,19 +887,19 @@ needs_types = [
 #   dict(directive="uc", ...) makes available directive .. usecase:: and also role :uc:`UC_1234`.
 
 
-
 ### Render reST from data in any format using Jinja2 templating engine ######
 # @see https://jinja.palletsprojects.com/templates
 # @see https://sphinxcontribdatatemplates.readthedocs.io/en/latest/index.html
 
 extensions.append("sphinxcontrib.datatemplates")
 
-templates_path.append(os.path.join(_src_realpath,  "datatemplates"))
+templates_path.append(os.path.join(_src_realpath, "datatemplates"))
 
 
 import html
 from bs4 import BeautifulSoup
 import re
+
 
 def html_to_rst(html_content):
     """
@@ -833,21 +915,24 @@ def html_to_rst(html_content):
     unescaped_content = html.unescape(html_content)
 
     # Parse HTML content
-    soup = BeautifulSoup(unescaped_content, 'html.parser')
+    soup = BeautifulSoup(unescaped_content, "html.parser")
 
     # Convert HTML to reST
     rst_content = convert_tags_to_rst(soup)
 
     # Remove subsequent empty lines from the text
-    rst_content = re.sub(r'\n\s*\n+', '\n\n', rst_content)
+    rst_content = re.sub(r"\n\s*\n+", "\n\n", rst_content)
 
     # Apply intendation
     indent_spaces = 4
-    indent = ' ' * indent_spaces
-    indented_lines = [(indent + line if line.strip() else line) for line in rst_content.split('\n')]
-    rst_content = '\n'.join(indented_lines)
+    indent = " " * indent_spaces
+    indented_lines = [
+        (indent + line if line.strip() else line) for line in rst_content.split("\n")
+    ]
+    rst_content = "\n".join(indented_lines)
 
     return rst_content
+
 
 def convert_tags_to_rst(element):
     """
@@ -863,28 +948,38 @@ def convert_tags_to_rst(element):
         return str(element)
 
     rst_content = ""
-    if element.name == 'b' or element.name == 'strong':
+    if element.name == "b" or element.name == "strong":
         rst_content += f"**{element.get_text()}**"
-    elif element.name == 'i' or element.name == 'em':
+    elif element.name == "i" or element.name == "em":
         rst_content += f"*{element.get_text()}*"
-    elif element.name == 'a':
-        href = element.get('href', '')
+    elif element.name == "a":
+        href = element.get("href", "")
         text = element.get_text()
         rst_content += f"`{text} <{href}>`_"
-    elif element.name == 'p':
+    elif element.name == "p":
         rst_content += f"\n\n{element.get_text()}\n\n"
-    elif element.name == 'br':
+    elif element.name == "br":
         rst_content += "\n"
-    elif element.name == 'h1':
+    elif element.name == "h1":
         text = element.get_text()
         rst_content += f"\n\n{text}\n{'=' * len(text)}\n\n"
-    elif element.name == 'h2':
+    elif element.name == "h2":
         text = element.get_text()
         rst_content += f"\n\n{text}\n{'-' * len(text)}\n\n"
-    elif element.name == 'ul':
-        rst_content += "\n\n" + ''.join([f"* {convert_tags_to_rst(li)}\n" for li in element.find_all('li', recursive=False)])
-    elif element.name == 'ol':
-        rst_content += "\n\n" + ''.join([f"#. {convert_tags_to_rst(li)}\n" for li in element.find_all('li', recursive=False)])
+    elif element.name == "ul":
+        rst_content += "\n\n" + "".join(
+            [
+                f"* {convert_tags_to_rst(li)}\n"
+                for li in element.find_all("li", recursive=False)
+            ]
+        )
+    elif element.name == "ol":
+        rst_content += "\n\n" + "".join(
+            [
+                f"#. {convert_tags_to_rst(li)}\n"
+                for li in element.find_all("li", recursive=False)
+            ]
+        )
     else:
         # Handle other tags or nested content
         for child in element.children:
@@ -892,10 +987,13 @@ def convert_tags_to_rst(element):
 
     return rst_content
 
+
 def setup_app__datatemplates(app):
-    app.connect('builder-inited', _datatemplates_on_builder_inited)
+    app.connect("builder-inited", _datatemplates_on_builder_inited)
+
 
 app_setups.append(setup_app__datatemplates)
+
 
 def _datatemplates_on_builder_inited(app):
 
@@ -904,7 +1002,7 @@ def _datatemplates_on_builder_inited(app):
         env = app.builder.templates.environment
 
         # Register the custom filter
-        env.filters['html_to_rst'] = html_to_rst
+        env.filters["html_to_rst"] = html_to_rst
 
 
 ### Add other markdown formats other than .rst  ##############################
@@ -967,30 +1065,30 @@ nb_execution_timeout = 60
 ### BEGIN OF EXTENSIONS UNDER EARLY DEVELOPMENT ###############################
 ###############################################################################
 
-sys.path.append(os.path.join(_conf_realpath, '..'))
+sys.path.append(os.path.join(_conf_realpath, ".."))
 
 ### Tag sections, paragraphs, figures, ... anything ###########################
 # @see ../sphinx-contrib/pre-post-build/README.md
 
 
-extensions.append('hermesbaby.pre-post-build')
+extensions.append("hermesbaby.pre-post-build")
 
 pre_post_build_programs = {
     "post": [
         {
-            "name"     : "Create PDF from Latex code",
-            "builder"  : "latex",
-            "program"  : "make",
-            "cwd"      : "$outputdir",
-            "severity" : "info"
+            "name": "Create PDF from Latex code",
+            "builder": "latex",
+            "program": "make",
+            "cwd": "$outputdir",
+            "severity": "info",
         },
         {
-            "name"     : "View",
-            "builder"  : "latex",
-            "program"  : "sumatrapdf",
-            "args"     : [f"$outputdir\\{_pdf_basename}.pdf"],
-            "severity" : "info"
-        }
+            "name": "View",
+            "builder": "latex",
+            "program": "sumatrapdf",
+            "args": [f"$outputdir\\{_pdf_basename}.pdf"],
+            "severity": "info",
+        },
     ]
 }
 
@@ -998,7 +1096,7 @@ pre_post_build_programs = {
 ### Conditional toctree entries with toctree-only #############################
 # @see ../sphinx-contrib/toctree-only/README.md
 
-extensions.append('hermesbaby.toctree-only')
+extensions.append("hermesbaby.toctree-only")
 
 
 ## By applying Jinja2 Templating Engine every rst file ########################
@@ -1010,7 +1108,10 @@ extensions.append('hermesbaby.toctree-only')
 # @see https://jinja.palletsprojects.com/en/3.0.x/api/
 
 
-config_as_dict = {key : symbol.str_value for key, symbol in kconfig.syms.items() if symbol.visibility}
+config_as_dict = {
+    key: symbol.str_value for key, symbol in kconfig.syms.items() if symbol.visibility
+}
+
 
 def rstjinja(app, docname, source):
     """
@@ -1018,10 +1119,7 @@ def rstjinja(app, docname, source):
     """
     src = source[0]
     try:
-        rendered = app.builder.templates.render_string(
-            src,
-            app.config.config_as_dict
-        )
+        rendered = app.builder.templates.render_string(src, app.config.config_as_dict)
     except:
         print("ERROR in Jinja template while processing " + docname)
 
@@ -1029,8 +1127,9 @@ def rstjinja(app, docname, source):
 
 
 def setup_app__rstjinja(app):
-    app.add_config_value(name='config_as_dict', default={}, rebuild=True)
+    app.add_config_value(name="config_as_dict", default={}, rebuild=True)
     app.connect("source-read", rstjinja)
+
 
 app_setups.append(setup_app__rstjinja)
 
@@ -1039,6 +1138,7 @@ app_setups.append(setup_app__rstjinja)
 ###############################################################################
 
 ### Call all the above collected app setups functions #########################
+
 
 def setup(app):
     for app_setup in app_setups:

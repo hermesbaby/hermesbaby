@@ -47,7 +47,9 @@ def _load_config():
         _kconfig.load_config(str(hermesbaby__config_file))
         logger.info(f"Using configuration {hermesbaby__config_file}")
     else:
-        logger.info("File {hermesbaby__config_file} does not exist. Using default config only.")
+        logger.info(
+            "File {hermesbaby__config_file} does not exist. Using default config only."
+        )
 
 
 def _set_env():
@@ -74,7 +76,6 @@ def setup(ctx: typer.Context):
 
     tools_dir = CFG_CONFIG_DIR / "tools"
 
-
     ## Plantuml
     version = "1.2024.7"
     plantuml_url = f"https://github.com/plantuml/plantuml/releases/download/v{version}/plantuml-{version}.jar"
@@ -89,7 +90,7 @@ def setup(ctx: typer.Context):
     try:
         response = requests.get(plantuml_url, stream=True)
         response.raise_for_status()  # Raise an exception for HTTP errors
-        with open(plantuml_path, 'wb') as out_file:
+        with open(plantuml_path, "wb") as out_file:
             for chunk in response.iter_content(chunk_size=8192):
                 out_file.write(chunk)
         print("PlantUML setup complete!")
@@ -158,7 +159,6 @@ def configure(ctx: typer.Context):
     print(command)
     result = subprocess.run(command.split())
 
-
     # Don't retain any *.old file
     Path(CFG_CONFIG_CUSTOM_FILE + ".old").unlink(missing_ok=True)
 
@@ -178,7 +178,6 @@ def html(ctx: typer.Context):
     command = f"""
         {executable}
         -b html
-        -j 10
         -W
         -c {str(CFG_CONFIG_DIR)}
         {_kconfig.syms["BUILD__DIRS__SOURCE"].str_value}
@@ -240,9 +239,16 @@ def htaccess_update():
     from .web_access_ctrl import create_htaccess_entries
 
     yaml_template_file = os.path.join(CFG_CONFIG_DIR, "htaccess.yaml")
-    yaml_file = os.path.join(_kconfig.syms["BUILD__DIRS__SOURCE"].str_value, "htaccess.yaml")
-    outfile_file = os.path.join(_kconfig.syms["BUILD__DIRS__SOURCE"].str_value, "web_root", ".htaccess")
-    expand_file = os.path.join(_kconfig.syms["BUILD__DIRS__SOURCE"].str_value, "99-Appendix/99-Access-to-Published-Document/_tables/htaccess__all_users.yaml")
+    yaml_file = os.path.join(
+        _kconfig.syms["BUILD__DIRS__SOURCE"].str_value, "htaccess.yaml"
+    )
+    outfile_file = os.path.join(
+        _kconfig.syms["BUILD__DIRS__SOURCE"].str_value, "web_root", ".htaccess"
+    )
+    expand_file = os.path.join(
+        _kconfig.syms["BUILD__DIRS__SOURCE"].str_value,
+        "99-Appendix/99-Access-to-Published-Document/_tables/htaccess__all_users.yaml",
+    )
 
     if not os.path.exists(yaml_file):
         print(f"Created template file {yaml_file}")
@@ -278,7 +284,9 @@ def publish():
         typer.echo(f"Could not get git branch. Aborting publish step", err=True)
         raise typer.Exit(code=1)
 
-    publish_url = f"https://{publish_host}/{scm_owner_kind}/{scm_owner}/{scm_repo}/{git_branch}"
+    publish_url = (
+        f"https://{publish_host}/{scm_owner_kind}/{scm_owner}/{scm_repo}/{git_branch}"
+    )
 
     try:
         typer.echo(f"Publishing to {publish_url}")
@@ -287,26 +295,30 @@ def publish():
         subprocess.run(["chmod", "600", str(ssh_key_path)], check=True, text=True)
 
         # Create and clean up remote directories
-        ssh_cleanup_command = (f"ssh "
-        f"-o StrictHostKeyChecking=no "
-        f"-o UserKnownHostsFile=/dev/null "
-        f"-i {ssh_key_path} "
-        f"{scm_owner}@{publish_host} "
-        f"\"(mkdir -p /var/www/html/{scm_owner_kind}/{scm_owner}/{scm_repo} "
-        f"&&  cd /var/www/html/{scm_owner_kind}/{scm_owner}/{scm_repo} "
-        f"&& rm -rf {git_branch})\"")
+        ssh_cleanup_command = (
+            f"ssh "
+            f"-o StrictHostKeyChecking=no "
+            f"-o UserKnownHostsFile=/dev/null "
+            f"-i {ssh_key_path} "
+            f"{scm_owner}@{publish_host} "
+            f'"(mkdir -p /var/www/html/{scm_owner_kind}/{scm_owner}/{scm_repo} '
+            f"&&  cd /var/www/html/{scm_owner_kind}/{scm_owner}/{scm_repo} "
+            f'&& rm -rf {git_branch})"'
+        )
         subprocess.run(ssh_cleanup_command, shell=True, check=True, text=True)
 
         # Compress and transfer files
-        tar_command = (f"tar -czf - "
-        f"-C {dir_build}/html . "
-        f"| ssh "
-        f"-o StrictHostKeyChecking=no "
-        f"-o UserKnownHostsFile=/dev/null "
-        f"-i {ssh_key_path} {scm_owner}@{publish_host} "
-        f"\"(cd /var/www/html/{scm_owner_kind}/{scm_owner}/{scm_repo} "
-        f"&& mkdir -p {git_branch} "
-        f"&& tar -xzf - -C {git_branch})\"")
+        tar_command = (
+            f"tar -czf - "
+            f"-C {dir_build}/html . "
+            f"| ssh "
+            f"-o StrictHostKeyChecking=no "
+            f"-o UserKnownHostsFile=/dev/null "
+            f"-i {ssh_key_path} {scm_owner}@{publish_host} "
+            f'"(cd /var/www/html/{scm_owner_kind}/{scm_owner}/{scm_repo} '
+            f"&& mkdir -p {git_branch} "
+            f'&& tar -xzf - -C {git_branch})"'
+        )
         subprocess.run(tar_command, shell=True, check=True, text=True)
 
         typer.echo(f"Published to {publish_url}")
@@ -314,7 +326,6 @@ def publish():
     except subprocess.CalledProcessError as e:
         typer.echo(f"Error during publishing: {e}", err=True)
         raise typer.Exit(code=1)
-
 
 
 @app.command()
