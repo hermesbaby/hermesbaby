@@ -16,7 +16,7 @@
 
 [tool.poetry]
 name = "hermesbaby"
-version = "2025.01.09"
+version = "2025.02.01"
 description = "The Software and Systems Engineers' Typewriter"
 authors = ["basejumpa <alexander.mannwahrenberg@gmail.com>"]
 readme = "README.md"
@@ -45,7 +45,6 @@ gitpython = "^3.1.43"
 jupyter-sphinx = "^0.5.3"
 kconfiglib = "^14.1.0"
 myst-nb = "^1.1.0"
-myst-parser = "^2.0.0"
 pandas = "^2.2.2"
 pillow = "^10.3.0"
 pip-system-certs = "^4.0"
@@ -77,6 +76,8 @@ typer = "^0.15.1"
 windows-curses = { version = "^2.3.3", markers = "sys_platform == 'win32'" }
 tzlocal = "^5.2"
 mlx-traceability = "^11.7.0"
+myst-parser = "^4.0.0"
+linkify-it-py = "^2.0.3"
 
 
 [tool.poetry.group.dev.dependencies]

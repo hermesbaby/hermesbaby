@@ -75,9 +75,9 @@ def test_entry_points(command_line):
         ("", ""),
         (".", ""),
         ("some/relative/path", ""),
-        ("", "--template vscode_scratch"),
-        (".", "--template vscode_scratch"),
-        ("some/relative/path", "--template vscode_scratch"),
+        ("", "--template nano-md"),
+        (".", "--template nano-md"),
+        ("some/relative/path", "--template nano-md"),
     ],
 )
 def test_task_new(cli_runner, temp_dir, some_rel_path_as_str, option):

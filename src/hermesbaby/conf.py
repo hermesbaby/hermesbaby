@@ -48,7 +48,7 @@ if os.path.exists(hermesbaby_config_file):
     logger.info(f"Using configuration {hermesbaby_config_file}")
 else:
     logger.info(
-        f"File {hermesbaby_config_file} does not exist. Using default configuration only."
+        f"File {hermesbaby_config_file} does not exist. You may call 'hermesbaby configure' to start custom configuration."
     )
 
 
@@ -631,7 +631,9 @@ def append_existing_files(file_list, filenames_to_check):
         if os.path.exists(filename):
             file_list.append(filename)
         else:
-            logger.info(f"There is no '{filename}'.")
+            logger.info(
+                f"There is no '{filename}'. You may create one to start a bibliography."
+            )
 
 
 append_existing_files(bibtex_bibfiles, bibtex_bibfiles_candidates)
@@ -1015,6 +1017,22 @@ def _datatemplates_on_builder_inited(app):
 if False:
     extensions.append("myst_parser")
 
+myst_enable_extensions = [
+    "amsmath",
+    "attrs_inline",
+    "colon_fence",
+    "deflist",
+    "dollarmath",
+    "fieldlist",
+    "html_admonition",
+    "html_image",
+    "linkify",
+    "replacements",
+    "smartquotes",
+    "strikethrough",
+    "substitution",
+    "tasklist",
+]
 
 ###############################################################################
 ### BEGIN OF SPHINX-TOOLBOX EXTENSION #########################################

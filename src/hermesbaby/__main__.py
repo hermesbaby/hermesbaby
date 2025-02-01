@@ -105,7 +105,7 @@ def new(
         None, help="Directory where to create the project. Default: current directory."
     ),
     template: str = typer.Option(
-        None, "--template", "-t", help="Template to use. Default: vscode_scratch."
+        None, "--template", "-t", help="Template to use. Default: nano-md."
     ),
 ):
     """Create a new project"""
@@ -116,7 +116,7 @@ def new(
     if directory is None:
         directory = "."
     if template is None:
-        template = "vscode_scratch"
+        template = "nano-md"
 
     templates_root_path = Path(__file__).parent.parent.parent / "templates"
     template_path = templates_root_path / template

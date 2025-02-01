@@ -1,0 +1,32 @@
+################################################################
+#                                                              #
+#  This file is part of HermesBaby                             #
+#                       the software engineer's typewriter     #
+#                                                              #
+#      https://github.com/hermesbaby                           #
+#                                                              #
+#  Copyright (c) 2024 Alexander Mann-Wahrenberg (basejumpa)    #
+#                                                              #
+#  License(s)                                                  #
+#                                                              #
+#  - MIT for contents used as software                         #
+#  - CC BY-SA-4.0 for contents used as method or otherwise     #
+#                                                              #
+################################################################
+
+# top-most EditorConfig file
+root = true
+
+
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+
+[Makefile]
+indent_style = tab
+

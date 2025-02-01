@@ -1,0 +1,67 @@
+//################################################################
+//#                                                              #
+//#  This file is part of HermesBaby                             #
+//#                       the software engineer's typewriter     #
+//#                                                              #
+//#      https://github.com/hermesbaby                           #
+//#                                                              #
+//#  Copyright (c) 2024 Alexander Mann-Wahrenberg (basejumpa)    #
+//#                                                              #
+//#  License(s)                                                  #
+//#                                                              #
+//#  - MIT for contents used as software                         #
+//#  - CC BY-SA-4.0 for contents used as method or otherwise     #
+//#                                                              #
+//################################################################
+
+{
+    "recommendations": [
+
+        // *** DOCUMENTING ( including general file, scm, text handling *******
+        "vscode-icons-team.vscode-icons",
+        "johnpapa.vscode-peacock",
+
+        "editorconfig.editorconfig",
+        "jeff-hykin.code-eol",
+        "oderwat.indent-rainbow",
+        "ionutvmi.path-autocomplete",
+        "shibayu36.search-in-current-file",
+
+        "alefragnani.bookmarks",
+        "gruntfuggly.todo-tree",
+
+        "mhutchie.git-graph",
+        "adam-bender.commit-message-editor",
+        "solomonkinard.git-blame",
+        "david-rickard.git-diff-and-merge-tool",
+        "scootersoftware.bcompare-vscode",
+        "ryu1kn.partial-diff",
+
+        "chrisjsewell.myst-tml-syntax",
+        "chrisjsewell.myst-lsp",
+
+        "actboy168.tasks",
+        "forbeslindesay.forbeslindesay-taskrunner",
+
+        "dendron.dendron-paste-image",
+        "hediet.vscode-drawio",
+
+        "jebbs.plantuml",
+        "bierner.markdown-mermaid",
+        "bpruitt-goddard.mermaid-markdown-syntax-highlighting",
+        "tintinweb.graphviz-interactive-preview",
+
+        "rulyotano.tree-extended",
+
+        "danlevett.pattern-links",
+
+        "ionutvmi.path-autocomplete",
+        "rssowl.copy-relative-path-posix",
+        "tatsuyanakamori.insertrelpath",
+
+        // *** OTHER PURPOSES *************************************************
+
+        // *** <purpose_2> ****************************************************
+
+    ]
+}

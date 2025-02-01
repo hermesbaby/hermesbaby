@@ -63,6 +63,7 @@ python3 -m hermesbaby
 hb
 ```
 
+
 Start your first new virtual piece of writing
 
 ```bash
@@ -70,3 +71,18 @@ hb new hello
 cd hello
 hb html-live
 ```
+
+CTRL-C.
+
+
+Start editing
+
+```bash
+git init .
+code .
+```
+
+Statusbar / html-live
+
+Apply changes to `docs/index.md` ..
+
