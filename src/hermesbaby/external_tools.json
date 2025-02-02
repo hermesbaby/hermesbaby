@@ -1,0 +1,32 @@
+{
+    "code": {
+        "official_name": "Visual Studio Code",
+        "website": "https://code.visualstudio.com/",
+        "install": "scoop bucket add extras ; scoop install vscode"
+    },
+    "draw.io": {
+        "official_name": "diagrams.net (formerly draw.io)",
+        "website": "https://www.diagrams.net/",
+        "install": "scoop bucket add extras ; scoop install draw.io"
+    },
+    "node": {
+        "official_name": "Node.js",
+        "website": "https://nodejs.org/",
+        "install": "scoop install nodejs"
+    },
+    "java": {
+        "official_name": "Java",
+        "website": "https://www.java.com/",
+        "install": "scoop bucket add java ; scoop install openjdk"
+    },
+    "dot": {
+        "official_name": "Graphviz",
+        "website": "https://graphviz.org/",
+        "install": "scoop install graphviz"
+    },
+    "mmdc": {
+        "official_name": "Mermaid CLI",
+        "website": "https://mermaid.js.org/",
+        "install": "npm install -g @mermaid-js/mermaid-cli"
+    }
+}

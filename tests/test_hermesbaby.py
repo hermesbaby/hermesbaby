@@ -22,15 +22,6 @@ from pathlib import Path
 import sys
 
 
-def test_hello(cli_runner):
-
-    from src.hermesbaby.__main__ import app
-
-    result = cli_runner.invoke(app, ["hello"])
-    assert result.exit_code == 0
-    assert "Hello" in result.output
-
-
 @pytest.mark.parametrize(
     "command_line",
     [

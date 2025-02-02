@@ -1,0 +1,17 @@
+{
+    "recommendations": [
+        "vscode-icons-team.vscode-icons",
+        "editorconfig.editorconfig",
+        "medo64.render-crlf",
+        "oderwat.indent-rainbow",
+
+        "mhutchie.git-graph",
+        "adam-bender.commit-message-editor",
+        "solomonkinard.git-blame",
+        "david-rickard.git-diff-and-merge-tool",
+
+        "ms-python.python",
+        "donjayamanne.python-environment-manager",
+        "ms-python.black-formatter"
+    ]
+}
