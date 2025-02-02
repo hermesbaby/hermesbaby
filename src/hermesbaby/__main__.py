@@ -19,6 +19,7 @@ import logging
 import json
 import os
 import requests
+import textwrap
 import shutil
 import subprocess
 import sys
@@ -90,13 +91,13 @@ def _install_scoop() -> bool:
         )
         # After running the command, check if scoop is now installed.
         if shutil.which("scoop"):
-            print("Scoop installation successful.")
+            typer.echo("Scoop installation successful.")
             return True
         else:
-            print("Scoop installation did not succeed.")
+            typer.echo("Scoop installation did not succeed.")
             return False
     except subprocess.CalledProcessError as e:
-        print(f"Scoop installation failed: {e}")
+        typer.echo(f"Scoop installation failed: {e}")
         return False
 
 
@@ -106,22 +107,22 @@ def _tools_install_tool(cmd: str, info: dict) -> bool:
     Returns True if the installation was successful, False otherwise.
     """
     if "install" not in info:
-        print("      No installation command provided.")
+        typer.echo("      No installation command provided.")
         return False
 
-    print(f"      Installing using command: {info['install']}")
+    typer.echo(f"      Installing using command: {info['install']}")
     try:
         subprocess.run(info["install"], shell=True, check=True)
     except subprocess.CalledProcessError as e:
-        print(f"      Installation failed: {e}")
+        typer.echo(f"      Installation failed: {e}")
         return False
 
     # Verify that the tool is now available.
     if shutil.which(cmd):
-        print("      Installation successful.")
+        typer.echo("      Installation successful.")
         return True
     else:
-        print("      Installation did not succeed.")
+        typer.echo("      Installation did not succeed.")
         return False
 
 
@@ -142,7 +143,8 @@ app = typer.Typer(
 def new(
     ctx: typer.Context,
     directory: str = typer.Argument(
-        None, help="Directory where to create the project. Default: current directory."
+        None,
+        help="Directory where to create the project. Default: subdirectory with name of template.",
     ),
     template: str = typer.Option(
         None, "--template", "-t", help="Template to use. Default: nano-md."
@@ -158,10 +160,10 @@ def new(
 
     templates_root_path = Path(__file__).parent.parent.parent / "templates"
 
-    if directory is None:
-        directory = "."
     if template is None:
         template = "nano-md"
+    if directory is None:
+        directory = template
 
     # If --list is provided, list available template directories and exit.
     if list_templates:
@@ -191,7 +193,6 @@ def new(
         raise typer.Abort()
 
     # Execution
-    print(f"Creating project in {directory} using template {template}")
 
     cookiecutter(
         template=str(template_path),
@@ -200,9 +201,19 @@ def new(
         no_input=True,
     )
 
+    typer.echo(
+        f"Created new project in directory {directory} using template {template}"
+    )
+
 
 @app.command()
-def html(ctx: typer.Context):
+def html(
+    ctx: typer.Context,
+    directory: str = typer.Argument(
+        ".",
+        help="Directory where to execute the command. ",
+    ),
+):
     """Build to format HTML"""
 
     _set_env()
@@ -222,13 +233,19 @@ def html(ctx: typer.Context):
         {_kconfig.syms["BUILD__DIRS__SOURCE"].str_value}
         {build_dir}
     """
-    print(command)
-    result = subprocess.run(command.split())
+    typer.echo(command)
+    result = subprocess.run(command.split(), cwd=directory)
     sys.exit(result.returncode)
 
 
 @app.command()
-def html_live(ctx: typer.Context):
+def html_live(
+    ctx: typer.Context,
+    directory: str = typer.Argument(
+        ".",
+        help="Directory where to execute the command. ",
+    ),
+):
     """Build to format HTML with live reload"""
 
     _set_env()
@@ -253,13 +270,19 @@ def html_live(ctx: typer.Context):
         --port {int(_kconfig.syms["BUILD__PORTS__HTML__LIVE"].str_value)}
         --open-browser
     """
-    print(command)
-    result = subprocess.run(command.split())
+    typer.echo(command)
+    result = subprocess.run(command.split(), cwd=directory)
     sys.exit(result.returncode)
 
 
 @app.command()
-def configure(ctx: typer.Context):
+def configure(
+    ctx: typer.Context,
+    directory: str = typer.Argument(
+        ".",
+        help="Directory where to execute the command. ",
+    ),
+):
     """Configure the project"""
 
     _set_env()
@@ -272,8 +295,8 @@ def configure(ctx: typer.Context):
     # - Pass the Kconfig instance to it
     # - Write the configuration to CFG_CONFIG_CUSTOM_FILE
     command = f"{_tool_path}/guiconfig {_config_file}"
-    print(command)
-    result = subprocess.run(command.split())
+    typer.echo(command)
+    result = subprocess.run(command.split(), cwd=directory)
 
     # Don't retain any *.old file
     Path(CFG_CONFIG_CUSTOM_FILE + ".old").unlink(missing_ok=True)
@@ -282,20 +305,32 @@ def configure(ctx: typer.Context):
 
 
 @app.command()
-def clean():
+def clean(
+    ctx: typer.Context,
+    directory: str = typer.Argument(
+        ".",
+        help="Directory where to execute the command. ",
+    ),
+):
     """Clean the build directory"""
 
     _set_env()
     _load_config()
 
-    folder_to_remove = _kconfig.syms["BUILD__DIRS__BUILD"].str_value
-    print(f"Remove {folder_to_remove}")
+    folder_to_remove = Path(directory) / _kconfig.syms["BUILD__DIRS__BUILD"].str_value
+    typer.echo(f"Remove {folder_to_remove}")
     if Path(folder_to_remove).exists():
         shutil.rmtree(folder_to_remove)
 
 
 @app.command()
-def htaccess_update():
+def htaccess_update(
+    ctx: typer.Context,
+    directory: str = typer.Argument(
+        ".",
+        help="Directory where to execute the command. ",
+    ),
+):
     """Update/create web_root/.htaccess from htaccess.yaml"""
 
     _set_env()
@@ -304,31 +339,35 @@ def htaccess_update():
     from .web_access_ctrl import create_htaccess_entries
 
     yaml_template_file = CFG_CONFIG_DIR / "htaccess.yaml"
-    yaml_file = os.path.join(
+    yaml_file = Path(directory) / os.path.join(
         _kconfig.syms["BUILD__DIRS__SOURCE"].str_value, "htaccess.yaml"
     )
-    outfile_file = os.path.join(
+    outfile_file = Path(directory) / os.path.join(
         _kconfig.syms["BUILD__DIRS__SOURCE"].str_value, "web_root", ".htaccess"
     )
-    expand_file = os.path.join(
+    expand_file = Path(directory) / os.path.join(
         _kconfig.syms["BUILD__DIRS__SOURCE"].str_value,
         "99-Appendix/99-Access-to-Published-Document/_tables/htaccess__all_users.yaml",
     )
 
     if not os.path.exists(yaml_file):
-        print(f"Created template file {yaml_file}")
+        typer.echo(f"Created template file {yaml_file}")
         shutil.copy(yaml_template_file, yaml_file)
 
     if not os.path.exists(expand_file):
         expand_file = None
 
-    os.makedirs(os.path.dirname(outfile_file), exist_ok=True)
-
     create_htaccess_entries.main("", yaml_file, outfile_file, expand_file)
 
 
 @app.command()
-def publish():
+def publish(
+    ctx: typer.Context,
+    directory: str = typer.Argument(
+        ".",
+        help="Directory where to execute the command. ",
+    ),
+):
     """
     Publish the build output to the configured server using SSH.
     """
@@ -340,12 +379,12 @@ def publish():
     scm_owner_kind = _kconfig.syms["SCM__OWNER_KIND"].str_value
     scm_owner = _kconfig.syms["SCM__OWNER"].str_value
     scm_repo = _kconfig.syms["SCM__REPO"].str_value
-    dir_build = _kconfig.syms["BUILD__DIRS__BUILD"].str_value
+    dir_build = Path(directory) / _kconfig.syms["BUILD__DIRS__BUILD"].str_value
 
-    ssh_key_path = ".ci/.ssh/id_rsa"
+    ssh_key_path = Path(directory) / ".ci/.ssh/id_rsa"
 
     try:
-        _repo = git.Repo(search_parent_directories=True)
+        _repo = git.Repo(search_parent_directories=True, path=directory)
         git_branch = _repo.active_branch.name
     except:
         typer.echo(f"Could not get git branch. Aborting publish step", err=True)
@@ -401,7 +440,7 @@ def _check_plantuml():
     If not installed, downloads it.
     """
 
-    print("Checking PlantUML installation...")
+    typer.echo("Checking PlantUML installation...")
 
     tools_dir = CFG_CONFIG_DIR / "tools"
     version = "1.2024.7"
@@ -412,19 +451,19 @@ def _check_plantuml():
     os.makedirs(tools_dir, exist_ok=True)
 
     if plantuml_path.exists():
-        print("PlantUML is already installed.")
+        typer.echo("PlantUML is already installed.")
         return
 
-    print(f"Downloading PlantUML version {version} to {plantuml_path}...")
+    typer.echo(f"Downloading PlantUML version {version} to {plantuml_path}...")
     try:
         response = requests.get(plantuml_url, stream=True)
         response.raise_for_status()  # Raise an exception for HTTP errors
         with open(plantuml_path, "wb") as out_file:
             for chunk in response.iter_content(chunk_size=8192):
                 out_file.write(chunk)
-        print("PlantUML setup complete!")
+        typer.echo("PlantUML setup complete!")
     except requests.exceptions.RequestException as e:
-        print(f"Error downloading PlantUML: {e}")
+        typer.echo(f"Error downloading PlantUML: {e}")
 
 
 @app.command()
@@ -439,19 +478,19 @@ def check_scoop(
     (Experimental feature)
     """
     if shutil.which("scoop"):
-        print("Scoop is already installed.")
+        typer.echo("Scoop is already installed.")
         return
 
-    print("Scoop is missing.")
+    typer.echo("Scoop is missing.")
     if auto:
-        print("Attempting to install scoop headlessly...")
+        typer.echo("Attempting to install scoop headlessly...")
         if _install_scoop():
-            print("Scoop was installed successfully.")
+            typer.echo("Scoop was installed successfully.")
         else:
-            print("Failed to install scoop automatically.")
+            typer.echo("Failed to install scoop automatically.")
             raise typer.Exit(code=1)
     else:
-        print("Please install scoop manually from https://scoop.sh/")
+        typer.echo("Please install scoop manually from https://scoop.sh/")
         raise typer.Exit(code=1)
 
 
@@ -471,19 +510,19 @@ def check_tools(
         return
 
     num_tools_missing = 0
-    print("Checking system for required tools...\n")
+    typer.echo("Checking system for required tools...\n")
     for cmd, info in tools.items():
-        print(f"   {cmd} ({info['official_name']}): ", end="")
+        typer.echo(f"   {cmd} ({info['official_name']}): ", nl=False)
         if shutil.which(cmd):
-            print("found")
+            typer.echo("found")
             # If found, we skip the rest of this iteration.
             continue
 
         # If the tool is missing:
-        print("missing")
-        print(f"      Website: {info['website']}")
+        typer.echo("missing")
+        typer.echo(f"      Website: {info['website']}")
         if "install" in info:
-            print(f"      Install it via: {info['install']}")
+            typer.echo(f"      Install it via: {info['install']}")
             if auto:
                 if not _tools_install_tool(cmd, info):
                     num_tools_missing += 1
@@ -492,12 +531,12 @@ def check_tools(
         else:
             num_tools_missing += 1
 
-        print()
+        typer.echo()
 
     if not num_tools_missing:
-        print("\nAll tools are present. You are ready to go!")
+        typer.echo("\nAll tools are present. You are ready to go!")
     else:
-        print(f"\n{num_tools_missing} tools are missing. Please install them.")
+        typer.echo(f"\n{num_tools_missing} tools are missing. Please install them.")
         raise typer.Exit(code=1)
 
 
@@ -512,7 +551,9 @@ def check_vscode_extensions(
     and installs missing extensions if --auto is specified.
     """
     if not shutil.which("code"):
-        print("Visual Studio Code is not installed or 'code' command is not in PATH.")
+        typer.echo(
+            "Visual Studio Code is not installed or 'code' command is not in PATH."
+        )
         raise typer.Exit(code=1)
 
     # Load recommended VSCode extensions
@@ -520,18 +561,18 @@ def check_vscode_extensions(
         with open(CFG_CONFIG_DIR / "extensions.json", "r") as f:
             data = json.load(f)
     except FileNotFoundError:
-        print("extensions.json not found.")
+        typer.echo("extensions.json not found.")
         raise typer.Exit(code=1)
     except json.JSONDecodeError:
-        print("Error: extensions.json is not a valid JSON file.")
+        typer.echo("Error: extensions.json is not a valid JSON file.")
         raise typer.Exit(code=1)
 
     # Validate that data is in the expected format.
     if not isinstance(data, dict):
-        print("Error: extensions.json must be a JSON object.")
+        typer.echo("Error: extensions.json must be a JSON object.")
         raise typer.Exit(code=1)
     if "recommendations" not in data or not isinstance(data["recommendations"], list):
-        print("Error: extensions.json must contain a 'recommendations' list.")
+        typer.echo("Error: extensions.json must contain a 'recommendations' list.")
         raise typer.Exit(code=1)
 
     recommendations = data["recommendations"]
@@ -547,7 +588,7 @@ def check_vscode_extensions(
         )
         installed_extensions = set(result.stdout.splitlines())
     except subprocess.CalledProcessError as e:
-        print("Error listing VSCode extensions:", e)
+        typer.echo("Error listing VSCode extensions:", e)
         raise typer.Exit(code=1)
 
     missing_extensions = [
@@ -555,21 +596,21 @@ def check_vscode_extensions(
     ]
 
     if not missing_extensions:
-        print("All recommended VSCode extensions are installed.")
+        typer.echo("All recommended VSCode extensions are installed.")
     else:
-        print("Missing VSCode extensions:")
+        typer.echo("Missing VSCode extensions:")
         for ext in missing_extensions:
-            print(f"  {ext}")
+            typer.echo(f"  {ext}")
         if auto:
-            print("\nAttempting to install missing extensions...")
+            typer.echo("\nAttempting to install missing extensions...")
             for ext in missing_extensions:
                 try:
                     subprocess.run(
                         ["code", "--install-extension", ext], check=True, shell=True
                     )
-                    print(f"Installed {ext} successfully.")
+                    typer.echo(f"Installed {ext} successfully.")
                 except subprocess.CalledProcessError as e:
-                    print(f"Failed to install {ext}: {e}")
+                    typer.echo(f"Failed to install {ext}: {e}")
             # Re-check installed extensions after installation attempts
             result = subprocess.run(
                 ["code", "--list-extensions"],
@@ -583,17 +624,17 @@ def check_vscode_extensions(
                 ext for ext in recommendations if ext not in installed_extensions
             ]
             if missing_extensions:
-                print("\nThe following extensions are still missing:")
+                typer.echo("\nThe following extensions are still missing:")
                 for ext in missing_extensions:
-                    print(f"  {ext}")
+                    typer.echo(f"  {ext}")
                 raise typer.Exit(code=1)
             else:
-                print("\nAll missing VSCode extensions installed successfully.")
+                typer.echo("\nAll missing VSCode extensions installed successfully.")
         else:
-            print(
+            typer.echo(
                 "\nPlease install the missing extensions manually using commands like:"
             )
-            print("  code --install-extension " + " ".join(missing_extensions))
+            typer.echo("  code --install-extension " + " ".join(missing_extensions))
             raise typer.Exit(code=1)
 
 
