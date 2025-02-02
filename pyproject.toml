@@ -52,7 +52,7 @@ pyad = "^0.6.0"
 pytz = "^2024.1"
 pyyaml = "^6.0.1"
 robotframeworklexer = "^1.1"
-setuptools = "^69.5.1"
+setuptools = ">=70.0.0"
 sphinx = "7.2.6"  # Currently fixed version pf Sphinx in order to avoid crashes due to "unpickable configuration value. See https://github.com/sphinx-doc/sphinx/issues/12300
 sphinx-autobuild = "^2024.10.3"
 sphinx-copybutton = "^0.5.2"
