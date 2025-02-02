@@ -1,0 +1,8 @@
+ldap-user:
+    - user1
+    - user2
+
+ldap-group:
+    - group1
+    - group2
+    - group3

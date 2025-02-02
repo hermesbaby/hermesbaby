@@ -303,7 +303,7 @@ def htaccess_update():
 
     from .web_access_ctrl import create_htaccess_entries
 
-    yaml_template_file = os.path.join(CFG_CONFIG_DIR, "htaccess.yaml")
+    yaml_template_file = CFG_CONFIG_DIR / "htaccess.yaml"
     yaml_file = os.path.join(
         _kconfig.syms["BUILD__DIRS__SOURCE"].str_value, "htaccess.yaml"
     )
@@ -317,10 +317,12 @@ def htaccess_update():
 
     if not os.path.exists(yaml_file):
         print(f"Created template file {yaml_file}")
-        shutil(yaml_template_file, yaml_file)
+        shutil.copy(yaml_template_file, yaml_file)
 
     if not os.path.exists(expand_file):
         expand_file = None
+
+    os.makedirs(os.path.dirname(outfile_file), exist_ok=True)
 
     create_htaccess_entries.main("", yaml_file, outfile_file, expand_file)
 
