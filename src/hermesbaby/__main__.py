@@ -220,7 +220,6 @@ def html(
     _load_config()
 
     _check_plantuml()
-    check_tools()
 
     build_dir = Path(_kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
     build_dir.mkdir(parents=True, exist_ok=True)
@@ -252,7 +251,6 @@ def html_live(
     _load_config()
 
     _check_plantuml()
-    check_tools()
 
     build_dir = Path(_kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
     build_dir.mkdir(parents=True, exist_ok=True)
