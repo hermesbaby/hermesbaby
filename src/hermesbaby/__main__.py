@@ -14,7 +14,9 @@
 #                                                              #
 ################################################################
 
+
 from pathlib import Path
+from importlib.resources import files
 import importlib.metadata
 import logging
 import json
@@ -39,6 +41,10 @@ CFG_CONFIG_DIR = Path(__file__).parent
 
 _tool_path = Path(sys.executable).parent
 _current_dir = Path(os.getcwd())
+
+
+def _get_template_dir():
+    return files("hermesbaby").joinpath("templates")
 
 
 _config_file = CFG_CONFIG_DIR / "Kconfig"
@@ -174,7 +180,7 @@ def new(
     _set_env()
     _load_config()
 
-    templates_root_path = Path(__file__).parent.parent.parent / "templates"
+    templates_root_path = _get_template_dir()
 
     if template is None:
         template = "nano-md"
