@@ -48,19 +48,18 @@ poetry add hermesbaby --group dev
 
 ## First usage
 
+Close the gaps by installing the missing tools. You may use the help hermesbaby gave you to do so.
+
+Beside `hermesbaby` there is a second, shorter alias:
+
+```bash
+hb
+```
+
 Check environment for prerequisites
 
 ```bash
-hermesbaby check-env
-```
-
-Close the gaps by installing the missing tools. You may use the help hermesbaby gave you to do so.
-
-Beside `hermesbaby` there is a longer and a shorter way to call :
-
-```bash
-python3 -m hermesbaby
-hb
+hb check-tools
 ```
 
 
