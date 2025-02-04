@@ -15,6 +15,7 @@
 ################################################################
 
 from pathlib import Path
+import importlib.metadata
 import logging
 import json
 import os
@@ -27,6 +28,8 @@ import kconfiglib
 from cookiecutter.main import cookiecutter
 import typer
 import git
+
+__version__ = importlib.metadata.version("hermesbaby")
 
 logger = logging.getLogger(__name__)
 
@@ -137,6 +140,19 @@ app = typer.Typer(
     no_args_is_help=True,
     # cls=SortedGroup,
 )
+
+
+@app.callback(invoke_without_command=False)
+def version(
+    version: bool = typer.Option(
+        None,
+        "--version",
+        callback=lambda value: print(__version__) or exit() if value else None,
+        is_eager=True,
+        help="Show the version and exit.",
+    )
+):
+    """CLI Tool hb"""
 
 
 @app.command()
@@ -634,11 +650,6 @@ def check_vscode_extensions(
             )
             typer.echo("  code --install-extension " + " ".join(missing_extensions))
             raise typer.Exit(code=1)
-
-
-@app.callback(invoke_without_command=False)
-def pre_command(ctx: typer.Context):
-    pass
 
 
 if __name__ == "__main__":
