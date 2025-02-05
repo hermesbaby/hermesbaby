@@ -16,7 +16,7 @@
 
 [tool.poetry]
 name = "hermesbaby"
-version = "2025.02.04.18"
+version = "2025.02.05.19"
 description = "The Software and Systems Engineers' Typewriter"
 authors = ["basejumpa <alexander.mannwahrenberg@gmail.com>"]
 readme = "README.md"
