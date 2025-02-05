@@ -417,6 +417,14 @@ def publish(
     try:
         typer.echo(f"Publishing to {publish_url}")
 
+        publish_source_folder = f"{dir_build}/html"
+
+        # In case the publish_source_folder doesn't exist raise an exception:
+        if not os.path.exists(publish_source_folder):
+            raise Exception(
+                f"Publish source folder {publish_source_folder} does not exist."
+            )
+
         # Ensure the SSH key has correct permissions
         subprocess.run(["chmod", "600", str(ssh_key_path)], check=True, text=True)
 
@@ -436,7 +444,7 @@ def publish(
         # Compress and transfer files
         tar_command = (
             f"tar -czf - "
-            f"-C {dir_build}/html . "
+            f"-C {publish_source_folder} . "
             f"| ssh "
             f"-o StrictHostKeyChecking=no "
             f"-o UserKnownHostsFile=/dev/null "
@@ -449,7 +457,7 @@ def publish(
 
         typer.echo(f"Published to {publish_url}")
 
-    except subprocess.CalledProcessError as e:
+    except Exception as e:
         typer.echo(f"Error during publishing: {e}", err=True)
         raise typer.Exit(code=1)
 
