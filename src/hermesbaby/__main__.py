@@ -401,7 +401,9 @@ def publish(
     scm_repo = _kconfig.syms["SCM__REPO"].str_value
     dir_build = Path(directory) / _kconfig.syms["BUILD__DIRS__BUILD"].str_value
 
-    ssh_key_path = Path(directory) / ".ci/.ssh/id_rsa"
+    ssh_key_path = (
+        Path(directory) / _kconfig.syms["PUBLISH__SSH_PATH"].str_value / "id_rsa"
+    )
 
     try:
         _repo = git.Repo(search_parent_directories=True, path=directory)

@@ -228,6 +228,10 @@ config PUBLISH__HOST
     string "Host (with port if necessary)"
     default "docs.some-host.com"
 
+config PUBLISH__SSH_PATH
+    string "Relative Path of directory .ssh/"
+    default ".ci/.ssh"
+
 config PUBLISH__CROSS_REFERENCES__USER
     string "Inter Crossreference User"
     default "intersphinx"
