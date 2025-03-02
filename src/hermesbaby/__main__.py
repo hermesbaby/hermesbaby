@@ -360,6 +360,11 @@ def groups(
 ):
     """Lists the groups one or more members are in. If more than one given, also the groups they share."""
 
+    if not members:
+        typer.echo("No members given.")
+        typer.echo(ctx.get_help())
+        raise typer.Exit()
+
     from .web_access_ctrl import shared_groups
 
     shared_groups.main(members)
@@ -374,6 +379,11 @@ def members(
     ),
 ):
     """List the members of one or more groups"""
+
+    if not groups:
+        typer.echo("No groups given.")
+        typer.echo(ctx.get_help())
+        raise typer.Exit()
 
     typer.echo (f"Grap a coffee, this may take a while...")
 
@@ -392,6 +402,10 @@ def update(
     ),
 ):
     """Update/create web_root/.htaccess from htaccess.yaml"""
+
+    if not directory:
+        typer.echo(ctx.get_help())
+        raise typer.Exit()
 
     _set_env()
     _load_config()
@@ -416,6 +430,8 @@ def update(
 
     if not os.path.exists(expand_file):
         expand_file = None
+
+
 
     create_htaccess_entries.main("", yaml_file, outfile_file, expand_file)
 
