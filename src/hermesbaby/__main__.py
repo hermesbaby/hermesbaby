@@ -148,6 +148,12 @@ app = typer.Typer(
     # cls=SortedGroup,
 )
 
+app_htaccess = typer.Typer(
+    help="Manage access of published document",
+    no_args_is_help=True,
+)
+app.add_typer(app_htaccess, name="htaccess")
+
 
 @app.callback(invoke_without_command=False)
 def version(
@@ -344,8 +350,8 @@ def clean(
         shutil.rmtree(folder_to_remove)
 
 
-@app.command()
-def htaccess_groups(
+@app_htaccess.command()
+def groups(
     ctx: typer.Context,
     members: List[str] = typer.Argument(
         None,
@@ -359,8 +365,8 @@ def htaccess_groups(
     shared_groups.main(members)
 
 
-@app.command()
-def htaccess_members(
+@app_htaccess.command()
+def members(
     ctx: typer.Context,
     groups: List[str] = typer.Argument(
         None,
@@ -377,8 +383,8 @@ def htaccess_members(
 
 
 # Obsolete. Use hb htaccess --update instead
-@app.command()
-def htaccess_update(
+@app_htaccess.command()
+def update(
     ctx: typer.Context,
     directory: str = typer.Argument(
         ".",
