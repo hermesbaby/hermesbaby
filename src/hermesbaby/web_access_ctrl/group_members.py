@@ -30,8 +30,7 @@ def main(group_names):
     for group_name in group_names:
         members = get_group_members(group_name)
         print(f"Members of group {group_name}:")
-        for member in members:
-            print(f"  {member}")
+        print(", ".join(sorted(members)))
         print()
 
 if __name__ == "__main__":

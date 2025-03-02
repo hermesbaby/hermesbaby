@@ -24,6 +24,7 @@ import os
 import requests
 import textwrap
 import shutil
+from typing import List
 import subprocess
 import sys
 import kconfiglib
@@ -343,6 +344,39 @@ def clean(
         shutil.rmtree(folder_to_remove)
 
 
+@app.command()
+def htaccess_groups(
+    ctx: typer.Context,
+    members: List[str] = typer.Argument(
+        None,
+        help="Member or members to check. ",
+    ),
+):
+    """Lists the groups one or more members are in. If more than one given, also the groups they share."""
+
+    from .web_access_ctrl import shared_groups
+
+    shared_groups.main(members)
+
+
+@app.command()
+def htaccess_members(
+    ctx: typer.Context,
+    groups: List[str] = typer.Argument(
+        None,
+        help="Group or groups to check. ",
+    ),
+):
+    """List the members of one or more groups"""
+
+    typer.echo (f"Grap a coffee, this may take a while...")
+
+    from .web_access_ctrl import group_members
+
+    group_members.main(groups)
+
+
+# Obsolete. Use hb htaccess --update instead
 @app.command()
 def htaccess_update(
     ctx: typer.Context,
