@@ -41,7 +41,6 @@ CFG_CONFIG_DIR = Path(__file__).parent
 
 
 _tool_path = Path(sys.executable).parent
-_current_dir = Path(os.getcwd())
 
 
 def _get_template_dir():
@@ -54,7 +53,7 @@ _kconfig = kconfiglib.Kconfig(str(_config_file))
 
 def _load_config():
     global _kconfig
-    hermesbaby__config_file = _current_dir / CFG_CONFIG_CUSTOM_FILE
+    hermesbaby__config_file = Path(os.getcwd()) / CFG_CONFIG_CUSTOM_FILE
     if hermesbaby__config_file.exists():
         _kconfig.load_config(str(hermesbaby__config_file))
         logger.info(f"Using configuration {hermesbaby__config_file}")
@@ -134,6 +133,38 @@ def _tools_install_tool(cmd: str, info: dict) -> bool:
     else:
         typer.echo("      Installation did not succeed.")
         return False
+
+
+def _check_plantuml():
+    """
+    Checks for PlantUML.
+    If not installed, downloads it.
+    """
+
+    typer.echo("Checking PlantUML installation...")
+
+    tools_dir = CFG_CONFIG_DIR / "tools"
+    version = "1.2024.7"
+    plantuml_url = f"https://github.com/plantuml/plantuml/releases/download/v{version}/plantuml-{version}.jar"
+    plantuml_path = tools_dir / "plantuml.jar"
+
+    # Create tools directory if it doesn't exist
+    os.makedirs(tools_dir, exist_ok=True)
+
+    if plantuml_path.exists():
+        typer.echo("PlantUML is already installed.")
+        return
+
+    typer.echo(f"Downloading PlantUML version {version} to {plantuml_path}...")
+    try:
+        response = requests.get(plantuml_url, stream=True)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        with open(plantuml_path, "wb") as out_file:
+            for chunk in response.iter_content(chunk_size=8192):
+                out_file.write(chunk)
+        typer.echo("PlantUML setup complete!")
+    except requests.exceptions.RequestException as e:
+        typer.echo(f"Error downloading PlantUML: {e}")
 
 
 class SortedGroup(typer.core.TyperGroup):
@@ -518,38 +549,6 @@ def publish(
     except Exception as e:
         typer.echo(f"Error during publishing: {e}", err=True)
         raise typer.Exit(code=1)
-
-
-def _check_plantuml():
-    """
-    Checks for PlantUML.
-    If not installed, downloads it.
-    """
-
-    typer.echo("Checking PlantUML installation...")
-
-    tools_dir = CFG_CONFIG_DIR / "tools"
-    version = "1.2024.7"
-    plantuml_url = f"https://github.com/plantuml/plantuml/releases/download/v{version}/plantuml-{version}.jar"
-    plantuml_path = tools_dir / "plantuml.jar"
-
-    # Create tools directory if it doesn't exist
-    os.makedirs(tools_dir, exist_ok=True)
-
-    if plantuml_path.exists():
-        typer.echo("PlantUML is already installed.")
-        return
-
-    typer.echo(f"Downloading PlantUML version {version} to {plantuml_path}...")
-    try:
-        response = requests.get(plantuml_url, stream=True)
-        response.raise_for_status()  # Raise an exception for HTTP errors
-        with open(plantuml_path, "wb") as out_file:
-            for chunk in response.iter_content(chunk_size=8192):
-                out_file.write(chunk)
-        typer.echo("PlantUML setup complete!")
-    except requests.exceptions.RequestException as e:
-        typer.echo(f"Error downloading PlantUML: {e}")
 
 
 @app.command()
