@@ -71,7 +71,7 @@ def test_entry_points(command_line):
         ("some/relative/path", "--template nano-md"),
     ],
 )
-def test_task_new(cli_runner, temp_dir, some_rel_path_as_str, option):
+def test_task_new(cli_runner, project_dir, some_rel_path_as_str, option):
 
     from src.hermesbaby.__main__ import app
 
@@ -80,45 +80,48 @@ def test_task_new(cli_runner, temp_dir, some_rel_path_as_str, option):
     result = cli_runner.invoke(app, args.split())
 
     some_rel_path = Path(some_rel_path_as_str)
-    path_to_index_rst = temp_dir / some_rel_path / "docs" / "index.rst"
+    if some_rel_path_as_str == "":
+        some_rel_path = "nano-md"
+
+    path_to_index_md = project_dir / some_rel_path / "docs" / "index.md"
 
     assert (
-        path_to_index_rst.exists()
-    ), f"Project path does not exist: {path_to_index_rst}"
+        path_to_index_md.exists()
+    ), f"Project path does not exist: {path_to_index_md}"
 
 
-def test_task_html(cli_runner, temp_dir):
+def test_task_html(cli_runner, project_dir):
 
     from src.hermesbaby.__main__ import app
 
     # Run the "new" command to set up the project
-    result = cli_runner.invoke(app, ["new"])
+    result = cli_runner.invoke(app, ["new", "."])
     assert result.exit_code == 0, "Setup failed"
 
     result = cli_runner.invoke(app, ["html"])
     assert result.exit_code == 0, "Call failed"
 
-    index_html = temp_dir / "out" / "docs" / "html" / "index.html"
+    index_html = project_dir / "out" / "docs" / "html" / "index.html"
     assert index_html.exists(), f"Build output does not exist: {index_html}"
 
 
-def test_task_config_file(cli_runner, temp_dir):
+def test_task_config_file(cli_runner, project_dir):
 
     from src.hermesbaby.__main__ import app
 
     # Create a file ".hermesbaby" and write some content
     build_dir = "my-own-build-dir"
 
-    config_file = temp_dir / ".hermesbaby"
+    config_file = project_dir / ".hermesbaby"
     with config_file.open("w") as f:
         f.write(f'CONFIG_BUILD__DIRS__BUILD="{build_dir}"' + os.linesep)
 
     # Run the "new" command to set up the project
-    result = cli_runner.invoke(app, ["new"])
+    result = cli_runner.invoke(app, ["new", "."])
     assert result.exit_code == 0, "Setup failed"
 
     result = cli_runner.invoke(app, ["html"])
     assert result.exit_code == 0, "Call failed"
 
-    index_html = temp_dir / build_dir / "html" / "index.html"
+    index_html = project_dir / build_dir / "html" / "index.html"
     assert index_html.exists(), f"Build output does not exist: {index_html}"
