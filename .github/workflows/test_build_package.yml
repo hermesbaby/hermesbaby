@@ -1,0 +1,30 @@
+name: Test, Build and Package
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  test_build_package:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install Poetry
+      run: |
+        pip install poetry
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: |
+        poetry install --with dev
+
+    - name: Run tests
+      run: |
+        poetry run pytest
+
+    - name: Build package
+      run: |
+        poetry build
