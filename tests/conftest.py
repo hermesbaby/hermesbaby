@@ -18,8 +18,6 @@
 import pytest
 import os
 from pathlib import Path
-import tempfile
-import shutil
 
 from typer.testing import CliRunner
 
@@ -30,13 +28,10 @@ def cli_runner():
 
 
 @pytest.fixture(scope="function")
-def temp_dir():
-    temp_dir_as_str = tempfile.mkdtemp()
-
+def project_dir(tmp_path):
     current_dir_as_str = Path.cwd()
-    os.chdir(temp_dir_as_str)
+    os.chdir(tmp_path)
 
-    yield Path(temp_dir_as_str)
+    yield tmp_path
 
     os.chdir(current_dir_as_str)
-    shutil.rmtree(temp_dir_as_str)
