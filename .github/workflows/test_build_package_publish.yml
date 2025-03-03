@@ -4,8 +4,6 @@ on:
     push:
         tags:
             - 'v*'
-    branches:
-      - main
 
 jobs:
   test_build_package_publish:
@@ -43,4 +41,4 @@ jobs:
         PYPI_USERNAME: __token__
         PYPI_PASSWORD: ${{ secrets.PYPI_TOKEN }}
       run: |
-        poetry publish --username user: $PYPI_USERNAME --password $PYPI_PASSWORD
+        poetry publish --username $PYPI_USERNAME --password $PYPI_PASSWORD
