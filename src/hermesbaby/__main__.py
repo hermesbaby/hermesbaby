@@ -22,7 +22,7 @@ import logging
 import json
 import os
 import requests
-import textwrap
+import platform
 import shutil
 from typing import List
 import subprocess
@@ -184,6 +184,12 @@ app_htaccess = typer.Typer(
     no_args_is_help=True,
 )
 app.add_typer(app_htaccess, name="htaccess")
+
+app_ci = typer.Typer(
+    help="Continuous Integration tools",
+    no_args_is_help=True,
+)
+app.add_typer(app_ci, name="ci")
 
 
 @app.callback(invoke_without_command=False)
@@ -721,6 +727,47 @@ def check_vscode_extensions(
             )
             typer.echo("  code --install-extension " + " ".join(missing_extensions))
             raise typer.Exit(code=1)
+
+
+@app_ci.command()
+def install():
+    """Install the external tools necessary for documentation build"""
+
+    typer.echo("Installing tools for CI/CD pipeline")
+
+    # Check if running on Ubuntu Linux
+    # Check if running on Linux
+    system = platform.system()
+    if system != "Linux":
+        typer.echo(f"Error: This command is only supported on Debian-based Linux distributions. Detected system: {system}")
+        raise typer.Exit(code=1)
+
+    # Check if it's a Debian-based distribution
+    is_debian_based = False
+    try:
+        with open("/etc/os-release", "r") as f:
+            os_info = f.read().lower()
+            if "debian" in os_info or "ubuntu" in os_info:
+                is_debian_based = True
+    except FileNotFoundError:
+        pass
+
+    if not is_debian_based:
+        typer.echo("Error: This command is only supported on Debian-based Linux distributions.")
+        raise typer.Exit(code=1)
+
+    if not is_ubuntu:
+        typer.echo("Error: This command is only supported on Ubuntu Linux. Detected Linux distribution is not Ubuntu.")
+        raise typer.Exit(code=1)
+
+    path = Path(__file__).parent
+
+    command = f"{path}/setup.sh"
+    typer.echo(command)
+    result = subprocess.run(command.split(), cwd=path)
+
+    sys.exit(result.returncode)
+
 
 
 if __name__ == "__main__":
