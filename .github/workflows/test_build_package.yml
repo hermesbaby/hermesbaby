@@ -21,6 +21,10 @@ jobs:
       run: |
         poetry install --with dev
 
+    - name: Install external tools
+      run: |
+        sudo ./src/hermesbaby/setup.sh
+
     - name: Run tests
       run: |
         poetry run pytest
