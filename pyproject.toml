@@ -16,9 +16,11 @@
 
 [tool.poetry]
 name = "hermesbaby"
-version = "2025.02.05.19"
+version = "1976.06.04.1"
 description = "The Software and Systems Engineers' Typewriter"
 authors = ["basejumpa <alexander.mannwahrenberg@gmail.com>"]
+license = "MIT for contents used as software, CC BY-SA-4.0 for contents used as method or otherwise"
+homepage = "https://github.com/hermesbaby/hermesbaby"
 readme = "README.md"
 
 packages = [
@@ -87,5 +89,10 @@ pytest = "^8.3.4"
 
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core", "poetry-dynamic-versioning"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"

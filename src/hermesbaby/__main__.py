@@ -22,8 +22,9 @@ import logging
 import json
 import os
 import requests
-import textwrap
+import platform
 import shutil
+from typing import List
 import subprocess
 import sys
 import kconfiglib
@@ -40,7 +41,6 @@ CFG_CONFIG_DIR = Path(__file__).parent
 
 
 _tool_path = Path(sys.executable).parent
-_current_dir = Path(os.getcwd())
 
 
 def _get_template_dir():
@@ -53,7 +53,7 @@ _kconfig = kconfiglib.Kconfig(str(_config_file))
 
 def _load_config():
     global _kconfig
-    hermesbaby__config_file = _current_dir / CFG_CONFIG_CUSTOM_FILE
+    hermesbaby__config_file = Path(os.getcwd()) / CFG_CONFIG_CUSTOM_FILE
     if hermesbaby__config_file.exists():
         _kconfig.load_config(str(hermesbaby__config_file))
         logger.info(f"Using configuration {hermesbaby__config_file}")
@@ -135,6 +135,38 @@ def _tools_install_tool(cmd: str, info: dict) -> bool:
         return False
 
 
+def _check_plantuml():
+    """
+    Checks for PlantUML.
+    If not installed, downloads it.
+    """
+
+    typer.echo("Checking PlantUML installation...")
+
+    tools_dir = CFG_CONFIG_DIR / "tools"
+    version = "1.2024.7"
+    plantuml_url = f"https://github.com/plantuml/plantuml/releases/download/v{version}/plantuml-{version}.jar"
+    plantuml_path = tools_dir / "plantuml.jar"
+
+    # Create tools directory if it doesn't exist
+    os.makedirs(tools_dir, exist_ok=True)
+
+    if plantuml_path.exists():
+        typer.echo("PlantUML is already installed.")
+        return
+
+    typer.echo(f"Downloading PlantUML version {version} to {plantuml_path}...")
+    try:
+        response = requests.get(plantuml_url, stream=True)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        with open(plantuml_path, "wb") as out_file:
+            for chunk in response.iter_content(chunk_size=8192):
+                out_file.write(chunk)
+        typer.echo("PlantUML setup complete!")
+    except requests.exceptions.RequestException as e:
+        typer.echo(f"Error downloading PlantUML: {e}")
+
+
 class SortedGroup(typer.core.TyperGroup):
     def list_commands(self, ctx):
         commands = super().list_commands(ctx)
@@ -146,6 +178,18 @@ app = typer.Typer(
     no_args_is_help=True,
     # cls=SortedGroup,
 )
+
+app_htaccess = typer.Typer(
+    help="Manage access of published document",
+    no_args_is_help=True,
+)
+app.add_typer(app_htaccess, name="htaccess")
+
+app_ci = typer.Typer(
+    help="Continuous Integration tools",
+    no_args_is_help=True,
+)
+app.add_typer(app_ci, name="ci")
 
 
 @app.callback(invoke_without_command=False)
@@ -343,8 +387,51 @@ def clean(
         shutil.rmtree(folder_to_remove)
 
 
-@app.command()
-def htaccess_update(
+@app_htaccess.command()
+def groups(
+    ctx: typer.Context,
+    members: List[str] = typer.Argument(
+        None,
+        help="Member or members to check. ",
+    ),
+):
+    """Lists the groups one or more members are in. If more than one given, also the groups they share."""
+
+    if not members:
+        typer.echo("No members given.")
+        typer.echo(ctx.get_help())
+        raise typer.Exit()
+
+    from .web_access_ctrl import shared_groups
+
+    shared_groups.main(members)
+
+
+@app_htaccess.command()
+def members(
+    ctx: typer.Context,
+    groups: List[str] = typer.Argument(
+        None,
+        help="Group or groups to check. ",
+    ),
+):
+    """List the members of one or more groups"""
+
+    if not groups:
+        typer.echo("No groups given.")
+        typer.echo(ctx.get_help())
+        raise typer.Exit()
+
+    typer.echo (f"Grap a coffee, this may take a while...")
+
+    from .web_access_ctrl import group_members
+
+    group_members.main(groups)
+
+
+# Obsolete. Use hb htaccess --update instead
+@app_htaccess.command()
+def update(
     ctx: typer.Context,
     directory: str = typer.Argument(
         ".",
@@ -352,6 +439,10 @@ def htaccess_update(
     ),
 ):
     """Update/create web_root/.htaccess from htaccess.yaml"""
+
+    if not directory:
+        typer.echo(ctx.get_help())
+        raise typer.Exit()
 
     _set_env()
     _load_config()
@@ -376,6 +467,8 @@ def htaccess_update(
 
     if not os.path.exists(expand_file):
         expand_file = None
+
+
 
     create_htaccess_entries.main("", yaml_file, outfile_file, expand_file)
 
@@ -462,38 +555,6 @@ def publish(
     except Exception as e:
         typer.echo(f"Error during publishing: {e}", err=True)
         raise typer.Exit(code=1)
-
-
-def _check_plantuml():
-    """
-    Checks for PlantUML.
-    If not installed, downloads it.
-    """
-
-    typer.echo("Checking PlantUML installation...")
-
-    tools_dir = CFG_CONFIG_DIR / "tools"
-    version = "1.2024.7"
-    plantuml_url = f"https://github.com/plantuml/plantuml/releases/download/v{version}/plantuml-{version}.jar"
-    plantuml_path = tools_dir / "plantuml.jar"
-
-    # Create tools directory if it doesn't exist
-    os.makedirs(tools_dir, exist_ok=True)
-
-    if plantuml_path.exists():
-        typer.echo("PlantUML is already installed.")
-        return
-
-    typer.echo(f"Downloading PlantUML version {version} to {plantuml_path}...")
-    try:
-        response = requests.get(plantuml_url, stream=True)
-        response.raise_for_status()  # Raise an exception for HTTP errors
-        with open(plantuml_path, "wb") as out_file:
-            for chunk in response.iter_content(chunk_size=8192):
-                out_file.write(chunk)
-        typer.echo("PlantUML setup complete!")
-    except requests.exceptions.RequestException as e:
-        typer.echo(f"Error downloading PlantUML: {e}")
 
 
 @app.command()
@@ -666,6 +727,47 @@ def check_vscode_extensions(
             )
             typer.echo("  code --install-extension " + " ".join(missing_extensions))
             raise typer.Exit(code=1)
+
+
+@app_ci.command()
+def install():
+    """Install the external tools necessary for documentation build"""
+
+    typer.echo("Installing tools for CI/CD pipeline")
+
+    # Check if running on Ubuntu Linux
+    # Check if running on Linux
+    system = platform.system()
+    if system != "Linux":
+        typer.echo(f"Error: This command is only supported on Debian-based Linux distributions. Detected system: {system}")
+        raise typer.Exit(code=1)
+
+    # Check if it's a Debian-based distribution
+    is_debian_based = False
+    try:
+        with open("/etc/os-release", "r") as f:
+            os_info = f.read().lower()
+            if "debian" in os_info or "ubuntu" in os_info:
+                is_debian_based = True
+    except FileNotFoundError:
+        pass
+
+    if not is_debian_based:
+        typer.echo("Error: This command is only supported on Debian-based Linux distributions.")
+        raise typer.Exit(code=1)
+
+    if not is_ubuntu:
+        typer.echo("Error: This command is only supported on Ubuntu Linux. Detected Linux distribution is not Ubuntu.")
+        raise typer.Exit(code=1)
+
+    path = Path(__file__).parent
+
+    command = f"{path}/setup.sh"
+    typer.echo(command)
+    result = subprocess.run(command.split(), cwd=path)
+
+    sys.exit(result.returncode)
+
 
 
 if __name__ == "__main__":

@@ -17,38 +17,38 @@
 import argparse
 from pyad import aduser, adgroup
 
-def get_user_groups(username):
+def get_member_groups(membername):
     try:
-        user = aduser.ADUser.from_cn(username)
-        groups = user.get_attribute("memberOf")
+        member = aduser.ADUser.from_cn(membername)
+        groups = member.get_attribute("memberOf")
         return [adgroup.ADGroup.from_dn(group).cn for group in groups]
     except Exception as e:
-        print(f"An error occurred for user {username}: {e}")
+        print(f"An error occurred for member {membername}: {e}")
         return []
 
-def main(usernames):
-    all_user_groups = {}
+def main(membernames):
+    all_member_groups = {}
 
-    for username in usernames:
-        groups = get_user_groups(username)
-        all_user_groups[username] = groups
-        print(f"Groups for user {username}:")
+    for membername in membernames:
+        groups = get_member_groups(membername)
+        all_member_groups[membername] = groups
+        print(f"Groups for member {membername}:")
         for group in groups:
             print(f"  {group}")
         print()
 
-    if len(usernames) > 1:
-        shared_groups = set(all_user_groups[usernames[0]])
-        for groups in all_user_groups.values():
+    if len(membernames) > 1:
+        shared_groups = set(all_member_groups[membernames[0]])
+        for groups in all_member_groups.values():
             shared_groups &= set(groups)
 
-        print("Shared groups between all users:")
+        print("Shared groups between all members:")
         for group in shared_groups:
             print(f"  {group}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Get group memberships for specified Active Directory users.")
-    parser.add_argument('usernames', metavar='U', type=str, nargs='+', help='List of usernames to check')
+    parser = argparse.ArgumentParser(description="Get group memberships for specified Active Directory members.")
+    parser.add_argument('membernames', metavar='U', type=str, nargs='+', help='List of membernames to check')
     args = parser.parse_args()
 
-    main(args.usernames)
+    main(args.membernames)
