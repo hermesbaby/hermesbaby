@@ -21,8 +21,13 @@
 set -e
 
 ### Update local apt index ####################################################
-
 apt-get update -y
+
+
+### Configure apt for non-interactive, headless installation ##################
+export DEBIAN_FRONTEND=noninteractive
+echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/90assumeyes
+echo 'APT::Get::Fix-Missing "true";' >> /etc/apt/apt.conf.d/90assumeyes
 
 
 ### Make available drawio in headless mode ####################################
@@ -55,7 +60,6 @@ mmdc --version
 
 
 ### Reload environment ########################################################
-
 source ~/.bashrc
 
 
