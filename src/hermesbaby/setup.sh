@@ -37,8 +37,9 @@ echo 'APT::Get::Fix-Missing "true";' >> /etc/apt/apt.conf.d/90assumeyes
 if which drawio; then
     echo "drawio is already installed"
 else
-    drawio_package=drawio-amd64-24.4.13.deb
-    curl -L -o $drawio_package https://github.com/jgraph/drawio-desktop/releases/download/v24.4.13/$drawio_package
+    version=26.0.16
+    drawio_package=drawio-amd64-${version}.deb
+    curl -L -o $drawio_package https://github.com/jgraph/drawio-desktop/releases/download/v${version}/$drawio_package
     apt install -y ./$drawio_package
     rm $drawio_package
 fi
