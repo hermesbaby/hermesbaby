@@ -12,7 +12,8 @@ jobs:
     steps:
     - name: Install Poetry
       run: |
-        pip install poetry
+        pip install pipx
+        pipx install poetry
 
     - name: Checkout code
       uses: actions/checkout@v2
