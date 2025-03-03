@@ -119,9 +119,9 @@ def _tools_install_tool(cmd: str, info: dict) -> bool:
         typer.echo("      No installation command provided.")
         return False
 
-    typer.echo(f"      Installing using command: {info['install']}")
+    typer.echo(f"      Installing using command: {info['install']['windows']}")
     try:
-        subprocess.run(info["install"], shell=True, check=True)
+        subprocess.run(info["install"]['windows'], shell=True, check=True)
     except subprocess.CalledProcessError as e:
         typer.echo(f"      Installation failed: {e}")
         return False
@@ -185,11 +185,11 @@ app_htaccess = typer.Typer(
 )
 app.add_typer(app_htaccess, name="htaccess")
 
-app_ci = typer.Typer(
-    help="Continuous Integration tools",
+app_tools = typer.Typer(
+    help="All about tools called while building the documentation",
     no_args_is_help=True,
 )
-app.add_typer(app_ci, name="ci")
+app.add_typer(app_tools, name="tools")
 
 
 @app.callback(invoke_without_command=False)
@@ -557,15 +557,15 @@ def publish(
         raise typer.Exit(code=1)
 
 
-@app.command()
+@app_tools.command()
 def check_scoop(
     auto: bool = typer.Option(
-        False, "--auto", help="Automatically install scoop if missing"
+        False, "--install", help="Automatically install scoop if missing"
     )
 ):
     """
     Checks if scoop is installed
-    and installs missing extensions if --auto is specified.
+    and installs missing extensions if --install is specified.
     (Experimental feature)
     """
     if shutil.which("scoop"):
@@ -585,15 +585,15 @@ def check_scoop(
         raise typer.Exit(code=1)
 
 
-@app.command()
-def check_tools(
+@app_tools.command()
+def check(
     auto: bool = typer.Option(
-        False, "--auto", help="Automatically install missing tools"
+        False, "--install", help="Automatically install missing tools"
     )
 ):
     """
     Checks for the presence of necessary external tools
-    and installs missing extensions if --auto is specified.
+    and installs missing extensions if --install is specified.
     """
     tools = _tools_load_external_tools()  # Load commands from the JSON file
 
@@ -613,7 +613,7 @@ def check_tools(
         typer.echo("missing")
         typer.echo(f"      Website: {info['website']}")
         if "install" in info:
-            typer.echo(f"      Install it via: {info['install']}")
+            typer.echo(f"      Install it via: {info['install']['windows']}")
             if auto:
                 if not _tools_install_tool(cmd, info):
                     num_tools_missing += 1
@@ -631,15 +631,15 @@ def check_tools(
         raise typer.Exit(code=1)
 
 
-@app.command()
+@app_tools.command()
 def check_vscode_extensions(
     auto: bool = typer.Option(
-        False, "--auto", help="Automatically install missing VSCode extensions."
+        False, "--install", help="Automatically install missing VSCode extensions."
     )
 ):
     """
     Checks for the presence of recommended VSCode extensions (as defined in extensions.json)
-    and installs missing extensions if --auto is specified.
+    and installs missing extensions if --install is specified.
     """
     if not shutil.which("code"):
         typer.echo(
@@ -729,7 +729,7 @@ def check_vscode_extensions(
             raise typer.Exit(code=1)
 
 
-@app_ci.command()
+@app_tools.command()
 def install():
     """Install the external tools necessary for documentation build"""
 
