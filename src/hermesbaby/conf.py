@@ -222,7 +222,7 @@ html_static_path = []
 # Just initialize as a list here. To be filled from extensions below
 html_extra_path = []
 
-html_show_sourcelink = False
+html_show_sourcelink = True
 
 html_theme = "sphinx_material"
 
