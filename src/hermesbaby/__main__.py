@@ -756,9 +756,6 @@ def install():
         typer.echo("Error: This command is only supported on Debian-based Linux distributions.")
         raise typer.Exit(code=1)
 
-    if not is_ubuntu:
-        typer.echo("Error: This command is only supported on Ubuntu Linux. Detected Linux distribution is not Ubuntu.")
-        raise typer.Exit(code=1)
 
     path = Path(__file__).parent
 
