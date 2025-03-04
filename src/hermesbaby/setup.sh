@@ -21,6 +21,14 @@
 set -e
 
 
+### Sudo wrapper ###############################################################
+
+SUDO=
+if which sudo; then
+    SUDO=sudo
+fi
+
+
 ### Configure apt for non-interactive, headless installation ##################
 export DEBIAN_FRONTEND=noninteractive
 echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/90assumeyes
@@ -28,7 +36,7 @@ echo 'APT::Get::Fix-Missing "true";' >> /etc/apt/apt.conf.d/90assumeyes
 
 
 ### Update local apt index ####################################################
-apt-get update -y
+$SUDO apt-get update -y
 
 
 ### Make available drawio in headless mode ####################################
@@ -41,7 +49,7 @@ else
     version=26.0.16
     drawio_package=drawio-amd64-${version}.deb
     curl -L -o $drawio_package https://github.com/jgraph/drawio-desktop/releases/download/v${version}/$drawio_package
-    apt install -y ./$drawio_package
+    $SUDO apt install -y ./$drawio_package
     rm $drawio_package
 fi
 
@@ -49,7 +57,7 @@ fi
 if which xvfb-run; then
     echo "xvfb is already installed"
 else
-    apt-get install -y xvfb
+    $SUDO apt-get install -y xvfb
 fi
 
 
@@ -58,7 +66,7 @@ fi
 if which dot; then
     echo "Graphviz is already installed"
 else
-    apt-get install -y graphviz
+    $SUDO apt-get install -y graphviz
 fi
 
 
@@ -67,7 +75,7 @@ fi
 if which plantuml; then
     echo "PlantUML is already installed"
 else
-    apt-get install -y plantuml
+    $SUDO apt-get install -y plantuml
 fi
 
 
@@ -76,7 +84,7 @@ fi
 if which java; then
     echo "Java is already installed"
 else
-    apt-get install -y openjdk-11-jre
+    $SUDO apt-get install -y openjdk-11-jre
 fi
 java --version
 
@@ -88,7 +96,7 @@ if which node; then
     echo "nodejs is already installed"
 else
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash
-    apt install -y nodejs
+    $SUDO apt install -y nodejs
 fi
 node --version
 
@@ -97,7 +105,7 @@ node --version
 if which mmdc; then
     echo "mermaid-cli is already installed"
 else
-    npm install -g @mermaid-js/mermaid-cli
+    $SUDO npm install -g @mermaid-js/mermaid-cli
 fi
 mmdc --version
 
