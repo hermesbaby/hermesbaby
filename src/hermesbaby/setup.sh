@@ -20,14 +20,15 @@
 ### Enable exit on error ######################################################
 set -e
 
-### Update local apt index ####################################################
-apt-get update -y
-
 
 ### Configure apt for non-interactive, headless installation ##################
 export DEBIAN_FRONTEND=noninteractive
 echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/90assumeyes
 echo 'APT::Get::Fix-Missing "true";' >> /etc/apt/apt.conf.d/90assumeyes
+
+
+### Update local apt index ####################################################
+apt-get update -y
 
 
 ### Make available drawio in headless mode ####################################
@@ -45,17 +46,59 @@ else
 fi
 
 # Install virtual X-Server
-apt-get install -y xvfb
+if which xvfb-run; then
+    echo "xvfb is already installed"
+else
+    apt-get install -y xvfb
+fi
+
+
+### Install Graphviz ###########################################################
+
+if which dot; then
+    echo "Graphviz is already installed"
+else
+    apt-get install -y graphviz
+fi
+
+
+### Install plantuml ###########################################################
+
+if which plantuml; then
+    echo "PlantUML is already installed"
+else
+    apt-get install -y plantuml
+fi
+
+
+### Install java ###############################################################
+
+if which java; then
+    echo "Java is already installed"
+else
+    apt-get install -y openjdk-11-jre
+fi
+java --version
 
 
 ### Install mermaid command line tool #########################################
 
 # Install nodejs (brings package manager npm with it)
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash
-apt install -y nodejs
+if which node; then
+    echo "nodejs is already installed"
+else
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash
+    apt install -y nodejs
+fi
+node --version
 
-#
-npm install -g @mermaid-js/mermaid-cli
+
+# Mermaid CLI
+if which mmdc; then
+    echo "mermaid-cli is already installed"
+else
+    npm install -g @mermaid-js/mermaid-cli
+fi
 mmdc --version
 
 
