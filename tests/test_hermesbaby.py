@@ -125,3 +125,15 @@ def test_task_config_file(cli_runner, project_dir):
 
     index_html = project_dir / build_dir / "html" / "index.html"
     assert index_html.exists(), f"Build output does not exist: {index_html}"
+
+
+def test_task_install(cli_runner):
+
+    from src.hermesbaby.__main__ import app_tools
+
+    # Run the "install" command to set up the project
+    result = cli_runner.invoke(app_tools, ["install"])
+    assert result.exit_code == 0, "Setup failed"
+
+    result = cli_runner.invoke(app_tools, ["check", "--tag", "headless"])
+    assert result.exit_code == 0, "Not all tools were installed"

@@ -1,50 +1,68 @@
 {
-    "code": {
+    "Visual Studio Code": {
         "tags": ["authoring", "edit"],
-        "official_name": "Visual Studio Code",
         "website": "https://code.visualstudio.com/",
         "install": {
             "windows" : "scoop bucket add extras ; scoop install vscode"
+        },
+        "run": {
+            "windows" : "codex",
+            "linux" : "code"
         }
     },
-    "draw.io": {
-        "tags": ["authoring", "build"],
-        "official_name": "diagrams.net (formerly draw.io)",
+    "diagrams.net (formerly draw.io)": {
+        "tags": ["authoring", "build", "headless"],
         "website": "https://www.diagrams.net/",
         "install": {
             "windows" : "scoop bucket add extras ; scoop install draw.io"
+        },
+        "run": {
+            "windows" : "draw.io",
+            "linux" : "drawio"
         }
     },
-    "node": {
-        "tags": ["authoring", "build"],
-        "official_name": "Node.js",
+    "Node.js": {
+        "tags": ["authoring", "build", "headless"],
         "website": "https://nodejs.org/",
         "install": {
             "windows" : "scoop install nodejs"
+        },
+        "run": {
+            "windows" : "node",
+            "linux" : "node"
         }
     },
-    "java": {
-        "tags": ["authoring", "build"],
-        "official_name": "Java",
+    "Java": {
+        "tags": ["authoring", "build", "headless"],
         "website": "https://www.java.com/",
         "install": {
             "windows" : "scoop bucket add java ; scoop install openjdk"
+        },
+        "run": {
+            "windows" : "java",
+            "linux" : "java"
         }
     },
-    "dot": {
-        "tags": ["authoring", "build"],
-        "official_name": "Graphviz",
+    "Graphviz": {
+        "tags": ["authoring", "build", "headless"],
         "website": "https://graphviz.org/",
         "install": {
             "windows" : "scoop install graphviz"
+        },
+        "run": {
+            "windows" : "dot",
+            "linux" : "dot"
         }
     },
-    "mmdc": {
-        "tags": ["authoring", "build"],
-        "official_name": "Mermaid CLI",
+    "Mermaid CLI": {
+        "tags": ["authoring", "build", "headless"],
         "website": "https://mermaid.js.org/",
         "install": {
             "windows" : "npm install -g @mermaid-js/mermaid-cli"
+        },
+        "run": {
+            "windows" : "mmdc",
+            "linux" : "mmdc"
         }
     }
 }
