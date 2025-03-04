@@ -110,7 +110,7 @@ def _install_scoop() -> bool:
         return False
 
 
-def _tools_install_tool(cmd: str, info: dict) -> bool:
+def _tools_install_tool(tool: str, info: dict) -> bool:
     """
     Attempts to install a tool using the installation command specified in info.
     Returns True if the installation was successful, False otherwise.
@@ -127,7 +127,7 @@ def _tools_install_tool(cmd: str, info: dict) -> bool:
         return False
 
     # Verify that the tool is now available.
-    if shutil.which(cmd):
+    if shutil.which(info['run'][platform.system().lower()]):
         typer.echo("      Installation successful.")
         return True
     else:
@@ -559,7 +559,7 @@ def publish(
 
 @app_tools.command()
 def check_scoop(
-    auto: bool = typer.Option(
+    install: bool = typer.Option(
         False, "--install", help="Automatically install scoop if missing"
     )
 ):
@@ -573,7 +573,7 @@ def check_scoop(
         return
 
     typer.echo("Scoop is missing.")
-    if auto:
+    if install:
         typer.echo("Attempting to install scoop headlessly...")
         if _install_scoop():
             typer.echo("Scoop was installed successfully.")
@@ -587,8 +587,11 @@ def check_scoop(
 
 @app_tools.command()
 def check(
-    auto: bool = typer.Option(
+    install: bool = typer.Option(
         False, "--install", help="Automatically install missing tools"
+    ),
+    tag: str = typer.Option(
+        None, "--tag", help="Filter tag"
     )
 ):
     """
@@ -600,11 +603,14 @@ def check(
     if not tools:
         return
 
+    if tag:
+        tools = {k: v for k, v in tools.items() if tag in v.get("tags", [])}
+
     num_tools_missing = 0
     typer.echo("Checking system for required tools...\n")
-    for cmd, info in tools.items():
-        typer.echo(f"   {cmd} ({info['official_name']}): ", nl=False)
-        if shutil.which(cmd):
+    for tool, info in tools.items():
+        typer.echo(f"   {tool}: ", nl=False)
+        if shutil.which(info['run'][platform.system().lower()]):
             typer.echo("found")
             # If found, we skip the rest of this iteration.
             continue
@@ -612,10 +618,14 @@ def check(
         # If the tool is missing:
         typer.echo("missing")
         typer.echo(f"      Website: {info['website']}")
-        if "install" in info:
-            typer.echo(f"      Install it via: {info['install']['windows']}")
-            if auto:
-                if not _tools_install_tool(cmd, info):
+        try:
+            install_cmd = info['install'][platform.system().lower()]
+        except KeyError:
+            install_cmd = None
+        if install_cmd:
+            typer.echo(f"      Install it via: {install_cmd}")
+            if install:
+                if not _tools_install_tool(tool, info):
                     num_tools_missing += 1
             else:
                 num_tools_missing += 1
@@ -633,7 +643,7 @@ def check(
 
 @app_tools.command()
 def check_vscode_extensions(
-    auto: bool = typer.Option(
+    install: bool = typer.Option(
         False, "--install", help="Automatically install missing VSCode extensions."
     )
 ):
@@ -692,7 +702,7 @@ def check_vscode_extensions(
         typer.echo("Missing VSCode extensions:")
         for ext in missing_extensions:
             typer.echo(f"  {ext}")
-        if auto:
+        if install:
             typer.echo("\nAttempting to install missing extensions...")
             for ext in missing_extensions:
                 try:

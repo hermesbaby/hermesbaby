@@ -135,3 +135,5 @@ def test_task_install(cli_runner):
     result = cli_runner.invoke(app_tools, ["install"])
     assert result.exit_code == 0, "Setup failed"
 
+    result = cli_runner.invoke(app_tools, ["check", "--tag", "headless"])
+    assert result.exit_code == 0, "Not all tools were installed"
