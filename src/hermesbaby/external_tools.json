@@ -6,7 +6,7 @@
             "windows" : "scoop bucket add extras ; scoop install vscode"
         },
         "run": {
-            "windows" : "codex",
+            "windows" : "code",
             "linux" : "code"
         }
     },
