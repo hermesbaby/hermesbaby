@@ -30,7 +30,7 @@ def get_ldap_path(name):
             if "OU=Groups" in user.dn:
                 return "group", f"Require ldap-group {user.dn}"
             else:
-                return "user", f"Require ldap-user {user.dn}"
+                return "user", f"Require user {name}"
     except Exception:
         pass
 
@@ -40,7 +40,7 @@ def get_ldap_path(name):
             if "OU=Groups" in group.dn:
                 return "group", f"Require ldap-group {group.dn}"
             else:
-                return "user", f"Require ldap-user {group.dn}"
+                return "user", f"Require user {name}"
     except Exception as e:
         print(f"Warning: Could not find entity {name}", file=sys.stderr)
         return None, None
@@ -98,11 +98,12 @@ def main(names, yaml_file, out_file, expand_file):
     os.makedirs(os.path.dirname(out_file), exist_ok=True)
 
     with open(out_file, "w") as file:
+        print("<RequireAny>", file=file)
         for user in users:
             print(user, file=file)
         for group in groups:
             print(group, file=file)
-        print("Satisfy Any", file=file)
+        print("</RequireAny>", file=file)
 
     print(f"LDAP objects written to {out_file}", file=sys.stderr)
 
