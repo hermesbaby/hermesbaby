@@ -539,6 +539,13 @@ mermaid_d3_zoom = True
 
 extensions.append("sphinx.ext.graphviz")
 
+# In case a pdf is generated, we use pdf as output format:
+if "latex" == builder:
+    graphviz_output_format = "pdf"
+else:
+    graphviz_output_format = "svg"
+
+
 
 ### Add copy-to-clipboard button to codeblocks ################################
 # @see https://sphinx-copybutton.readthedocs.io
