@@ -3,7 +3,7 @@
         "tags": ["authoring", "edit"],
         "website": "https://code.visualstudio.com/",
         "install": {
-            "windows" : "scoop bucket add extras ; scoop install vscode"
+            "windows" : "scoop bucket add extras && scoop install vscode"
         },
         "run": {
             "windows" : "code",
@@ -14,7 +14,7 @@
         "tags": ["authoring", "build", "headless"],
         "website": "https://www.diagrams.net/",
         "install": {
-            "windows" : "scoop bucket add extras ; scoop install draw.io"
+            "windows" : "scoop bucket add extras && scoop install draw.io"
         },
         "run": {
             "windows" : "draw.io",
@@ -36,7 +36,7 @@
         "tags": ["authoring", "build", "headless"],
         "website": "https://www.java.com/",
         "install": {
-            "windows" : "scoop bucket add java ; scoop install openjdk"
+            "windows" : "scoop bucket add java && scoop install openjdk"
         },
         "run": {
             "windows" : "java",

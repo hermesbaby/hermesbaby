@@ -1,0 +1,191 @@
+//################################################################
+//#                                                              #
+//#  This file is part of HermesBaby                             #
+//#                       the software engineer's typewriter     #
+//#                                                              #
+//#      https://github.com/hermesbaby                           #
+//#                                                              #
+//#  Copyright (c) 2024 Alexander Mann-Wahrenberg (basejumpa)    #
+//#                                                              #
+//#  License(s)                                                  #
+//#                                                              #
+//#  - MIT for contents used as software                         #
+//#  - CC BY-SA-4.0 for contents used as method or otherwise     #
+//#                                                              #
+//################################################################
+
+{
+    // *** DOCUMENTING ( including general file, scm, text handling *******
+
+    "workbench.colorTheme": "Visual Studio Light",
+
+    "vsicons.presets.hideExplorerArrows": true,
+    "vsicons.presets.foldersAllDefaultIcon": true,
+
+    "terminal.integrated.defaultProfile.windows": "Git Bash",
+    "terminal.integrated.fontFamily": "CaskaydiaCove Nerd Font",
+
+    "zenMode.centerLayout": false,
+
+    "editor.fontFamily": "CaskaydiaCove Nerd Font", // Default is "Consolas, 'Courier New', monospace"
+    "editor.fontSize": 12, // default is 14
+
+    "editor.renderControlCharacters": true,
+    "editor.renderWhitespace": "all",
+    "editor.wordWrap": "bounded",
+
+
+    "code-eol.newlineCharacter": "¬",
+    "code-eol.returnCharacter": "¤",
+    "code-eol.crlfCharacter": "¤¬",
+
+    "indentRainbow.excludedLanguages": ["yaml"],
+
+    "path-autocomplete.triggerOutsideStrings": true,
+
+
+    // Extension: solomonkinard.git-blame
+    "git-blame.config.ignoreWhitespace": true,
+    "git-blame.config.inlineBlameStartColumn": 100,
+    "git-blame.gitWebUrl": "https://example.com/$ID",
+    "git-blame.showStatusBar": false,
+
+
+    // Built-In since VSCode 1.96.0
+    "git.blame.editorDecoration.enabled": true,
+    "git.blame.editorDecoration.template": "${subject} (${authorDateAgo}, ${authorName})",
+    "git.blame.editorDecoration.foreground": "#ff0000",
+    "git.blame.statusBarItem.enabled": true,
+    "git.blame.statusBarItem.template": "${hashShort} (${authorDateAgo}, ${authorName})",
+
+    "commit-message-editor.staticTemplate": [
+        "feat(scope): Short description (#42)",
+        "",
+        "Message body",
+        "",
+        "Message footer"
+    ],
+    "commit-message-editor.dynamicTemplate": [
+        "{type}{scope}: {description} ({issues})",
+        "",
+        "{body}",
+        "",
+        "{breaking_change}{footer}"
+    ],
+    "commit-message-editor.tokens": [
+        {
+            "label": "Type",
+            "name": "type",
+            "type": "enum",
+            "options": [
+                {
+                    "label": "---",
+                    "value": ""
+                },
+                {
+                    "label": "build",
+                    "description": "Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)"
+                },
+                {
+                    "label": "chore",
+                    "description": "Updating grunt tasks etc; no production code change"
+                },
+                {
+                    "label": "ci",
+                    "description": "Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)"
+                },
+                {
+                    "label": "docs",
+                    "description": "Documentation only changes"
+                },
+                {
+                    "label": "feat",
+                    "description": "A new feature"
+                },
+                {
+                    "label": "fix",
+                    "description": "A bug fix"
+                },
+                {
+                    "label": "perf",
+                    "description": "A code change that improves performance"
+                },
+                {
+                    "label": "refactor",
+                    "description": "A code change that neither fixes a bug nor adds a feature"
+                },
+                {
+                    "label": "revert"
+                },
+                {
+                    "label": "style",
+                    "description": "Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)"
+                },
+                {
+                    "label": "test",
+                    "description": "Adding missing tests or correcting existing tests"
+                }
+            ],
+            "description": "Type of changes"
+        },
+        {
+            "label": "Breaking change",
+            "name": "breaking_change",
+            "type": "boolean",
+            "value": "BREAKING CHANGE: ",
+            "default": false
+        },
+        {
+            "label": "Scope",
+            "name": "scope",
+            "description": "A scope may be provided to a commit’s type, to provide additional contextual information and is contained within parenthesis, e.g., \"feat(parser): add ability to parse arrays\".",
+            "type": "text",
+            "multiline": false,
+            "prefix": "(",
+            "suffix": ")"
+        },
+        {
+            "label": "Short description",
+            "name": "description",
+            "description": "Short description in the subject line.",
+            "type": "text",
+            "multiline": false
+        },
+        {
+            "label": "Issue(s)",
+            "name": "issues",
+            "type": "text"
+        },
+        {
+            "label": "Body",
+            "name": "body",
+            "description": "Optional body",
+            "type": "text",
+            "multiline": true,
+            "lines": 5,
+            "maxLines": 10
+        },
+        {
+            "label": "Footer",
+            "name": "footer",
+            "description": "Optional footer",
+            "type": "text",
+            "multiline": true
+        }
+    ],
+
+    "pasteImage.defaultName": "Y_MM_DD_HH_mm_ss",
+    "pasteImage.encodePath": "none",
+    "pasteImage.path": "${currentFileDir}/_figures",
+    "pasteImage.insertPattern": "```{figure} ${imageFilePath}\n```\n\n",
+    
+    "copyPathWithLineNumber.path.separator": "slash",
+
+    "todo-tree.general.tags": ["TODO", ".. todo::", "[ ]", "[x]"],
+    "todo-tree.filtering.excludeGlobs": ["**/_attachments/*/**"],
+
+    // *** OTHER PURPOSES *************************************************
+
+    // *** Testing ********************************************************
+
+}

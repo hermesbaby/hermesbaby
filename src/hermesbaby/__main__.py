@@ -59,7 +59,7 @@ def _load_config():
         logger.info(f"Using configuration {hermesbaby__config_file}")
     else:
         logger.info(
-            "File {hermesbaby__config_file} does not exist. Using default config only."
+            "There is no \'{hermesbaby__config_file}\'. Using default config."
         )
 
 
@@ -144,7 +144,7 @@ def _check_plantuml():
     typer.echo("Checking PlantUML installation...")
 
     tools_dir = CFG_CONFIG_DIR / "tools"
-    version = "1.2024.7"
+    version = "1.2025.2"
     plantuml_url = f"https://github.com/plantuml/plantuml/releases/download/v{version}/plantuml-{version}.jar"
     plantuml_path = tools_dir / "plantuml.jar"
 
@@ -162,6 +162,7 @@ def _check_plantuml():
         with open(plantuml_path, "wb") as out_file:
             for chunk in response.iter_content(chunk_size=8192):
                 out_file.write(chunk)
+
         typer.echo("PlantUML setup complete!")
     except requests.exceptions.RequestException as e:
         typer.echo(f"Error downloading PlantUML: {e}")
@@ -213,7 +214,7 @@ def new(
         help="Directory where to create the project. Default: subdirectory with name of template.",
     ),
     template: str = typer.Option(
-        None, "--template", "-t", help="Template to use. Default: nano-md."
+        None, "--template", "-t", help="Template to use. Default: hello."
     ),
     list_templates: bool = typer.Option(
         False, "--list", "-l", help="List available templates"
@@ -227,7 +228,7 @@ def new(
     templates_root_path = _get_template_dir()
 
     if template is None:
-        template = "nano-md"
+        template = "hello"
     if directory is None:
         directory = template
 
@@ -355,10 +356,14 @@ def configure(
     # Set environment variable KCONFIG_CONFIG to the value of CFG_CONFIG_CUSTOM_FILE
     os.environ["KCONFIG_CONFIG"] = CFG_CONFIG_CUSTOM_FILE
 
-    # Start "guiconfig" as a subprocess:
-    # - Pass the Kconfig instance to it
-    # - Write the configuration to CFG_CONFIG_CUSTOM_FILE
-    command = f"{_tool_path}/guiconfig {_config_file}"
+    # Check if we're running in a headless environment (like GitHub Codespace)
+    is_headless = "DISPLAY" not in os.environ or not os.environ["DISPLAY"]
+
+    # Use text-based config (menuconfig) in headless environments, GUI (guiconfig) otherwise
+    config_tool = "menuconfig" if is_headless else "guiconfig"
+
+    # Start the configuration tool as a subprocess
+    command = f"{_tool_path}/{config_tool} {_config_file}"
     typer.echo(command)
     result = subprocess.run(command.split(), cwd=directory)
 

@@ -1,0 +1,32 @@
+' @see https://plantuml.com/sequence-diagram
+
+@startuml
+!pragma teoz true
+
+hide footbox
+autonumber
+
+actor User
+
+box "System"
+participant box_1
+participant box_5
+participant box_2
+participant box_3
+participant box_4
+end box
+
+participant Neighbor
+
+
+User -> box_1: IF_USER_SYS(a=2)
+box_1 -> box_2: IF_1_2(b=3)
+box_2 -> box_3: IF_2_3(c=5)
+loop 1..c
+  box_3 -> Neighbor: IF_SYS_NB(d=8)
+  box_4 <- Neighbor: IF_NB_SYS(e=13)
+end loop
+box_4 -> box_5: IF_4_5(f=21)
+box_5 -> User: IF_SYS_USER(g=34)
+
+@enduml

@@ -1,0 +1,70 @@
+<mxfile host="65bd71144e">
+    <diagram id="LPTNytQwqBWC_GfA1Eqr" name="Seite-1">
+        <mxGraphModel dx="1336" dy="1034" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" style="" parent="0"/>
+                <mxCell id="GFLTo3d661KUQCDkYwe_-1" value="Das System ..." style="rounded=0;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;fillColor=none;align=left;verticalAlign=top;spacingLeft=5;spacingRight=5;" parent="1" vertex="1">
+                    <mxGeometry x="64" y="80" width="700" height="950" as="geometry"/>
+                </mxCell>
+                <mxCell id="2" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 22px;&quot;&gt;Funktionale Eignung&lt;/span&gt;" style="swimlane;fontStyle=0;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=80;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="GFLTo3d661KUQCDkYwe_-1" vertex="1">
+                    <mxGeometry x="18" y="40" width="200" height="270" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 14px;&quot;&gt;... stellt Funktionen bereit, die den ausdrücklichen und impliziten Bedürfnissen der vorgesehenen Benutzer unter festgelegten Bedingungen entsprechen&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;spacing=0;" parent="2" vertex="1">
+                    <mxGeometry y="80" width="200" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="&lt;span style=&quot;font-size: 22px;&quot;&gt;Interaktions&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;font-size: 22px;&quot;&gt;fähigkeit&lt;/span&gt;&lt;/div&gt;" style="swimlane;fontStyle=0;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=80;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="GFLTo3d661KUQCDkYwe_-1" vertex="1">
+                    <mxGeometry x="478" y="40" width="200" height="270" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 14px;&quot;&gt;... ermöglicht es bestimmten Benutzern, mit dem System über die Benutzerschnittstelle Informationen auszutauschen, um die beabsichtigte Aufgabe zu erfüllen&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=2;spacingRight=2;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;spacing=0;" parent="14" vertex="1">
+                    <mxGeometry y="80" width="200" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 22px;&quot;&gt;Flexibilität&lt;/span&gt;" style="swimlane;fontStyle=0;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=80;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="GFLTo3d661KUQCDkYwe_-1" vertex="1">
+                    <mxGeometry x="250" y="40" width="200" height="270" as="geometry"/>
+                </mxCell>
+                <mxCell id="23" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 14px;&quot;&gt;...&amp;nbsp;kann an Änderungen der Anforderungen, Nutzungskontexte oder Systemumgebungen angepasst werden&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=2;spacingRight=2;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;spacing=0;" parent="22" vertex="1">
+                    <mxGeometry y="80" width="200" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 22px;&quot;&gt;Kompatibilität&lt;/span&gt;&lt;/font&gt;" style="swimlane;fontStyle=0;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=80;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="GFLTo3d661KUQCDkYwe_-1" vertex="1">
+                    <mxGeometry x="18" y="330" width="200" height="270" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 14px;&quot;&gt;... tauscht Informationen mit anderen Produkten aus und/oder erfüllt ihre vorgesehenen Funktionen unter Nutzung derselben Umgebung und Ressourcen&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=2;spacingRight=2;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;spacing=0;" parent="12" vertex="1">
+                    <mxGeometry y="80" width="200" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 22px;&quot;&gt;Zuverlässigkeit&lt;/span&gt;" style="swimlane;fontStyle=0;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=90;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="GFLTo3d661KUQCDkYwe_-1" vertex="1">
+                    <mxGeometry x="478" y="630" width="200" height="270" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 14px;&quot;&gt;... führt festgelegte Funktionen unter festgelegten Bedingungen über einen bestimmten Zeitraum ohne Unterbrechungen und Ausfälle aus&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=2;spacingRight=2;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;spacing=0;" parent="16" vertex="1">
+                    <mxGeometry y="90" width="200" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 22px;&quot;&gt;Wartbarkeit&lt;/span&gt;" style="swimlane;fontStyle=0;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=90;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="GFLTo3d661KUQCDkYwe_-1" vertex="1">
+                    <mxGeometry x="250" y="630" width="200" height="270" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 14px;&quot;&gt;... kann von den vorgesehenen Wartungsverantwortlichen effektiv und effizient geändert werden&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=2;spacingRight=2;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;spacing=0;whiteSpace=wrap;" parent="20" vertex="1">
+                    <mxGeometry y="90" width="200" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 22px;&quot;&gt;Leistungs&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 22px;&quot;&gt;-effizienz&lt;/span&gt;&lt;/div&gt;" style="swimlane;fontStyle=0;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=80;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;spacingBottom=0;spacing=1;" parent="GFLTo3d661KUQCDkYwe_-1" vertex="1">
+                    <mxGeometry x="250" y="330" width="200" height="270" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 14px;&quot;&gt;... führt ihre Funktionen innerhalb festgelegter Zeit- und Durchsatzparameter aus und ist effizient in der Ressourcennutzung unter festgelegten Bedingungen.&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 14px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=2;spacingRight=2;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;spacingBottom=0;spacing=0;" parent="10" vertex="1">
+                    <mxGeometry y="80" width="200" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="24" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 22px;&quot;&gt;Safety&lt;/span&gt;" style="swimlane;fontStyle=0;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=80;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="GFLTo3d661KUQCDkYwe_-1" vertex="1">
+                    <mxGeometry x="478" y="330" width="200" height="260" as="geometry"/>
+                </mxCell>
+                <mxCell id="25" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 14px;&quot;&gt;...&amp;nbsp;verhindert unter definierten Bedingungen einen Zustand, in dem menschliches Leben, Gesundheit, Eigentum oder die Umwelt gefährdet wird&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=2;spacingRight=2;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;spacing=5;" parent="24" vertex="1">
+                    <mxGeometry y="80" width="200" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="18" value="&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 22px;&quot;&gt;Security&lt;/span&gt;&lt;/font&gt;" style="swimlane;fontStyle=0;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=90;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="GFLTo3d661KUQCDkYwe_-1" vertex="1">
+                    <mxGeometry x="18" y="630" width="200" height="270" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 14px;&quot;&gt;... schützt Informationen und Daten so, dass Personen oder andere Produkte ein ihrem Typ und ihren Berechtigungsstufen entsprechendes Maß an Datenzugriff erhalten und gegen Angriffsstrategien durch böswillige Akteure verteidigt werden&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=2;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;spacing=0;" parent="18" vertex="1">
+                    <mxGeometry y="90" width="200" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="GFLTo3d661KUQCDkYwe_-26" value="ISO 25010:2023&lt;span style=&quot;background-color: transparent;&quot;&gt;&amp;nbsp;Qualitätsmerkmale bzw. -ziele&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;spacingRight=5;spacingLeft=5;" parent="1" vertex="1">
+                    <mxGeometry x="84" y="1000" width="680" height="30" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

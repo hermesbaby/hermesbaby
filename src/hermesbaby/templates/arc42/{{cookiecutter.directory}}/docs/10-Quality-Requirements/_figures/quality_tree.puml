@@ -1,0 +1,71 @@
+@startmindmap
+
+*_ Produktqualität
+
+** Funktionale Eignung
+***_ Funktionale Vollständigkeit
+***_ Funktionale Zweckmäßigkeit
+***_ Funktionale Korrektheit
+
+
+** Flexibilität
+***_ Anpassbarkeit
+***_ Skalierbarkeit
+***_ Installierbarkeit
+***_ Austauschbarkeit
+
+** Interaktionsfähigkeit
+***_ Erkennbarkeit der Angemessenheit
+***_ Erlernbarkeit
+***_ Bedienbarkeit
+***_ Benutzerschutz vor Fehlern
+***_ Benutzerbeteiligung
+***_ Inklusivität
+***_ Benutzerunterstützung
+***_ Selbstbeschreibungsfähigkeit
+
+
+** Kompatibilität
+***_ Koexistenz
+***_ Interoperabilität
+
+
+** Leistungseffizienz
+***_ Zeitverhalten
+**** Qualitätsscenario 01
+***_ Ressourcennutzung
+***_ Kapazität
+
+
+** Safety
+***_ Betriebliche Einschränkung
+***_ Risikobewertung
+***_ Ausfallsicherheit
+***_ Gefahrenwarnung
+***_ Sichere Integration
+
+
+** Security
+***_ Vertraulichkeit
+***_ Integrität
+***_ Nichtabstreitbarkeit
+***_ Verantwortlichkeit
+***_ Authentizität
+***_ Resistenz
+
+
+** Wartbarkeit
+***_ Modularität
+***_ Wiederverwendbarkeit
+***_ Analysierbarkeit
+***_ Änderbarkeit
+***_ Testbarkeit
+
+
+** Zuverlässigkeit
+***_ Fehlerfreiheit
+***_ Verfügbarkeit
+***_ Fehlertoleranz
+***_ Wiederherstellbarkeit
+
+@endmindmap

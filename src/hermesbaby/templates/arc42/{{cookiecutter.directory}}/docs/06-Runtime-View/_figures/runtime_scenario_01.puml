@@ -1,0 +1,26 @@
+' @see https://plantuml.com/sequence-diagram
+
+@startuml
+!pragma teoz true
+
+hide footbox
+autonumber
+
+actor User
+
+box "System"
+participant box_1
+participant box_5
+participant box_2
+participant box_3
+participant box_4
+end box
+
+participant Neighbor
+
+
+User -> box_1: IF_USER_SYS(a=1)
+box_1 -> box_5: IF_1_5(f=0)
+box_5 -> User: IF_SYS_USER(g=-1)
+
+@enduml

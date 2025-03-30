@@ -1,0 +1,145 @@
+//################################################################
+//#                                                              #
+//#  This file is part of HermesBaby                             #
+//#                       the software engineer's typewriter     #
+//#                                                              #
+//#      https://github.com/hermesbaby                           #
+//#                                                              #
+//#  Copyright (c) 2024 Alexander Mann-Wahrenberg (basejumpa)    #
+//#                                                              #
+//#  License(s)                                                  #
+//#                                                              #
+//#  - MIT for contents used as software                         #
+//#  - CC BY-SA-4.0 for contents used as method or otherwise     #
+//#                                                              #
+//################################################################
+
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "clean",
+            "type": "shell",
+            "command": "hb clean",
+            "options": {
+                "statusbar": {
+                    "hide": false
+                }
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "configure",
+            "type": "shell",
+            "command": "hb configure",
+            "options": {
+                "statusbar": {
+                    "hide": false
+                }
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "htaccess-update",
+            "type": "shell",
+            "command": "hb htaccess-update",
+            "options": {
+                "statusbar": {
+                    "hide": false
+                }
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "html",
+            "type": "shell",
+            "command": "hb html",
+            "options": {
+                "statusbar": {
+                    "hide": true
+                }
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "hb-html-live",
+            "type": "shell",
+            "command": "hb html-live",
+            "options": {
+                "statusbar": {
+                    "hide": true
+                }
+            },
+            "presentation": {
+                "panel": "dedicated",
+                "reveal": "always",
+                "clear": true
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "embedded-preview",
+            "type": "shell",
+            "command": "${input:openSimpleBrowser}",
+            "options": {
+                "statusbar": {
+                    "hide": true
+                },
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "html-live",
+            "dependsOn": ["embedded-preview", "hb-html-live"],
+            "options": {
+                "statusbar": {
+                    "hide": false
+                },
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "publish",
+            "type": "shell",
+            "command": "hb publish",
+            "options": {
+                "statusbar": {
+                    "hide": true
+                }
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        },
+    ],
+    "inputs": [
+      {
+        "id": "openSimpleBrowser",
+        "type": "command",
+        "command": "simpleBrowser.show",
+        "args": ["http://127.0.0.1:1976/"]
+      }
+    ]
+}
