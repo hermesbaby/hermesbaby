@@ -165,7 +165,7 @@ install: clean-install .tools/.are-up-to-date
 	$(PYTHON) -m pipx install poetry
 	export PATH="$$PATH:$$HOME/.local/bin" # Works for root. Not tested for other users.
 	mkdir .tools/
-	version=1.2024.7 ; curl -L -o .tools/plantuml.jar https://github.com/plantuml/plantuml/releases/download/v$$version/plantuml-$$version.jar
+	version=1.2025.2 ; curl -L -o .tools/plantuml.jar https://github.com/plantuml/plantuml/releases/download/v$$version/plantuml-$$version.jar
 	touch .tools/.are-up-to-date
 
 
@@ -196,7 +196,7 @@ _doc_build_boilerplate_files: \
         $(CFG_DIR_SOURCE)/Kconfig \
         $(CFG_DIR_SOURCE)/.config \
         $(CFG_DIR_SOURCE)/redirects.txt \
-        $(CFG_DIR_SOURCE)/references.bib \
+        $(CFG_DIR_SOURCE)/bibliography.bib \
         $(CFG_DIR_SOURCE)/index.rst \
         $(CFG_DIR_SOURCE)/webroot/.htaccess
 

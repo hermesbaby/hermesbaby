@@ -144,7 +144,7 @@ def _check_plantuml():
     typer.echo("Checking PlantUML installation...")
 
     tools_dir = CFG_CONFIG_DIR / "tools"
-    version = "1.2024.7"
+    version = "1.2025.2"
     plantuml_url = f"https://github.com/plantuml/plantuml/releases/download/v{version}/plantuml-{version}.jar"
     plantuml_path = tools_dir / "plantuml.jar"
 
@@ -162,6 +162,7 @@ def _check_plantuml():
         with open(plantuml_path, "wb") as out_file:
             for chunk in response.iter_content(chunk_size=8192):
                 out_file.write(chunk)
+
         typer.echo("PlantUML setup complete!")
     except requests.exceptions.RequestException as e:
         typer.echo(f"Error downloading PlantUML: {e}")
