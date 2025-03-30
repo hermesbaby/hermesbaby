@@ -48,7 +48,7 @@ if os.path.exists(hermesbaby_config_file):
     logger.info(f"Using configuration {hermesbaby_config_file}")
 else:
     logger.info(
-        f"File {hermesbaby_config_file} does not exist. You may call 'hermesbaby configure' to start custom configuration."
+        f"There is no \'{hermesbaby_config_file}\', therefore using default configuration values. You may call 'hb configure' to create a custom configuration."
     )
 
 
@@ -639,7 +639,7 @@ def append_existing_files(file_list, filenames_to_check):
             file_list.append(filename)
         else:
             logger.info(
-                f"There is no '{filename}'. You may create one to start a bibliography."
+                f"There is no '{filename}'. You may create one to start a bibliography. See https://www.bibtex.com/g/bibtex-format/ for more information."
             )
 
 

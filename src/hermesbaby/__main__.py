@@ -59,7 +59,7 @@ def _load_config():
         logger.info(f"Using configuration {hermesbaby__config_file}")
     else:
         logger.info(
-            "File {hermesbaby__config_file} does not exist. Using default config only."
+            "There is no \'{hermesbaby__config_file}\'. Using default config."
         )
 
 
@@ -214,7 +214,7 @@ def new(
         help="Directory where to create the project. Default: subdirectory with name of template.",
     ),
     template: str = typer.Option(
-        None, "--template", "-t", help="Template to use. Default: nano-md."
+        None, "--template", "-t", help="Template to use. Default: hello."
     ),
     list_templates: bool = typer.Option(
         False, "--list", "-l", help="List available templates"
@@ -228,7 +228,7 @@ def new(
     templates_root_path = _get_template_dir()
 
     if template is None:
-        template = "nano-md"
+        template = "hello"
     if directory is None:
         directory = template
 
