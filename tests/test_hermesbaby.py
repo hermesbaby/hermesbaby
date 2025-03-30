@@ -66,9 +66,9 @@ def test_entry_points(command_line):
         ("", ""),
         (".", ""),
         ("some/relative/path", ""),
-        ("", "--template nano-md"),
-        (".", "--template nano-md"),
-        ("some/relative/path", "--template nano-md"),
+        ("", "--template hello"),
+        (".", "--template hello"),
+        ("some/relative/path", "--template hello"),
     ],
 )
 def test_task_new(cli_runner, project_dir, some_rel_path_as_str, option):
@@ -81,7 +81,7 @@ def test_task_new(cli_runner, project_dir, some_rel_path_as_str, option):
 
     some_rel_path = Path(some_rel_path_as_str)
     if some_rel_path_as_str == "":
-        some_rel_path = "nano-md"
+        some_rel_path = "hello"
 
     path_to_index_md = project_dir / some_rel_path / "docs" / "index.md"
 
