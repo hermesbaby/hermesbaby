@@ -1055,6 +1055,46 @@ myst_enable_extensions = [
     "tasklist",
 ]
 
+myst_substitutions = {}
+
+myst_substitutions_from_config = {
+    f"CONFIG_{key}": symbol.str_value for key, symbol in kconfig.syms.items() if symbol.visibility
+}
+
+# Here we merge myst_substitutions_from_config into myst_substitutions.
+# In case of conflict, myst_substitutions_from_config has higher precedence.
+for key, value in myst_substitutions_from_config.items():
+    if key not in myst_substitutions:
+        myst_substitutions[key] = value
+    else:
+        myst_substitutions[key] = myst_substitutions_from_config[key]
+
+
+substitutions_realpath_user = os.path.join(_src_realpath, "substitutions.yaml")
+
+# In case `substitutions_realpath_user` exists, then it is read in to the dict myst_substitutions_from_file
+if os.path.exists(substitutions_realpath_user):
+    logger.info(
+        f"Loading substitutions from {substitutions_realpath_user}"
+    )
+    try:
+        with open(substitutions_realpath_user, "r", encoding="utf-8") as file:
+            substitutions_from_file = yaml.safe_load(file)
+            if substitutions_from_file:
+                for key, value in substitutions_from_file.items():
+                    if key not in myst_substitutions:
+                        myst_substitutions[key] = value
+                    else:
+                        myst_substitutions[key] = substitutions_from_file[key]
+    except Exception as e:
+        logger.error(
+            f"Error loading substitutions from {substitutions_realpath_user}: {e}"
+        )
+else:
+    logger.info(
+        f"There is no \'{substitutions_realpath_user}\'. You may create one to define substitutions with Jinja statements."
+    )
+
 ###############################################################################
 ### BEGIN OF SPHINX-TOOLBOX EXTENSION #########################################
 ###############################################################################
