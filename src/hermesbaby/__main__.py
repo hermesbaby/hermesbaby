@@ -740,7 +740,7 @@ def check_vscode_extensions(
             typer.echo(
                 "\nPlease install the missing extensions manually using commands like:"
             )
-            typer.echo("  code --install-extension " + " ".join(missing_extensions))
+            typer.echo("   code --install-extension   " + " ; code --install-extension ".join(missing_extensions))
             raise typer.Exit(code=1)
 
 
