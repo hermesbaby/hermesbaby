@@ -356,10 +356,14 @@ def configure(
     # Set environment variable KCONFIG_CONFIG to the value of CFG_CONFIG_CUSTOM_FILE
     os.environ["KCONFIG_CONFIG"] = CFG_CONFIG_CUSTOM_FILE
 
-    # Start "guiconfig" as a subprocess:
-    # - Pass the Kconfig instance to it
-    # - Write the configuration to CFG_CONFIG_CUSTOM_FILE
-    command = f"{_tool_path}/guiconfig {_config_file}"
+    # Check if we're running in a headless environment (like GitHub Codespace)
+    is_headless = "DISPLAY" not in os.environ or not os.environ["DISPLAY"]
+
+    # Use text-based config (menuconfig) in headless environments, GUI (guiconfig) otherwise
+    config_tool = "menuconfig" if is_headless else "guiconfig"
+
+    # Start the configuration tool as a subprocess
+    command = f"{_tool_path}/{config_tool} {_config_file}"
     typer.echo(command)
     result = subprocess.run(command.split(), cwd=directory)
 
