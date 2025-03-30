@@ -873,6 +873,20 @@ needs_types = [
         color="#FFFFFF",
         style="interface",
     ),
+    dict(
+        directive="decision",
+        title="Decision",
+        prefix="DECISION_",
+        color="#FFFFFF",
+        style="person",
+    ),
+    dict(
+        directive="concept",
+        title="Concept",
+        prefix="CONCEPT_",
+        color="#FFFFFF",
+        style="card",
+    ),
     # Incoming items
     dict(
         directive="jira_spec",
