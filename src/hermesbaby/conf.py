@@ -1169,8 +1169,8 @@ def setup_app__rstjinja(app):
     app.add_config_value(name="config_as_dict", default={}, rebuild=True)
     app.connect("source-read", rstjinja)
 
-
-app_setups.append(setup_app__rstjinja)
+if False:
+    app_setups.append(setup_app__rstjinja)
 
 ###############################################################################
 ### END OF EXTENSIONS UNDER EARLY DEVELOPMENT #################################
