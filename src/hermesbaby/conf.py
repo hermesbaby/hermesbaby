@@ -286,7 +286,7 @@ else:
 
 ### Access control for publish on Apache 2 ####################################
 
-web_root_dir = os.path.join(_src_realpath, "references.bib")
+web_root_dir = os.path.join(_src_realpath, "bibliography.bib")
 if os.path.exists(web_root_dir):
     html_extra_path.append(web_root_dir)
 
@@ -629,7 +629,7 @@ extensions.append("sphinxcontrib.bibtex")
 bibtex_bibfiles = []
 
 bibtex_bibfiles_candidates = [
-    os.path.join(_src_realpath, "references.bib"),
+    os.path.join(_src_realpath, "bibliography.bib"),
 ]
 
 
