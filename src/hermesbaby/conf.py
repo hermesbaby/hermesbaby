@@ -19,7 +19,6 @@
 ################################################################
 
 import os
-import pathlib
 import platform
 import re
 import sys
@@ -203,6 +202,8 @@ source_suffix = [".rst", ".md", ".ipynb"]
 exclude_patterns = [
     "README.md",
     "**/_attachments/**/*.md",
+#    "*blog*/*/**/*.md",  # Prevent "document isn't included in any toctree" for blogs in Myst markdown
+#    "*Blog*/*/**/*.md",
 ]
 
 ## Let's expand `some string` to `some string` instead of *some string*
@@ -1057,6 +1058,8 @@ myst_enable_extensions = [
 
 myst_substitutions = {}
 
+myst_update_mathjax = False # Necessary to make ablog (see below) work with Myst Markdown
+
 myst_substitutions_from_config = {
     f"CONFIG_{key}": symbol.str_value for key, symbol in kconfig.syms.items() if symbol.visibility
 }
@@ -1094,6 +1097,32 @@ else:
     logger.info(
         f"There is no \'{substitutions_realpath_user}\'. You may create one to define substitutions with Jinja statements."
     )
+
+
+### Enable blogging ###########################################################
+# @see https://ablog.readthedocs.io/en/stable/
+
+extensions.append("ablog")
+
+post_date_format = "%Y-%m-%d"
+post_date_format_short = post_date_format
+
+if False:
+    blog_authors = {
+    #    config.DOC__AUTHOR__NICKNAME: (config.DOC__AUTHOR, config.DOC__AUTHOR__URL),
+        "basejumpa": ("Alexander Mann-Wahrenberg", 'https://github.com/basejumpa'), # TODO: Move this to Kconfig
+    }
+    blog_default_author = "basejumpa" # TODO: Move this to Kconfig: config.DOC__AUTHOR__NICKNAME
+
+# Attention: Here we modify the dict `html_sidebars` which is
+# first set in section "Options for HTML output" above.
+if False:
+    html_sidebars["blog/**"] = [
+        "ablog/postcard.html",
+        "ablog/recentposts.html",
+        "ablog/tagcloud.html",
+    ]
+
 
 ###############################################################################
 ### BEGIN OF SPHINX-TOOLBOX EXTENSION #########################################
