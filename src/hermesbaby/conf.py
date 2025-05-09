@@ -169,7 +169,7 @@ _confidential_level = f"{kconfig.syms['DOC__CONFIDENTIALITY_LEVEL_LABEL'].str_va
 
 ### Construct meta-data header:
 
-_metadata = f"commit: {_commit} | branch: {_git_branch} | printed at {_print_out_timestamp} by {_username} | {_confidential_level}"
+_metadata = f"commit: {_commit} | branch: {_git_branch} | built at {_print_out_timestamp} by {_username} | {_confidential_level}"
 
 ## Add CI information
 # Indicator is the environment variable "BUILD_NUMBER" which is set by the CI/CD system.
@@ -217,7 +217,8 @@ numfig = True
 # @see https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 # Just initialize as a list here. To be filled from extensions below
-html_static_path = []
+html_static_path = ["html_static"]
+html_css_files = ["custom.css"]
 
 # Just initialize as a list here. To be filled from extensions below
 html_extra_path = []
@@ -1049,11 +1050,14 @@ myst_enable_extensions = [
     "html_image",
     "linkify",
     "replacements",
-    "smartquotes",
+    # "smartquotes",
     "strikethrough",
     "substitution",
     "tasklist",
 ]
+
+
+smartquotes = False #  Prevent (c) → ©, etc.
 
 myst_substitutions = {}
 

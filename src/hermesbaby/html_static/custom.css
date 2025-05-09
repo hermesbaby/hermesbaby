@@ -1,0 +1,35 @@
+/* Apply borders and center alignment to all tables */
+table.docutils {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+table.docutils th,
+table.docutils td {
+    border: 1px solid black;
+    text-align: center;
+    padding: 4px;
+}
+
+/* Improve header row appearance */
+table.docutils thead th {
+    background-color: #f0f0f0;     /* light gray background */
+    color: #333;                   /* dark text */
+    font-weight: bold;             /* ensure boldness */
+    font-size: 1.05em;             /* slightly larger font */
+    border-bottom: 2px solid #444; /* thicker bottom border */
+    padding: 6px;
+}
+
+/* Optional: add hover effect for entire row */
+table.docutils tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+
+table.docutils thead th:first-child {
+    border-top-left-radius: 6px;
+}
+table.docutils thead th:last-child {
+    border-top-right-radius: 6px;
+}
