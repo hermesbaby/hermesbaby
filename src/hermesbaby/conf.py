@@ -19,7 +19,6 @@
 ################################################################
 
 import os
-import pathlib
 import platform
 import re
 import sys
@@ -218,7 +217,9 @@ numfig = True
 
 # Just initialize as a list here. To be filled from extensions below
 html_static_path = ["html_static"]
-html_css_files = ["custom.css"]
+html_css_files = [
+    "custom.css",
+]
 
 # Just initialize as a list here. To be filled from extensions below
 html_extra_path = []
@@ -830,6 +831,7 @@ traceability_render_relationship_per_item = True
 
 
 ### sphinx-needs - Adds needs/requirements to sphinx  ########################
+# @see https://sphinx-needs.readthedocs.io/
 # @see https://sphinx-needs.readthedocs.io/en/latest/configuration.html
 
 extensions.append("sphinx_needs")
@@ -840,73 +842,84 @@ needs_id_regex = "^[a-zA-Z0-9_]{5,}"
 
 needs_title_optional = True
 
+# style: Select from "Declaring element" at https://plantuml.com/deployment-diagram
 needs_types = [
     # Own items
     dict(
-        directive="usecase",
+        directive="uc",
         title="UseCase",
         prefix="UC_",
         color="#FFFFFF",
         style="usecase",
     ),
     dict(
-        directive="block",
+        directive="blk",
         title="Block",
-        prefix="BLOCK_",
+        prefix="BLK_",
         color="#FFFFFF",
-        style="component",
+        style="rectangle",
     ),
     dict(
-        directive="connection",
+        directive="con",
         title="Connection",
         prefix="CON_",
         color="#FFFFFF",
-        style="interface",
+        style="queue",
     ),
     dict(
-        directive="component",
+        directive="comp",
         title="Component",
         prefix="COMP_",
         color="#FFFFFF",
         style="component",
     ),
     dict(
-        directive="interface",
+        directive="if",
         title="Interface",
         prefix="IF_",
         color="#FFFFFF",
         style="interface",
     ),
     dict(
+        directive="cstr",
+        title="Constraint",
+        prefix="CSTR_",
+        color="#FFFFFF",
+        style="boundary",
+    ),
+    dict(
         directive="decision",
         title="Decision",
-        prefix="DECISION_",
+        prefix="DCSN_",
         color="#FFFFFF",
-        style="person",
+        style="hexagon",
     ),
     dict(
         directive="concept",
         title="Concept",
-        prefix="CONCEPT_",
+        prefix="CNPT_",
         color="#FFFFFF",
-        style="card",
+        style="cloud",
     ),
     # Incoming items
     dict(
-        directive="jira_spec",
-        title="JIRA-Spec",
-        prefix="JIRA_SPEC",
+        directive="spec",
+        title="Specification",
+        prefix="SPEC_",
         color="#FFFFFF",
-        style="file",
+        style="artifact",
     ),
     dict(
-        directive="jira_req",
-        title="JIRA-Req",
-        prefix="JIRA_REQ_",
+        directive="req",
+        title="Requirement",
+        prefix="REQ_",
         color="#FFFFFF",
-        style="file",
+        style="artifact",
     ),
 ]
+
+needs_role_need_template = "{title:*^20s}"
+
 
 ## Wishes to be implemented in the future in sphinx_needs:
 # - WISH_A: Option needs_id_from_title as element of own needs_type, default: False
