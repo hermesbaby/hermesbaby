@@ -483,7 +483,10 @@ plantuml = f"java -jar {os.path.join(_tools_realpath, 'plantuml.jar')} -config {
 ## Settings regarding the output
 
 plantuml_batch_size = 500
-plantuml_output_format = "svg"
+
+# prefer using SVG for its scalability, therefore use this instead of just "svg":
+plantuml_output_format = "svg_img"
+
 plantuml_latex_output_format = "pdf"
 
 
