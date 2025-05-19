@@ -201,6 +201,9 @@ source_suffix = [".rst", ".md", ".ipynb"]
 
 exclude_patterns = [
     "README.md",
+    "**/_attachments/*.rst",
+    "**/_attachments/**/*.rst",
+    "**/_attachments/*.md",
     "**/_attachments/**/*.md",
 ]
 
