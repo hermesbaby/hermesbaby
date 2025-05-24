@@ -185,9 +185,17 @@ config LINK_PATTERNS__JIRA
     string "Link Pattern for :jira:"
     default "https://github.com/hermesbaby/hermesbaby/issues/%s"
 
+config LINK_PATTERNS__ISSUE
+    string "Link Pattern for :issue:"
+    default "https://github.com/hermesbaby/hermesbaby/issues/%s"
+
 config LINK_PATTERNS__REPO
     string "Link Pattern for :repo:"
     default "https://github.com/%s.git"
+
+config LINK_PATTERNS__JOB
+    string "Link Pattern for :job:"
+    default "https://github.com/%s/actions/"
 
 config LINK_PATTERNS__USER
     string "Link Pattern for :user:"

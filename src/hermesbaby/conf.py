@@ -667,7 +667,9 @@ extensions.append("sphinx.ext.extlinks")
 
 extlinks = {
     "jira": (kconfig.syms["LINK_PATTERNS__JIRA"].str_value, "%s"),
+    "issue": (kconfig.syms["LINK_PATTERNS__ISSUE"].str_value, "%s"),
     "repo": (kconfig.syms["LINK_PATTERNS__REPO"].str_value, "%s"),
+    "job": (kconfig.syms["LINK_PATTERNS__JOB"].str_value, "%s"),
     "user": (kconfig.syms["LINK_PATTERNS__USER"].str_value, "%s"),
 }
 
