@@ -65,7 +65,7 @@
         {
             "label": "html",
             "type": "shell",
-            "command": "hb html",
+            "command": "hb html --enforce-latest",
             "options": {
                 "statusbar": {
                     "hide": true
@@ -80,7 +80,7 @@
         {
             "label": "hb-html-live",
             "type": "shell",
-            "command": "hb html-live",
+            "command": "hb html-live --enforce-latest",
             "options": {
                 "statusbar": {
                     "hide": true
