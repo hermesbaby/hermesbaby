@@ -21,6 +21,7 @@
 import os
 import platform
 import re
+import runpy
 import sys
 import requests
 import urllib3
@@ -1247,6 +1248,53 @@ if False:
 def setup(app):
     for app_setup in app_setups:
         app_setup(app)
+
+
+###############################################################################
+### Inject optional project conf.py ###########################################
+###############################################################################
+
+
+def regard_project_conf_py():
+    """
+    Uses kconfiglib to get the config directory from KCONFIG,
+    looks for conf.py in that directory, merges extensions if found, and raises
+    an error if there are duplicates.
+    """
+
+    global extensions
+
+    if not _config_realpath:
+        # No user config directory specified: nothing to do
+        return
+
+    user_conf_path = os.path.join(_config_realpath, "conf.py")
+    if not os.path.exists(user_conf_path):
+        logger.info(
+            f"There is no '{user_conf_path}', You may place a custom conf.py there to extend your docs-as-code environment."
+        )
+
+        return
+    else:
+        logger.info(
+            f"Using user config file {user_conf_path}. If you like, tell me what great things you have done there within a new ticket at https://github.com/hermesbaby/hermesbaby/issues ."
+        )
+
+    user_ns = runpy.run_path(user_conf_path)
+    user_list = user_ns.get("extensions", [])
+
+    # Check for duplicates
+    duplicates = set(extensions) & set(user_list)
+    if duplicates:
+        dup_list = ", ".join(repr(x) for x in sorted(duplicates))
+        raise ValueError(
+            f"Your custom config {user_conf_path} contains item(s) already defined in the built-in config: {dup_list}"
+        )
+
+    extensions.extend(user_list)
+
+
+regard_project_conf_py()
 
 
 ### EOF #######################################################################
