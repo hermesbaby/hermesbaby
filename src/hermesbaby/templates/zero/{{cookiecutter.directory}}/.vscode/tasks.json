@@ -78,12 +78,12 @@
             }
         },
         {
-            "label": "hb-html-live",
+            "label": "html-live",
             "type": "shell",
             "command": "hb html-live",
             "options": {
                 "statusbar": {
-                    "hide": true
+                    "hide": false
                 }
             },
             "presentation": {
@@ -96,27 +96,6 @@
                 "kind": "build",
                 "isDefault": true
             }
-        },
-        {
-            "label": "embedded-preview",
-            "type": "shell",
-            "command": "${input:openSimpleBrowser}",
-            "options": {
-                "statusbar": {
-                    "hide": true
-                },
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "html-live",
-            "dependsOn": ["embedded-preview", "hb-html-live"],
-            "options": {
-                "statusbar": {
-                    "hide": false
-                },
-            },
-            "problemMatcher": []
         },
         {
             "label": "publish",
