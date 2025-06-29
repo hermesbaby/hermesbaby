@@ -22,12 +22,15 @@ import os
 import platform
 import re
 import runpy
+import subprocess
 import sys
 
 import kconfiglib
 import requests
 import urllib3
 import yaml
+from docutils import nodes
+from docutils.parsers.rst import roles
 from sphinx.util import logging
 
 logger = logging.getLogger(__name__)
@@ -1173,7 +1176,8 @@ nb_execution_timeout = 60
 ### BEGIN OF EXTENSIONS UNDER EARLY DEVELOPMENT ###############################
 ###############################################################################
 
-sys.path.append(os.path.join(_conf_realpath, ".."))
+_extensions_under_development_path = os.path.join(_conf_realpath, "..")
+sys.path.append(_extensions_under_development_path)
 
 ### Tag sections, paragraphs, figures, ... anything ###########################
 # @see ../sphinx-contrib/pre-post-build/README.md
@@ -1246,59 +1250,111 @@ if False:
 ### END OF EXTENSIONS UNDER EARLY DEVELOPMENT #################################
 ###############################################################################
 
+
+###############################################################################
+### Extend by user-defined project's conf.py ##################################
+###############################################################################
+
+
+def _ensure_requirements(requirements_file):
+    if not os.path.isfile(requirements_file):
+        # No requirements file, nothing to do
+        return
+    import pkg_resources
+    from pkg_resources import DistributionNotFound, VersionConflict
+
+    with open(requirements_file) as f:
+        required = [
+            line.strip() for line in f if line.strip() and not line.startswith("#")
+        ]
+    if not required:
+        # Empty requirements.txt
+        return
+    try:
+        pkg_resources.require(required)
+    except (DistributionNotFound, VersionConflict):
+        logger.info(
+            f"[hermesbaby] Installing requirements from {requirements_file} ..."
+        )
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", "-r", requirements_file]
+        )
+        logger.info("[hermesbaby] Relaunching build process...")
+        os.execv(sys.executable, [sys.executable] + sys.argv)
+
+
+_user_conf_path = os.path.join(_config_realpath, "conf.py")
+if os.path.exists(_user_conf_path):
+    logger.info(
+        f"Using project config file {_user_conf_path}. If you like, tell me what great things you have done there within a new ticket at https://github.com/hermesbaby/hermesbaby/issues ."
+    )
+else:
+    logger.info(
+        f"There is no '{_user_conf_path}', You may place a custom conf.py there to extend your docs-as-code environment."
+    )
+    _user_conf_path = None
+
+# Bootstrap dependencies
+if _user_conf_path:
+    _user_requirements_path = os.path.join(_config_realpath, "requirements.txt")
+    if os.path.exists(_user_requirements_path):
+        logger.info(f"Using project requirements file {_user_requirements_path}")
+        _ensure_requirements(_user_requirements_path)
+    else:
+        logger.info(
+            f"There is no '{_user_requirements_path}'. You may place a custom requirements.txt there to install additional dependencies."
+        )
+
+
+class MockApp:
+    def __init__(self):
+        self._calls = []
+
+    def __getattr__(self, name):
+        def recorder(*args, **kwargs):
+            self._calls.append((name, args, kwargs))
+
+        return recorder
+
+
+_mock_app = MockApp()
+
+_mock_extentions = []
+
+_hermesbaby_extention_api = {
+    "extensions": _mock_extentions,
+    "roles": roles,
+    "nodes": nodes,
+    "app": _mock_app,
+}
+
+if _user_conf_path:
+
+    # Integrate the user-provided conf.py file and inject the api
+    user_ns = runpy.run_path(_user_conf_path, init_globals=_hermesbaby_extention_api)
+
+    # Back-inject
+    for key in _hermesbaby_extention_api:
+        _hermesbaby_extention_api[key] = user_ns[key]
+
+    # Insert the user-defined extensions into the list of extensions
+    for ext in _mock_extentions:
+        if ext not in extensions:
+            extensions.append(ext)
+
+
+###############################################################################
 ### Call all the above collected app setups functions #########################
+###############################################################################
 
 
 def setup(app):
     for app_setup in app_setups:
         app_setup(app)
 
-
-###############################################################################
-### Inject optional project conf.py ###########################################
-###############################################################################
-
-
-def regard_project_conf_py():
-    """
-    Uses kconfiglib to get the config directory from KCONFIG,
-    looks for conf.py in that directory, merges extensions if found, and raises
-    an error if there are duplicates.
-    """
-
-    global extensions
-
-    if not _config_realpath:
-        # No user config directory specified: nothing to do
-        return
-
-    user_conf_path = os.path.join(_config_realpath, "conf.py")
-    if not os.path.exists(user_conf_path):
-        logger.info(
-            f"There is no '{user_conf_path}', You may place a custom conf.py there to extend your docs-as-code environment."
-        )
-
-        return
-    else:
-        logger.info(
-            f"Using user config file {user_conf_path}. If you like, tell me what great things you have done there within a new ticket at https://github.com/hermesbaby/hermesbaby/issues ."
-        )
-
-    user_ns = runpy.run_path(user_conf_path)
-    user_list = user_ns.get("extensions", [])
-
-    # Check for duplicates
-    duplicates = set(extensions) & set(user_list)
-    if duplicates:
-        dup_list = ", ".join(repr(x) for x in sorted(duplicates))
-        raise ValueError(
-            f"Your custom config {user_conf_path} contains item(s) already defined in the built-in config: {dup_list}"
-        )
-
-    extensions.extend(user_list)
-
-
-regard_project_conf_py()
+    # Replay all calls (connect, add_config_value, etc.)
+    for method, args, kwargs in _mock_app._calls:
+        getattr(app, method)(*args, **kwargs)
 
 
 ### EOF #######################################################################
