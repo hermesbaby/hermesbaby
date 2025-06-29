@@ -21,12 +21,14 @@
 import os
 import platform
 import re
+import runpy
 import sys
+
+import kconfiglib
 import requests
 import urllib3
 import yaml
 from sphinx.util import logging
-import kconfiglib
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +49,7 @@ if os.path.exists(hermesbaby_config_file):
     logger.info(f"Using configuration {hermesbaby_config_file}")
 else:
     logger.info(
-        f"There is no \'{hermesbaby_config_file}\', therefore using default configuration values. You may call 'hb configure' to create a custom configuration."
+        f"There is no '{hermesbaby_config_file}', therefore using default configuration values. You may call 'hb configure' to create a custom configuration."
     )
 
 
@@ -55,6 +57,10 @@ else:
 
 _src_realpath = os.path.realpath(
     os.path.join(_cwd_realpath, kconfig.syms["BUILD__DIRS__SOURCE"].str_value)
+)
+
+_config_realpath = os.path.realpath(
+    os.path.join(_cwd_realpath, kconfig.syms["BUILD__DIRS__CONFIG"].str_value)
 )
 
 
@@ -114,9 +120,10 @@ if "-b" in sys.argv:
 
 # pyright: reportShadowedImports=false
 import datetime
-from tzlocal import get_localzone
-import git
 import getpass
+
+import git
+from tzlocal import get_localzone
 
 _timezone = get_localzone()
 _current_time = datetime.datetime.now(_timezone)
@@ -554,7 +561,6 @@ else:
     graphviz_output_format = "svg"
 
 
-
 ### Add copy-to-clipboard button to codeblocks ################################
 # @see https://sphinx-copybutton.readthedocs.io
 
@@ -608,12 +614,9 @@ extensions.append("sphinx_mdinclude")
 
 ### Register additional lexers for code-block directives  #####################
 
-from sphinx.highlighting import lexers
-
-
 # Register lexer for *.robot files
-
 from robotframeworklexer import RobotFrameworkLexer
+from sphinx.highlighting import lexers
 
 lexers["robot"] = RobotFrameworkLexer()
 
@@ -782,8 +785,9 @@ intersphinx_mapping = _intersphinx_populate_mapping(
 
 
 def _intersphinx__workaround_corporate_ssl_certificates():
-    from sphinx.ext.intersphinx import fetch_inventory
     import ssl
+
+    from sphinx.ext.intersphinx import fetch_inventory
 
     def patched_fetch_inventory(app, uri, inv):
         try:
@@ -942,8 +946,8 @@ templates_path.append(os.path.join(_src_realpath, "datatemplates"))
 
 
 import html
+
 from bs4 import BeautifulSoup
-import re
 
 
 def html_to_rst(html_content):
@@ -1078,12 +1082,14 @@ myst_enable_extensions = [
 ]
 
 
-smartquotes = False #  Prevent (c) → ©, etc.
+smartquotes = False  #  Prevent (c) → ©, etc.
 
 myst_substitutions = {}
 
 myst_substitutions_from_config = {
-    f"CONFIG_{key}": symbol.str_value for key, symbol in kconfig.syms.items() if symbol.visibility
+    f"CONFIG_{key}": symbol.str_value
+    for key, symbol in kconfig.syms.items()
+    if symbol.visibility
 }
 
 # Here we merge myst_substitutions_from_config into myst_substitutions.
@@ -1099,9 +1105,7 @@ substitutions_realpath_user = os.path.join(_src_realpath, "substitutions.yaml")
 
 # In case `substitutions_realpath_user` exists, then it is read in to the dict myst_substitutions_from_file
 if os.path.exists(substitutions_realpath_user):
-    logger.info(
-        f"Loading substitutions from {substitutions_realpath_user}"
-    )
+    logger.info(f"Loading substitutions from {substitutions_realpath_user}")
     try:
         with open(substitutions_realpath_user, "r", encoding="utf-8") as file:
             substitutions_from_file = yaml.safe_load(file)
@@ -1117,7 +1121,7 @@ if os.path.exists(substitutions_realpath_user):
         )
 else:
     logger.info(
-        f"There is no \'{substitutions_realpath_user}\'. You may create one to define substitutions with Jinja statements."
+        f"There is no '{substitutions_realpath_user}'. You may create one to define substitutions with Jinja statements."
     )
 
 ###############################################################################
@@ -1234,6 +1238,7 @@ def setup_app__rstjinja(app):
     app.add_config_value(name="config_as_dict", default={}, rebuild=True)
     app.connect("source-read", rstjinja)
 
+
 if False:
     app_setups.append(setup_app__rstjinja)
 
@@ -1247,6 +1252,53 @@ if False:
 def setup(app):
     for app_setup in app_setups:
         app_setup(app)
+
+
+###############################################################################
+### Inject optional project conf.py ###########################################
+###############################################################################
+
+
+def regard_project_conf_py():
+    """
+    Uses kconfiglib to get the config directory from KCONFIG,
+    looks for conf.py in that directory, merges extensions if found, and raises
+    an error if there are duplicates.
+    """
+
+    global extensions
+
+    if not _config_realpath:
+        # No user config directory specified: nothing to do
+        return
+
+    user_conf_path = os.path.join(_config_realpath, "conf.py")
+    if not os.path.exists(user_conf_path):
+        logger.info(
+            f"There is no '{user_conf_path}', You may place a custom conf.py there to extend your docs-as-code environment."
+        )
+
+        return
+    else:
+        logger.info(
+            f"Using user config file {user_conf_path}. If you like, tell me what great things you have done there within a new ticket at https://github.com/hermesbaby/hermesbaby/issues ."
+        )
+
+    user_ns = runpy.run_path(user_conf_path)
+    user_list = user_ns.get("extensions", [])
+
+    # Check for duplicates
+    duplicates = set(extensions) & set(user_list)
+    if duplicates:
+        dup_list = ", ".join(repr(x) for x in sorted(duplicates))
+        raise ValueError(
+            f"Your custom config {user_conf_path} contains item(s) already defined in the built-in config: {dup_list}"
+        )
+
+    extensions.extend(user_list)
+
+
+regard_project_conf_py()
 
 
 ### EOF #######################################################################
