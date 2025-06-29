@@ -178,7 +178,7 @@
     "pasteImage.encodePath": "none",
     "pasteImage.path": "${currentFileDir}/_figures",
     "pasteImage.insertPattern": "```{figure} ${imageFilePath}\n```\n\n",
-    
+
     "copyPathWithLineNumber.path.separator": "slash",
 
     "todo-tree.general.tags": ["TODO", ".. todo::", "[ ]", "[x]"],
