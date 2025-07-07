@@ -16,13 +16,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install pipx
+        run: python -m pip install pipx
+
       - name: Install hermesbaby
-        run: python -m pip install hermesbaby
+        run: python -m pipx install hermesbaby
 
       - name: Install tools
         run: hb tools install
 
-      - name: Build main website
+      - name: Build docs
         run: hb html
 
       - name: Upload artifacts
