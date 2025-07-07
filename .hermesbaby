@@ -1,0 +1,84 @@
+
+#
+# Document
+#
+CONFIG_DOC__TITLE="HermesBaby"
+CONFIG_DOC__AUTHOR="Alexander Mann-Wahrenberg (basejumpa)"
+CONFIG_DOC__YEAR=2024
+CONFIG_DOC__PROJECT="HermesBaby"
+CONFIG_DOC__LANGUAGE="en"
+CONFIG_DOC_LANGUAGE_ENGLISH=y
+# CONFIG_DOC_LANGUAGE_GERMAN is not set
+CONFIG_DOC__CONFIDENTIALITY_LEVEL_LABEL="Confidentiality level"
+CONFIG_DOC__CONFIDENTIALITY_LEVEL="Public"
+CONFIG_DOC__CONFIDENTIALITY_PUBLIC=y
+# CONFIG_DOC__CONFIDENTIALITY_INTERNAL is not set
+# CONFIG_DOC__CONFIDENTIALITY_CONFIDENTIAL is not set
+# CONFIG_DOC__CONFIDENTIALITY_STRICTLY_CONFIDENTIAL is not set
+# end of Document
+
+#
+# CM
+#
+CONFIG_CM__TICKET_KEY=""
+# end of CM
+
+#
+# SCM
+#
+CONFIG_SCM__HOST="github.com"
+CONFIG_SCM__HOST_TYPE="GitHub"
+CONFIG_SCM__HOST_TYPE__GITHUB=y
+# CONFIG_SCM__HOST_TYPE__BITBUCKET is not set
+CONFIG_SCM__OWNER_KIND="projects"
+CONFIG_SCM__PROJECT=y
+# CONFIG_SCM__USER is not set
+CONFIG_SCM__OWNER="hermesbaby"
+CONFIG_SCM__REPO="hermesbaby"
+CONFIG_SCM__REPO__URL_GIT_CLIENT="https://github.com/hermesbaby/hermesbaby.git"
+# end of SCM
+
+#
+# Build
+#
+CONFIG_BUILD__DIRS__SOURCE="docs"
+CONFIG_BUILD__DIRS__CONFIG="docs"
+CONFIG_BUILD__DIRS__BUILD="out/docs"
+CONFIG_BUILD__PORTS__HTML__LIVE=1976
+CONFIG_BUILD__PORTS__PRESENTATION__LIVE=1973
+# end of Build
+
+#
+# Write
+#
+CONFIG_WRITE__FIGURES__FORMAT="svg"
+# CONFIG_WRITE__FIGURES_FORMAT_PNG is not set
+CONFIG_WRITE__FIGURES_FORMAT_SVG=y
+# CONFIG_WRITE__FIGURES_FORMAT_JPG is not set
+# end of Write
+
+#
+# Link Patterns
+#
+CONFIG_LINK_PATTERNS__JIRA="https://github.com/hermesbaby/hermesbaby/issues/%s"
+CONFIG_LINK_PATTERNS__ISSUE="https://github.com/hermesbaby/hermesbaby/issues/%s"
+CONFIG_LINK_PATTERNS__REPO="https://github.com/%s.git"
+CONFIG_LINK_PATTERNS__JOB="https://github.com/%s/actions/"
+CONFIG_LINK_PATTERNS__USER="https://github.com/%s"
+# end of Link Patterns
+
+#
+# Styling
+#
+CONFIG_STYLING__COLOR_PRIMARY="orange"
+CONFIG_STYLING__COLOR_ACCENT="grey"
+# end of Styling
+
+#
+# Publish
+#
+CONFIG_PUBLISH__HOST="docs.some-host.com"
+CONFIG_PUBLISH__SSH_PATH=".ci/.ssh"
+CONFIG_PUBLISH__CROSS_REFERENCES__USER="intersphinx"
+CONFIG_PUBLISH__CROSS_REFERENCES__PASSWORD="xnihpsretni"
+# end of Publish
