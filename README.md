@@ -2,7 +2,7 @@
 
 The Software and Systems Engineers' Typewriter
 
-Meant to be the authoring environment to get our work done.
+**Mission: Become the authoring environment to get specification work done in corporate environments.**
 
 ## Purpose
 
@@ -59,15 +59,15 @@ hb
 Check environment for prerequisites
 
 ```bash
-hb check-tools
+hb tools check
 ```
 
 
 Start your first new virtual piece of writing
 
 ```bash
-hb new hello
-cd hello
+hb new --template hello my-project
+cd my-project
 hb html-live
 ```
 
