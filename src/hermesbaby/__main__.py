@@ -625,7 +625,7 @@ def check(
         typer.echo("missing")
         typer.echo(f"      Website: {info['website']}")
         try:
-            install_cmd = info['install'][platform.system().lower()]
+            install_cmd = info["install"][platform.system().lower()]
         except KeyError:
             install_cmd = None
         if install_cmd:
