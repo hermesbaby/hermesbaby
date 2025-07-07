@@ -322,6 +322,11 @@ def html_live(
     build_dir = Path(_kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
     build_dir.mkdir(parents=True, exist_ok=True)
     executable = os.path.join(_tool_path, "sphinx-autobuild")
+
+    option_watch_config_file = ""
+    if _hermesbaby__config_file.exists():
+        option_watch_config_file = f"--watch {str(_hermesbaby__config_file)}"
+
     command = f"""
         {executable}
         -b html
@@ -330,7 +335,7 @@ def html_live(
         -c {str(CFG_CONFIG_DIR)}
         {_kconfig.syms["BUILD__DIRS__SOURCE"].str_value}
         {build_dir}
-        --watch {str(_hermesbaby__config_file)}
+        {option_watch_config_file}
         --watch {str(CFG_CONFIG_DIR)}
         --re-ignore '_tags/.*'
         --port {int(_kconfig.syms["BUILD__PORTS__HTML__LIVE"].str_value)}
