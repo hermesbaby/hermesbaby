@@ -330,6 +330,7 @@ def html_live(
         -c {str(CFG_CONFIG_DIR)}
         {_kconfig.syms["BUILD__DIRS__SOURCE"].str_value}
         {build_dir}
+        --watch {str(_hermesbaby__config_file)}
         --watch {str(CFG_CONFIG_DIR)}
         --re-ignore '_tags/.*'
         --port {int(_kconfig.syms["BUILD__PORTS__HTML__LIVE"].str_value)}
