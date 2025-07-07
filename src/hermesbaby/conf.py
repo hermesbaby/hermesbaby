@@ -268,9 +268,16 @@ if "sphinx_material" == html_theme:  ###########################################
     }
 
     ## repo_url ###########################################
-    html_theme_options["repo_url"] = (
-        f"https://{kconfig.syms['SCM__HOST'].str_value}/{kconfig.syms['SCM__OWNER_KIND'].str_value}/{kconfig.syms['SCM__OWNER'].str_value}/repos/{kconfig.syms['SCM__REPO'].str_value}/browse"
-    )
+    if "GitHub" == kconfig.syms["SCM__HOST_TYPE"].str_value:
+        html_theme_options["repo_url"] = (
+            f"https://{kconfig.syms['SCM__HOST'].str_value}/{kconfig.syms['SCM__OWNER'].str_value}/{kconfig.syms['SCM__REPO'].str_value}/"
+        )
+    elif "BitBucket" == kconfig.syms["SCM__HOST_TYPE"].str_value:
+        html_theme_options["repo_url"] = (
+            f"https://{kconfig.syms['SCM__HOST'].str_value}/{kconfig.syms['SCM__OWNER_KIND'].str_value}/{kconfig.syms['SCM__OWNER'].str_value}/repos/{kconfig.syms['SCM__REPO'].str_value}/"
+        )
+    else:
+        html_theme_options["repo_url"] = ""
 
     ## nav_title ##########################################
     html_theme_options["nav_title"] = kconfig.syms["DOC__TITLE"].str_value

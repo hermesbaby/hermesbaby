@@ -117,6 +117,22 @@ config SCM__HOST
     string "Host (with port if necessary)"
     default "host.some.com:4711"
 
+config SCM__HOST_TYPE
+    string
+    default "GitHub" if SCM__HOST_TYPE__GITHUB
+    default "BitBucket" if SCM__HOST_TYPE__BITBUCKET
+
+    choice
+        prompt "Host Type"
+        default SCM__HOST_TYPE__BITBUCKET
+
+    config SCM__HOST_TYPE__GITHUB
+        bool "GitHub"
+
+    config SCM__HOST_TYPE__BITBUCKET
+        bool "BitBucket"
+
+    endchoice
 
 config SCM__OWNER_KIND
     string
