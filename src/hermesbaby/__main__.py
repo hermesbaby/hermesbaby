@@ -427,7 +427,7 @@ def members(
         typer.echo("No groups given.")
         typer.echo(ctx.get_help())
         raise typer.Exit()
-
+    typer.echo("Grab a coffee, this may take a while...")
     typer.echo (f"Grap a coffee, this may take a while...")
 
     from .web_access_ctrl import group_members
