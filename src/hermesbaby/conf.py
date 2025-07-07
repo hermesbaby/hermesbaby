@@ -480,7 +480,7 @@ drawio_default_export_scale = 100  # Default: 100
 drawio_default_transparency = True  # Default: False
 drawio_builder_export_format = (
     {  # dict ( builder: format (one out of: ["png", "jpg", "svg", "pdf"]) )
-        "html": "svg",
+        "html": f"{kconfig.syms['WRITE__FIGURES__FORMAT'].str_value}",
         "latex": "pdf",
     }
 )

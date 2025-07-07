@@ -195,6 +195,38 @@ config BUILD__PORTS__PRESENTATION__LIVE
 endmenu
 
 
+menu "Write"
+
+config WRITE__FIGURES__FORMAT
+    string
+    default "png" if WRITE__FIGURES_FORMAT_PNG
+    default "svg" if WRITE__FIGURES_FORMAT_SVG
+    default "jpg" if WRITE__FIGURES_FORMAT_JPG
+
+    choice
+        prompt "Image Format of Figures"
+        default WRITE__FIGURES_FORMAT_PNG
+
+    config WRITE__FIGURES_FORMAT_PNG
+        bool "PNG"
+        help
+            Use PNG format for figures.
+
+    config WRITE__FIGURES_FORMAT_SVG
+        bool "SVG"
+        help
+            Use SVG format for figures.
+
+    config WRITE__FIGURES_FORMAT_JPG
+        bool "JPG"
+        help
+            Use JPG format for figures.
+
+    endchoice
+
+endmenu
+
+
 menu "Link Patterns"
 
 config LINK_PATTERNS__JIRA
