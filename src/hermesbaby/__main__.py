@@ -50,17 +50,16 @@ def _get_template_dir():
 _config_file = CFG_CONFIG_DIR / "Kconfig"
 _kconfig = kconfiglib.Kconfig(str(_config_file))
 
+_hermesbaby__config_file = Path(os.getcwd()) / CFG_CONFIG_CUSTOM_FILE
+
 
 def _load_config():
     global _kconfig
-    hermesbaby__config_file = Path(os.getcwd()) / CFG_CONFIG_CUSTOM_FILE
-    if hermesbaby__config_file.exists():
-        _kconfig.load_config(str(hermesbaby__config_file))
-        logger.info(f"Using configuration {hermesbaby__config_file}")
+    if _hermesbaby__config_file.exists():
+        _kconfig.load_config(str(_hermesbaby__config_file))
+        logger.info(f"Using configuration {_hermesbaby__config_file}")
     else:
-        logger.info(
-            "There is no \'{hermesbaby__config_file}\'. Using default config."
-        )
+        logger.info("There is no '{_hermesbaby__config_file}'. Using default config.")
 
 
 def _set_env():
