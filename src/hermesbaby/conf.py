@@ -470,7 +470,7 @@ if "Linux" == platform.system():
 ## Settings regarding the output
 
 drawio_default_export_scale = 100  # Default: 100
-drawio_default_transparency = True  # Default: False
+drawio_default_transparency = False  # Default: False
 drawio_builder_export_format = (
     {  # dict ( builder: format (one out of: ["png", "jpg", "svg", "pdf"]) )
         "html": "svg",
