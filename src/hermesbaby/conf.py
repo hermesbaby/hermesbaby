@@ -385,14 +385,7 @@ latex_documents = [
         kconfig.syms["DOC__TITLE"].str_value,
         author,
         "manual",
-    ),
-    (
-        "00-Project-Manual/index",
-        f"Projekthandbuch-{project}.tex",
-        project,
-        author,
-        "manual",
-    ),
+    )
 ]
 
 
