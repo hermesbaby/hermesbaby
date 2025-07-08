@@ -1187,14 +1187,7 @@ pre_post_build_programs = {
             "program": "make",
             "cwd": "$outputdir",
             "severity": "info",
-        },
-        {
-            "name": "View",
-            "builder": "latex",
-            "program": "sumatrapdf",
-            "args": [f"$outputdir\\{_pdf_basename}.pdf"],
-            "severity": "info",
-        },
+        }
     ]
 }
 
