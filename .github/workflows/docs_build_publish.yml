@@ -30,7 +30,7 @@ jobs:
       - name: Install tools
         run: hb tools install
 
-      - name: Build main website
+      - name: Build docs
         run: hb html
 
       - name: Upload artifacts
