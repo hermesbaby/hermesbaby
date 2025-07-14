@@ -494,10 +494,18 @@ def publish(
     _load_config()
 
     publish_host = _kconfig.syms["PUBLISH__HOST"].str_value
+    publish_user = _kconfig.syms["PUBLISH__USER"].str_value
     scm_owner_kind = _kconfig.syms["SCM__OWNER_KIND"].str_value
     scm_owner = _kconfig.syms["SCM__OWNER"].str_value
     scm_repo = _kconfig.syms["SCM__REPO"].str_value
     dir_build = Path(directory) / _kconfig.syms["BUILD__DIRS__BUILD"].str_value
+
+    # In case the publish_user is empty or not defined, use the scm_owner as default
+    if not publish_user:
+        publish_user = scm_owner
+        typer.echo(
+            f"No PUBLISH__USER defined. Using SCM__OWNER '{scm_owner}' as default user."
+        )
 
     ssh_key_path = (
         Path(directory) / _kconfig.syms["PUBLISH__SSH_PATH"].str_value / "id_rsa"
@@ -534,7 +542,7 @@ def publish(
             f"-o StrictHostKeyChecking=no "
             f"-o UserKnownHostsFile=/dev/null "
             f"-i {ssh_key_path} "
-            f"{scm_owner}@{publish_host} "
+            f"{publish_user}@{publish_host} "
             f'"(mkdir -p /var/www/html/{scm_owner_kind}/{scm_owner}/{scm_repo} '
             f"&&  cd /var/www/html/{scm_owner_kind}/{scm_owner}/{scm_repo} "
             f'&& rm -rf {git_branch})"'
@@ -548,7 +556,7 @@ def publish(
             f"| ssh "
             f"-o StrictHostKeyChecking=no "
             f"-o UserKnownHostsFile=/dev/null "
-            f"-i {ssh_key_path} {scm_owner}@{publish_host} "
+            f"-i {ssh_key_path} {publish_user}@{publish_host} "
             f'"(cd /var/www/html/{scm_owner_kind}/{scm_owner}/{scm_repo} '
             f"&& mkdir -p {git_branch} "
             f'&& tar -xzf - -C {git_branch})"'

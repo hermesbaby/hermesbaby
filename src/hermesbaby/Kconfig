@@ -236,6 +236,10 @@ config PUBLISH__HOST
     string "Host (with port if necessary)"
     default "docs.some-host.com"
 
+config PUBLISH__USER
+    string "User with access to publish"
+    default ""
+
 config PUBLISH__SSH_PATH
     string "Relative Path of directory .ssh/"
     default ".ci/.ssh"
