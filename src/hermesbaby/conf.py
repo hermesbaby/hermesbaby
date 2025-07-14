@@ -300,8 +300,7 @@ else:
 
 
 ### Access control for publish on Apache 2 ####################################
-
-web_root_dir = os.path.join(_src_realpath, "bibliography.bib")
+web_root_dir = os.path.join(_src_realpath, "web_root")
 if os.path.exists(web_root_dir):
     html_extra_path.append(web_root_dir)
 
