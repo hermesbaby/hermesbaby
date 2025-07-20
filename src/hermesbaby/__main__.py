@@ -557,7 +557,7 @@ def update(
 
     yaml_template_file = CFG_CONFIG_DIR / "htaccess.yaml"
     yaml_file = Path(directory) / os.path.join(
-        _kconfig.syms["BUILD__DIRS__SOURCE"].str_value, "htaccess.yaml"
+        _kconfig.syms["BUILD__DIRS__CONFIG"].str_value, "htaccess.yaml"
     )
     outfile_file = Path(directory) / os.path.join(
         _kconfig.syms["BUILD__DIRS__SOURCE"].str_value, "web_root", ".htaccess"
