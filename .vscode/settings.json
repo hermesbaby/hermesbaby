@@ -19,11 +19,7 @@
     "files.exclude": {
         "**/__pycache__/": true,
         "**/*.pyc": true,
-        ".pytest_cache": true,
-        ".venv/": false,
-        ".extensions/": true,
-        ".user/": true,
-        "poetry.lock": true
+        ".pytest_cache": true
     },
 
     "vsicons.presets.hideExplorerArrows": true,
