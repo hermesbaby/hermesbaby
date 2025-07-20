@@ -15,22 +15,23 @@
 ################################################################
 
 
-from pathlib import Path
-from importlib.resources import files
 import importlib.metadata
-import logging
 import json
+import logging
 import os
-import requests
 import platform
 import shutil
-from typing import List
 import subprocess
 import sys
-import kconfiglib
-from cookiecutter.main import cookiecutter
-import typer
+from importlib.resources import files
+from pathlib import Path
+from typing import List
+
 import git
+import kconfiglib
+import requests
+import typer
+from cookiecutter.main import cookiecutter
 
 __version__ = importlib.metadata.version("hermesbaby")
 
@@ -58,9 +59,7 @@ def _load_config():
         _kconfig.load_config(str(hermesbaby__config_file))
         logger.info(f"Using configuration {hermesbaby__config_file}")
     else:
-        logger.info(
-            "There is no \'{hermesbaby__config_file}\'. Using default config."
-        )
+        logger.info("There is no '{hermesbaby__config_file}'. Using default config.")
 
 
 def _set_env():
@@ -121,13 +120,13 @@ def _tools_install_tool(tool: str, info: dict) -> bool:
 
     typer.echo(f"      Installing using command: {info['install']['windows']}")
     try:
-        subprocess.run(info["install"]['windows'], shell=True, check=True)
+        subprocess.run(info["install"]["windows"], shell=True, check=True)
     except subprocess.CalledProcessError as e:
         typer.echo(f"      Installation failed: {e}")
         return False
 
     # Verify that the tool is now available.
-    if shutil.which(info['run'][platform.system().lower()]):
+    if shutil.which(info["run"][platform.system().lower()]):
         typer.echo("      Installation successful.")
         return True
     else:
@@ -528,7 +527,7 @@ def members(
         typer.echo(ctx.get_help())
         raise typer.Exit()
 
-    typer.echo (f"Grap a coffee, this may take a while...")
+    typer.echo("Grab a coffee, this may take a while...")
 
     from .web_access_ctrl import group_members
 
@@ -574,8 +573,6 @@ def update(
     if not os.path.exists(expand_file):
         expand_file = None
 
-
-
     create_htaccess_entries.main("", yaml_file, outfile_file, expand_file)
 
 
@@ -616,7 +613,7 @@ def publish(
         _repo = git.Repo(search_parent_directories=True, path=directory)
         git_branch = _repo.active_branch.name
     except:
-        typer.echo(f"Could not get git branch. Aborting publish step", err=True)
+        typer.echo("Could not get git branch. Aborting publish step", err=True)
         raise typer.Exit(code=1)
 
     publish_url = (
@@ -704,9 +701,7 @@ def check(
     install: bool = typer.Option(
         False, "--install", help="Automatically install missing tools"
     ),
-    tag: str = typer.Option(
-        None, "--tag", help="Filter tag"
-    )
+    tag: str = typer.Option(None, "--tag", help="Filter tag"),
 ):
     """
     Checks for the presence of necessary external tools
@@ -724,7 +719,7 @@ def check(
     typer.echo("Checking system for required tools...\n")
     for tool, info in tools.items():
         typer.echo(f"   {tool}: ", nl=False)
-        if shutil.which(info['run'][platform.system().lower()]):
+        if shutil.which(info["run"][platform.system().lower()]):
             typer.echo("found")
             # If found, we skip the rest of this iteration.
             continue
@@ -733,7 +728,7 @@ def check(
         typer.echo("missing")
         typer.echo(f"      Website: {info['website']}")
         try:
-            install_cmd = info['install'][platform.system().lower()]
+            install_cmd = info["install"][platform.system().lower()]
         except KeyError:
             install_cmd = None
         if install_cmd:
@@ -849,7 +844,10 @@ def check_vscode_extensions(
             typer.echo(
                 "\nPlease install the missing extensions manually using commands like:"
             )
-            typer.echo("   code --install-extension   " + " ; code --install-extension ".join(missing_extensions))
+            typer.echo(
+                "   code --install-extension   "
+                + " ; code --install-extension ".join(missing_extensions)
+            )
             raise typer.Exit(code=1)
 
 
@@ -863,7 +861,9 @@ def install():
     # Check if running on Linux
     system = platform.system()
     if system != "Linux":
-        typer.echo(f"Error: This command is only supported on Debian-based Linux distributions. Detected system: {system}")
+        typer.echo(
+            f"Error: This command is only supported on Debian-based Linux distributions. Detected system: {system}"
+        )
         raise typer.Exit(code=1)
 
     # Check if it's a Debian-based distribution
@@ -877,9 +877,10 @@ def install():
         pass
 
     if not is_debian_based:
-        typer.echo("Error: This command is only supported on Debian-based Linux distributions.")
+        typer.echo(
+            "Error: This command is only supported on Debian-based Linux distributions."
+        )
         raise typer.Exit(code=1)
-
 
     path = Path(__file__).parent
 
@@ -888,7 +889,6 @@ def install():
     result = subprocess.run(command.split(), cwd=path)
 
     sys.exit(result.returncode)
-
 
 
 if __name__ == "__main__":
