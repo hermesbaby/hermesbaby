@@ -1056,14 +1056,26 @@ def _datatemplates_on_builder_inited(app):
         env.filters["html_to_rst"] = html_to_rst
 
 
+### Add Jupyter notebooks to the toctree ######################################
+# @see https://myst-nb.readthedocs.io/en/latest/configuration.html
+# @see https://docs.readthedocs.io/en/stable/guides/jupyter.html
+
+extensions.append("myst_nb")
+
+# Timeout for notebooks, default of 30 seconds
+nb_execution_timeout = 60
+
+
 ### Add other markdown formats other than .rst  ##############################
 # @see https://www.sphinx-doc.org/en/master/usage/markdown.html
 # @see https://myst-parser.readthedocs.io/en/latest/sphinx/intro.html
 # @see https://myst-parser.readthedocs.io/en/latest/index.html
+# @see https://myst-parser.readthedocs.io/en/latest/configuration.html
 
 
 # Avoid clash with myst_nb (below). myst_nb automatically activates myst_parser.
-if False:
+# So if extensions already contains "myst_nb", we do not add "myst_parser" again.
+if "myst_nb" not in extensions:
     extensions.append("myst_parser")
 
 myst_enable_extensions = [
@@ -1155,16 +1167,6 @@ extensions.append("sphinx_toolbox.confval")
 # @see https://blog.jupyter.org/integrating-output-in-documentation-with-jupyter-sphinx-ecf569ddab85
 
 extensions.append("jupyter_sphinx")
-
-
-### Add Jupyter notebooks to the toctree ######################################
-# @see https://myst-nb.readthedocs.io/en/latest/configuration.html
-# @see https://docs.readthedocs.io/en/stable/guides/jupyter.html
-
-extensions.append("myst_nb")
-
-# Timeout for notebooks, default of 30 seconds
-nb_execution_timeout = 60
 
 
 ###############################################################################
