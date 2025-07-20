@@ -392,6 +392,107 @@ def clean(
         shutil.rmtree(folder_to_remove)
 
 
+@app.command()
+def venv(
+    ctx: typer.Context,
+    directory: str = typer.Argument(
+        ".",
+        help="Directory where to execute the command. ",
+    ),
+):
+
+    if not directory:
+        typer.echo(ctx.get_help())
+        raise typer.Exit()
+
+    _set_env()
+    _load_config()
+
+    _flag_install = True
+
+    _venv_dir = Path(directory) / Path(".venv")
+
+    """Create a virtual environment using hb's own interpreter."""
+    if _venv_dir.exists():
+        typer.echo(f"Virtual environment in directory {_venv_dir} already exists with")
+        _flag_install = False
+
+        # Probe a little more if the venv is usable. If not exit with an error and suggest to remove the directory.
+        python_executable = (
+            _venv_dir / "bin" / "python"
+            if platform.system() != "Windows"
+            else _venv_dir / "Scripts" / "python.exe"
+        )
+
+        # Inside a try-except block try to run the python executable with --version. This is a probe to check if the venv is usable.
+        try:
+            subprocess.run([python_executable, "--version"], check=True)
+        except Exception:
+            typer.echo(
+                f"Python executable {python_executable} is not usable in virtual environment. "
+                f"Please remove the directory {_venv_dir} and try again."
+            )
+            raise typer.Exit(code=1)
+
+    if _flag_install:
+        typer.echo(
+            f"Creating virtual environment at {_venv_dir} using Python at {sys.executable}..."
+        )
+
+        # Wrap the call inside a try-except block to handle errors gracefully
+        try:
+            subprocess.run([sys.executable, "-m", "venv", str(_venv_dir)], check=True)
+            typer.echo("Virtual environment created successfully.")
+        except subprocess.CalledProcessError as e:
+            typer.echo(f"Error creating virtual environment: {e}", err=True)
+            typer.echo(
+                f"Remove the directory {_venv_dir} and try again if you want to create a new virtual environment."
+            )
+            raise typer.Exit(code=1)
+
+    # If the file docs/requirements.txt exists, install the requirements
+    requirements_file = Path(directory) / os.path.join(
+        _kconfig.syms["BUILD__DIRS__CONFIG"].str_value, "requirements.txt"
+    )
+
+    if requirements_file.exists():
+        typer.echo(
+            f"Installing requirements from {requirements_file} into virtual environment under {_venv_dir}..."
+        )
+
+        # Depending on the OS the python executable is in the venv may differ.
+        if platform.system() == "Windows":
+            python_executable = _venv_dir / "Scripts" / "python.exe"
+        else:
+            python_executable = _venv_dir / "bin" / "python"
+
+        # Wrap the call inside a try-except block to handle errors gracefully
+        try:
+            subprocess.run(
+                [
+                    python_executable,
+                    "-m",
+                    "pip",
+                    "install",
+                    "-r",
+                    str(requirements_file),
+                ],
+                check=True,
+            )
+        except subprocess.CalledProcessError as e:
+            typer.echo(
+                f"Error installing requirements: {e}. Please check the requirements file."
+            )
+            raise typer.Exit(code=1)
+
+        typer.echo("Requirements installed successfully.")
+
+    if _flag_install:
+        typer.echo("To activate the virtual environment, run:")
+        typer.echo("    bash/git-bash: source .venv/bin/activate")
+        typer.echo("    cmd: .venv\\Scripts\\activate.bat")
+
+
 @app_htaccess.command()
 def groups(
     ctx: typer.Context,
