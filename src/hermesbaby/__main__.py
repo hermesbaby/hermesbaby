@@ -15,22 +15,23 @@
 ################################################################
 
 
-from pathlib import Path
-from importlib.resources import files
 import importlib.metadata
-import logging
 import json
+import logging
 import os
-import requests
 import platform
 import shutil
-from typing import List
 import subprocess
 import sys
-import kconfiglib
-from cookiecutter.main import cookiecutter
-import typer
+from importlib.resources import files
+from pathlib import Path
+from typing import List
+
 import git
+import kconfiglib
+import requests
+import typer
+from cookiecutter.main import cookiecutter
 
 __version__ = importlib.metadata.version("hermesbaby")
 
@@ -58,9 +59,7 @@ def _load_config():
         _kconfig.load_config(str(hermesbaby__config_file))
         logger.info(f"Using configuration {hermesbaby__config_file}")
     else:
-        logger.info(
-            "There is no \'{hermesbaby__config_file}\'. Using default config."
-        )
+        logger.info("There is no '{hermesbaby__config_file}'. Using default config.")
 
 
 def _set_env():
@@ -121,13 +120,13 @@ def _tools_install_tool(tool: str, info: dict) -> bool:
 
     typer.echo(f"      Installing using command: {info['install']['windows']}")
     try:
-        subprocess.run(info["install"]['windows'], shell=True, check=True)
+        subprocess.run(info["install"]["windows"], shell=True, check=True)
     except subprocess.CalledProcessError as e:
         typer.echo(f"      Installation failed: {e}")
         return False
 
     # Verify that the tool is now available.
-    if shutil.which(info['run'][platform.system().lower()]):
+    if shutil.which(info["run"][platform.system().lower()]):
         typer.echo("      Installation successful.")
         return True
     else:
@@ -392,6 +391,107 @@ def clean(
         shutil.rmtree(folder_to_remove)
 
 
+@app.command()
+def venv(
+    ctx: typer.Context,
+    directory: str = typer.Argument(
+        ".",
+        help="Directory where to execute the command. ",
+    ),
+):
+
+    if not directory:
+        typer.echo(ctx.get_help())
+        raise typer.Exit()
+
+    _set_env()
+    _load_config()
+
+    _flag_install = True
+
+    _venv_dir = Path(directory) / Path(".venv")
+
+    """Create a virtual environment using hb's own interpreter."""
+    if _venv_dir.exists():
+        typer.echo(f"Virtual environment in directory {_venv_dir} already exists with")
+        _flag_install = False
+
+        # Probe a little more if the venv is usable. If not exit with an error and suggest to remove the directory.
+        python_executable = (
+            _venv_dir / "bin" / "python"
+            if platform.system() != "Windows"
+            else _venv_dir / "Scripts" / "python.exe"
+        )
+
+        # Inside a try-except block try to run the python executable with --version. This is a probe to check if the venv is usable.
+        try:
+            subprocess.run([python_executable, "--version"], check=True)
+        except Exception:
+            typer.echo(
+                f"Python executable {python_executable} is not usable in virtual environment. "
+                f"Please remove the directory {_venv_dir} and try again."
+            )
+            raise typer.Exit(code=1)
+
+    if _flag_install:
+        typer.echo(
+            f"Creating virtual environment at {_venv_dir} using Python at {sys.executable}..."
+        )
+
+        # Wrap the call inside a try-except block to handle errors gracefully
+        try:
+            subprocess.run([sys.executable, "-m", "venv", str(_venv_dir)], check=True)
+            typer.echo("Virtual environment created successfully.")
+        except subprocess.CalledProcessError as e:
+            typer.echo(f"Error creating virtual environment: {e}", err=True)
+            typer.echo(
+                f"Remove the directory {_venv_dir} and try again if you want to create a new virtual environment."
+            )
+            raise typer.Exit(code=1)
+
+    # If the file docs/requirements.txt exists, install the requirements
+    requirements_file = Path(directory) / os.path.join(
+        _kconfig.syms["BUILD__DIRS__CONFIG"].str_value, "requirements.txt"
+    )
+
+    if requirements_file.exists():
+        typer.echo(
+            f"Installing requirements from {requirements_file} into virtual environment under {_venv_dir}..."
+        )
+
+        # Depending on the OS the python executable is in the venv may differ.
+        if platform.system() == "Windows":
+            python_executable = _venv_dir / "Scripts" / "python.exe"
+        else:
+            python_executable = _venv_dir / "bin" / "python"
+
+        # Wrap the call inside a try-except block to handle errors gracefully
+        try:
+            subprocess.run(
+                [
+                    python_executable,
+                    "-m",
+                    "pip",
+                    "install",
+                    "-r",
+                    str(requirements_file),
+                ],
+                check=True,
+            )
+        except subprocess.CalledProcessError as e:
+            typer.echo(
+                f"Error installing requirements: {e}. Please check the requirements file."
+            )
+            raise typer.Exit(code=1)
+
+        typer.echo("Requirements installed successfully.")
+
+    if _flag_install:
+        typer.echo("To activate the virtual environment, run:")
+        typer.echo("    bash/git-bash: source .venv/bin/activate")
+        typer.echo("    cmd: .venv\\Scripts\\activate.bat")
+
+
 @app_htaccess.command()
 def groups(
     ctx: typer.Context,
@@ -427,7 +527,7 @@ def members(
         typer.echo(ctx.get_help())
         raise typer.Exit()
 
-    typer.echo (f"Grap a coffee, this may take a while...")
+    typer.echo("Grab a coffee, this may take a while...")
 
     from .web_access_ctrl import group_members
 
@@ -456,7 +556,7 @@ def update(
 
     yaml_template_file = CFG_CONFIG_DIR / "htaccess.yaml"
     yaml_file = Path(directory) / os.path.join(
-        _kconfig.syms["BUILD__DIRS__SOURCE"].str_value, "htaccess.yaml"
+        _kconfig.syms["BUILD__DIRS__CONFIG"].str_value, "htaccess.yaml"
     )
     outfile_file = Path(directory) / os.path.join(
         _kconfig.syms["BUILD__DIRS__SOURCE"].str_value, "web_root", ".htaccess"
@@ -472,8 +572,6 @@ def update(
 
     if not os.path.exists(expand_file):
         expand_file = None
-
-
 
     create_htaccess_entries.main("", yaml_file, outfile_file, expand_file)
 
@@ -515,7 +613,7 @@ def publish(
         _repo = git.Repo(search_parent_directories=True, path=directory)
         git_branch = _repo.active_branch.name
     except:
-        typer.echo(f"Could not get git branch. Aborting publish step", err=True)
+        typer.echo("Could not get git branch. Aborting publish step", err=True)
         raise typer.Exit(code=1)
 
     publish_url = (
@@ -603,9 +701,7 @@ def check(
     install: bool = typer.Option(
         False, "--install", help="Automatically install missing tools"
     ),
-    tag: str = typer.Option(
-        None, "--tag", help="Filter tag"
-    )
+    tag: str = typer.Option(None, "--tag", help="Filter tag"),
 ):
     """
     Checks for the presence of necessary external tools
@@ -623,7 +719,7 @@ def check(
     typer.echo("Checking system for required tools...\n")
     for tool, info in tools.items():
         typer.echo(f"   {tool}: ", nl=False)
-        if shutil.which(info['run'][platform.system().lower()]):
+        if shutil.which(info["run"][platform.system().lower()]):
             typer.echo("found")
             # If found, we skip the rest of this iteration.
             continue
@@ -632,7 +728,7 @@ def check(
         typer.echo("missing")
         typer.echo(f"      Website: {info['website']}")
         try:
-            install_cmd = info['install'][platform.system().lower()]
+            install_cmd = info["install"][platform.system().lower()]
         except KeyError:
             install_cmd = None
         if install_cmd:
@@ -748,7 +844,10 @@ def check_vscode_extensions(
             typer.echo(
                 "\nPlease install the missing extensions manually using commands like:"
             )
-            typer.echo("   code --install-extension   " + " ; code --install-extension ".join(missing_extensions))
+            typer.echo(
+                "   code --install-extension   "
+                + " ; code --install-extension ".join(missing_extensions)
+            )
             raise typer.Exit(code=1)
 
 
@@ -762,7 +861,9 @@ def install():
     # Check if running on Linux
     system = platform.system()
     if system != "Linux":
-        typer.echo(f"Error: This command is only supported on Debian-based Linux distributions. Detected system: {system}")
+        typer.echo(
+            f"Error: This command is only supported on Debian-based Linux distributions. Detected system: {system}"
+        )
         raise typer.Exit(code=1)
 
     # Check if it's a Debian-based distribution
@@ -776,9 +877,10 @@ def install():
         pass
 
     if not is_debian_based:
-        typer.echo("Error: This command is only supported on Debian-based Linux distributions.")
+        typer.echo(
+            "Error: This command is only supported on Debian-based Linux distributions."
+        )
         raise typer.Exit(code=1)
-
 
     path = Path(__file__).parent
 
@@ -787,7 +889,6 @@ def install():
     result = subprocess.run(command.split(), cwd=path)
 
     sys.exit(result.returncode)
-
 
 
 if __name__ == "__main__":
