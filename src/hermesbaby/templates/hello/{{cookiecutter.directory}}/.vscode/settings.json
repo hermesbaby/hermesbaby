@@ -17,6 +17,8 @@
 {
     // *** DOCUMENTING ( including general file, scm, text handling *******
 
+    "search.useIgnoreFiles": true,
+    
     "workbench.colorTheme": "Visual Studio Light",
 
     "vsicons.presets.hideExplorerArrows": true,
