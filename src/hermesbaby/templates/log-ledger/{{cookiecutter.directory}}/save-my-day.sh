@@ -1,3 +1,5 @@
+#!/usr/bin/env sh
+
 ################################################################
 #                                                              #
 #  This file is part of HermesBaby                             #
@@ -14,19 +16,15 @@
 #                                                              #
 ################################################################
 
-# top-most EditorConfig file
-root = true
+# Usage: ./save_my_day
 
+user=$(whoami)
+host=$(hostname)
+today=$(date +'%GCW%V.%u_%a' | tr '[a-z]' '[A-Z]')
 
-[*]
-indent_style = space
-indent_size = 2
-end_of_line = lf
-charset = utf-8
-trim_trailing_whitespace = true
-insert_final_newline = true
+message="$today $user@$host "
 
-
-[Makefile]
-indent_style = tab
+git add .
+git commit --message "$message"
+git push
 

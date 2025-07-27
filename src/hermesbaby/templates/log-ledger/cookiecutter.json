@@ -1,0 +1,8 @@
+{
+    "directory": ".",
+
+    "_copy_without_render": [
+        "mk-my-day.sh",
+        "save-my-day.sh"
+    ]
+}
