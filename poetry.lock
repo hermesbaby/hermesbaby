@@ -844,21 +844,6 @@ files = [
 devel = ["colorama", "json-spec", "jsonschema", "pylint", "pytest", "pytest-benchmark", "pytest-cache", "validictory"]
 
 [[package]]
-name = "feedgen"
-version = "1.0.0"
-description = "Feed Generator (ATOM, RSS, Podcasts)"
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "feedgen-1.0.0.tar.gz", hash = "sha256:d9bd51c3b5e956a2a52998c3708c4d2c729f2fcc311188e1e5d3b9726393546a"},
-]
-
-[package.dependencies]
-lxml = "*"
-python-dateutil = "*"
-
-[[package]]
 name = "filelock"
 version = "3.18.0"
 description = "A platform independent file lock."
@@ -4138,26 +4123,6 @@ files = [
 sphinx = ">=2.0"
 
 [[package]]
-name = "sphinxfeed-lsaffre"
-version = "0.3.5"
-description = "Sphinx extension for generating RSS feeds"
-optional = false
-python-versions = ">=3.8"
-groups = ["main"]
-files = [
-    {file = "sphinxfeed_lsaffre-0.3.5-py3-none-any.whl", hash = "sha256:b525789000b533f9dd51bdec9b7138ee5bc90d44d885fd98014943ac3875f8fd"},
-    {file = "sphinxfeed_lsaffre-0.3.5.tar.gz", hash = "sha256:bb0c80ba003824492b85e278d029994e1a9ffc365b4930489991c825e3b748b0"},
-]
-
-[package.dependencies]
-feedgen = "*"
-python-dateutil = "*"
-sphinx = "*"
-
-[package.extras]
-dev = ["hatch", "pytest", "pytest-cov"]
-
-[[package]]
 name = "sqlalchemy"
 version = "2.0.40"
 description = "Database Abstraction Library"
@@ -4905,4 +4870,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "dc719bed608df5795b90be1fd85864fcb544e749e3e22ed2085ad043ccd29d4d"
+content-hash = "dbcdd9619dd5fb39d9326ca278fd525ef5c2eec66ebdce7d86baa98259be5434"
