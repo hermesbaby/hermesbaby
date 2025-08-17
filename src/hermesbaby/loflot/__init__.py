@@ -24,6 +24,7 @@ from docutils.parsers.rst import Directive, directives
 from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
 from sphinx.locale import _
+from sphinx.transforms.post_transforms import SphinxPostTransform
 from sphinx.util.nodes import make_refnode
 
 # --- Data model --------------------------------------------------------------
@@ -32,21 +33,29 @@ from sphinx.util.nodes import make_refnode
 @dataclass
 class Item:
     docname: str
-    anchor: str
+    anchor: str  # primary link target (always exists)
+    ids_for_numbering: List[str]  # ids that might carry the numfig number
     title: str
-    number: Tuple[int, ...] | None  # Sphinx "numfig" tuple if available
 
 
-def _get_caption_or_title(table_or_figure: nodes.Node) -> str | None:
-    for child in table_or_figure.children:
-        if isinstance(child, nodes.caption):
-            return child.astext().strip()
-        if isinstance(child, nodes.title):
-            return child.astext().strip()
+# --- Utilities ---------------------------------------------------------------
+
+
+def _get_caption_or_title(node: nodes.Node) -> str | None:
+    for ch in node.children:
+        if isinstance(ch, nodes.caption):
+            return ch.astext().strip()
+        if isinstance(ch, nodes.title):
+            return ch.astext().strip()
     return None
 
 
-# --- Custom placeholder nodes ------------------------------------------------
+def _descendant_ids(node: nodes.Node, kinds=(nodes.caption, nodes.title)) -> List[str]:
+    out: List[str] = []
+    for k in kinds:
+        for ch in node.traverse(k):
+            out.extend(ch.get("ids", []))
+    return out
 
 
 class list_of_figures_node(nodes.General, nodes.Element):
@@ -57,14 +66,10 @@ class list_of_tables_node(nodes.General, nodes.Element):
     pass
 
 
-# --- Helpers for config & options -------------------------------------------
-
-
-def _bool_opt(argument: str | None) -> bool:
-    if argument is None:
+def _bool_opt(arg: str | None) -> bool:
+    if arg is None:
         return True
-    val = argument.strip().lower()
-    return val in ("1", "true", "yes", "on")
+    return arg.strip().lower() in ("1", "true", "yes", "on")
 
 
 def _get_conf(app: Sphinx, key: str, default: Any) -> Any:
@@ -72,30 +77,22 @@ def _get_conf(app: Sphinx, key: str, default: Any) -> Any:
 
 
 def _resolve_bool(value, default: bool) -> bool:
-    if value is None:
-        return default
-    return bool(value)
+    return default if value is None else bool(value)
 
 
-def _format_number(number: Tuple[int, ...] | None) -> str:
-    if not number:
-        return ""
-    return ".".join(str(n) for n in number)
+def _format_number(num: Tuple[int, ...] | None) -> str:
+    return "" if not num else ".".join(str(n) for n in num)
 
 
-# NEW in iteration_4.2: ensure figures/tables always have an anchor
-def _ensure_anchor(env: BuildEnvironment, node: nodes.Node, kind: str) -> str | None:
+def _ensure_anchor(env: BuildEnvironment, node: nodes.Node, kind: str) -> str:
     if node.get("ids"):
         return node["ids"][0]
-
     parent = node.parent
-    if parent is None:
-        return None
-
     serial = env.new_serialno(f"loflot-{kind}")
     anchor = f"loflot-{kind}-{serial}"
     tgt = nodes.target("", "", ids=[anchor])
-    parent.insert(parent.index(node), tgt)
+    if parent is not None:
+        parent.insert(parent.index(node), tgt)
     return anchor
 
 
@@ -112,12 +109,12 @@ class ListOfFigures(Directive):
     }
 
     def run(self):
-        node = list_of_figures_node("")
-        node["caption"] = self.options.get("caption")
-        node["include_uncaptioned"] = self.options.get("include-uncaptioned")
-        node["uncaptioned_label"] = self.options.get("uncaptioned-label")
-        node["empty_message"] = self.options.get("empty-message")
-        return [node]
+        n = list_of_figures_node("")
+        n["caption"] = self.options.get("caption")
+        n["include_uncaptioned"] = self.options.get("include-uncaptioned")
+        n["uncaptioned_label"] = self.options.get("uncaptioned-label")
+        n["empty_message"] = self.options.get("empty-message")
+        return [n]
 
 
 class ListOfTables(Directive):
@@ -130,15 +127,15 @@ class ListOfTables(Directive):
     }
 
     def run(self):
-        node = list_of_tables_node("")
-        node["caption"] = self.options.get("caption")
-        node["include_uncaptioned"] = self.options.get("include-uncaptioned")
-        node["uncaptioned_label"] = self.options.get("uncaptioned-label")
-        node["empty_message"] = self.options.get("empty-message")
-        return [node]
+        n = list_of_tables_node("")
+        n["caption"] = self.options.get("caption")
+        n["include_uncaptioned"] = self.options.get("include-uncaptioned")
+        n["uncaptioned_label"] = self.options.get("uncaptioned-label")
+        n["empty_message"] = self.options.get("empty-message")
+        return [n]
 
 
-# --- Sphinx integration ------------------------------------------------------
+# --- Sphinx integration: collect --------------------------------------------
 
 
 def _ensure_store(env: BuildEnvironment) -> Dict[str, List[Item]]:
@@ -153,25 +150,6 @@ def _clear_doc(env: BuildEnvironment, docname: str) -> None:
     store["tabs"] = [i for i in store["tabs"] if i.docname != docname]
 
 
-def _collect_num(env: BuildEnvironment, node: nodes.Node) -> Tuple[int, ...] | None:
-    try:
-        fig_nums = getattr(env, "toc_fignumbers", {}) or {}
-    except Exception:
-        fig_nums = {}
-    try:
-        tab_nums = getattr(env, "toc_tablenumbers", {}) or {}
-    except Exception:
-        tab_nums = {}
-
-    for _id in node.get("ids", []):
-        for mapping in (fig_nums, tab_nums):
-            for _doc, bytype in mapping.items():
-                for _kind, ids_map in bytype.items():
-                    if _id in ids_map:
-                        return ids_map[_id]
-    return None
-
-
 def on_doctree_read(app: Sphinx, doctree: nodes.document) -> None:
     env = app.env
     assert env is not None
@@ -179,27 +157,29 @@ def on_doctree_read(app: Sphinx, doctree: nodes.document) -> None:
     store = _ensure_store(env)
     _clear_doc(env, docname)
 
+    # Figures
     for fig in doctree.traverse(nodes.figure):
         anchor = _ensure_anchor(env, fig, "figure")
-        if not anchor:
-            continue
-        title = _get_caption_or_title(fig)
-        store["figs"].append(
-            Item(
-                docname, anchor, title.strip() if title else "", _collect_num(env, fig)
-            )
-        )
+        title = (_get_caption_or_title(fig) or "").strip()
+        candidates: List[str] = []
+        if fig.get("ids"):
+            candidates.extend(fig["ids"])
+        candidates.extend(_descendant_ids(fig))
+        if anchor not in candidates:
+            candidates.insert(0, anchor)
+        store["figs"].append(Item(docname, anchor, candidates, title))
 
+    # Tables
     for tab in doctree.traverse(nodes.table):
         anchor = _ensure_anchor(env, tab, "table")
-        if not anchor:
-            continue
-        title = _get_caption_or_title(tab)
-        store["tabs"].append(
-            Item(
-                docname, anchor, title.strip() if title else "", _collect_num(env, tab)
-            )
-        )
+        title = (_get_caption_or_title(tab) or "").strip()
+        candidates: List[str] = []
+        if tab.get("ids"):
+            candidates.extend(tab["ids"])
+        candidates.extend(_descendant_ids(tab))
+        if anchor not in candidates:
+            candidates.insert(0, anchor)
+        store["tabs"].append(Item(docname, anchor, candidates, title))
 
 
 def on_env_purge_doc(app: Sphinx, env: BuildEnvironment, docname: str) -> None:
@@ -215,18 +195,186 @@ def on_env_merge_info(
     store["tabs"].extend([i for i in other_store["tabs"] if i.docname in docnames])
 
 
-# --- Building lists ----------------------------------------------------------
+# --- Fallback numbering (theme-agnostic) ------------------------------------
+
+
+def _build_fallback_numbers(
+    env: BuildEnvironment,
+) -> Dict[str, Dict[str, Dict[tuple, int]]]:
+    """
+    Returns: {kind: {'order': {(docname, anchor): ordinal}}}
+    where kind is 'figures' or 'tables'. Order is stable by (docname, anchor).
+    """
+    store = _ensure_store(env)
+    out: Dict[str, Dict[str, Dict[tuple, int]]] = {
+        "figures": {"order": {}},
+        "tables": {"order": {}},
+    }
+    for kind in ("figures", "tables"):
+        items = sorted(
+            store["figs" if kind == "figures" else "tabs"],
+            key=lambda i: (i.docname, i.anchor),
+        )
+        n = 0
+        order: Dict[tuple, int] = {}
+        for it in items:
+            n += 1
+            order[(it.docname, it.anchor)] = n
+        out[kind]["order"] = order
+    return out
+
+
+_FALLBACK_CACHE: Dict[int, Dict[str, Dict[str, Dict[tuple, int]]]] = {}
+
+
+def _fallback_number(
+    env: BuildEnvironment, kind: str, docname: str, anchor: str
+) -> Tuple[int, ...] | None:
+    # Cache per build (env object identity)
+    key = id(env)
+    cache = _FALLBACK_CACHE.get(key)
+    if cache is None:
+        cache = _build_fallback_numbers(env)
+        _FALLBACK_CACHE[key] = cache
+    ordmap = cache[kind]["order"]
+    num = ordmap.get((docname, anchor))
+    return (num,) if num else None
+
+
+# --- Number lookup -----------------------------------------------------------
+
+
+def _lookup_number(
+    env: BuildEnvironment,
+    kind: str,
+    docname: str,
+    id_candidates: List[str],
+    anchor_for_fallback: str | None = None,
+) -> Tuple[int, ...] | None:
+    """Prefer std domain’s numbers; then env maps; finally theme-agnostic fallback."""
+    typ = "figure" if kind == "figures" else "table"
+
+    # 1) std domain API
+    try:
+        std = env.get_domain("std")  # type: ignore[attr-defined]
+    except Exception:
+        std = None
+    if std is not None and hasattr(std, "get_fignumber"):
+        for cid in id_candidates:
+            try:
+                n = std.get_fignumber(env, docname, typ, cid)  # type: ignore[misc]
+                if n:
+                    return n
+            except Exception:
+                pass
+
+    # 2) env fallback maps
+    try:
+        mapping = (
+            getattr(
+                env, "toc_fignumbers" if typ == "figure" else "toc_tablenumbers", {}
+            )
+            or {}
+        )
+        bytype = mapping.get(docname, {})
+        ids_map = bytype.get(typ, {})
+        for cid in id_candidates:
+            if cid in ids_map:
+                return ids_map[cid]
+    except Exception:
+        pass
+
+    # 3) deterministic fallback if theme hides official numbers
+    if anchor_for_fallback:
+        return _fallback_number(env, kind, docname, anchor_for_fallback)
+    return None
+
+
+def _numlabel_prefix(app: Sphinx, kind: str, number: Tuple[int, ...] | None) -> str:
+    if not number:
+        return ""
+    cfg = getattr(app.config, "numfig_format", None)
+    label = _("Figure") if kind == "figures" else _("Table")
+    numtxt = _format_number(number)
+    if isinstance(cfg, dict) and ("figure" in cfg or "table" in cfg):
+        fmt = cfg.get("figure" if kind == "figures" else "table", f"{label} %s")
+        try:
+            return fmt.replace("%s", numtxt) + ": "
+        except Exception:
+            return f"{label} {numtxt}: "
+    return f"{label} {numtxt}: "
+
+
+# --- Post-transform (runs during writing, when numbers are finalized) --------
+
+
+class LoflotPostTransform(SphinxPostTransform):
+    default_priority = 999  # run late
+
+    def run(self) -> None:
+        app = self.app
+        env = self.env
+        docname = env.docname  # the doc currently being written
+
+        # Replace figure lists
+        for node in list(self.document.traverse(list_of_figures_node)):
+            if _maybe_replace_with_latex_native(app, node, "figures"):
+                continue
+            caption = node.get("caption") or None
+            include_uncaptioned = _resolve_bool(
+                node.get("include_uncaptioned"),
+                _get_conf(app, "loflot_include_uncaptioned_figures", True),
+            )
+            uncaptioned_label = node.get("uncaptioned_label") or _("[No caption]")
+            empty_message = node.get("empty_message") or _get_conf(
+                app, "loflot_empty_message_figures", _("(no figures)")
+            )
+            new = _build_list_node(
+                app,
+                "figures",
+                docname,
+                _ensure_store(env)["figs"],
+                caption,
+                include_uncaptioned,
+                uncaptioned_label,
+                empty_message,
+            )
+            node.replace_self(new)
+
+        # Replace table lists
+        for node in list(self.document.traverse(list_of_tables_node)):
+            if _maybe_replace_with_latex_native(app, node, "tables"):
+                continue
+            caption = node.get("caption") or None
+            include_uncaptioned = _resolve_bool(
+                node.get("include_uncaptioned"),
+                _get_conf(app, "loflot_include_uncaptioned_tables", True),
+            )
+            uncaptioned_label = node.get("uncaptioned_label") or _("[No title]")
+            empty_message = node.get("empty_message") or _get_conf(
+                app, "loflot_empty_message_tables", _("(no tables)")
+            )
+            new = _build_list_node(
+                app,
+                "tables",
+                docname,
+                _ensure_store(env)["tabs"],
+                caption,
+                include_uncaptioned,
+                uncaptioned_label,
+                empty_message,
+            )
+            node.replace_self(new)
 
 
 def _new_section_with_id(env: BuildEnvironment, kind: str) -> nodes.section:
-    serial = env.new_serialno("loflot-section")
-    sec_id = f"loflot-{kind}-section-{serial}"
+    sec_id = f"loflot-{kind}-section-{env.new_serialno('loflot-section')}"
     return nodes.section(ids=[sec_id])
 
 
-def _build_list(
+def _build_list_node(
     app: Sphinx,
-    kind: str,
+    kind: str,  # "figures" | "tables"
     fromdocname: str,
     items: List[Item],
     caption: str | None,
@@ -234,9 +382,9 @@ def _build_list(
     uncaptioned_label: str,
     empty_message: str,
 ) -> nodes.Node:
-    items_sorted = sorted(items, key=lambda i: (i.docname, i.anchor))
     env = app.env
     assert env is not None
+    items_sorted = sorted(items, key=lambda i: (i.docname, i.anchor))
 
     container = _new_section_with_id(env, kind)
     if caption:
@@ -244,16 +392,21 @@ def _build_list(
 
     blist = nodes.bullet_list()
     added = False
+
     for it in items_sorted:
         has_title = bool(it.title)
         if not has_title and not include_uncaptioned:
             continue
+
+        number = _lookup_number(
+            env, kind, it.docname, it.ids_for_numbering, anchor_for_fallback=it.anchor
+        )
+        prefix = _numlabel_prefix(app, kind, number)
         display_title = it.title if has_title else uncaptioned_label
 
         para = nodes.paragraph()
-        numtxt = _format_number(it.number)
-        if numtxt:
-            para += nodes.inline(text=f"{numtxt} — ")
+        if prefix:
+            para += nodes.inline(text=prefix)
 
         ref = make_refnode(
             app.builder,
@@ -264,6 +417,7 @@ def _build_list(
             it.anchor,
         )
         para += ref
+
         blist += nodes.list_item("", para)
         added = True
 
@@ -275,9 +429,7 @@ def _build_list(
 
 
 def _maybe_replace_with_latex_native(
-    app: Sphinx,
-    placeholder_node: nodes.Element,
-    kind: str,
+    app: Sphinx, placeholder_node: nodes.Element, kind: str
 ) -> bool:
     builder = getattr(app, "builder", None)
     behavior = _get_conf(app, "loflot_latex_behavior", "passthrough")
@@ -285,78 +437,12 @@ def _maybe_replace_with_latex_native(
         return False
     if str(behavior).lower() != "passthrough":
         return False
-
     raw = nodes.raw(
         text=(r"\listoffigures" if kind == "figures" else r"\listoftables"),
         format="latex",
     )
     placeholder_node.replace_self(raw)
     return True
-
-
-def on_doctree_resolved(app: Sphinx, doctree: nodes.document, docname: str) -> None:
-    env = app.env
-    assert env is not None
-    store = _ensure_store(env)
-
-    default_include_uncaptioned_figs = _get_conf(
-        app, "loflot_include_uncaptioned_figures", True
-    )
-    default_include_uncaptioned_tabs = _get_conf(
-        app, "loflot_include_uncaptioned_tables", True
-    )
-    default_label_fig = _get_conf(
-        app, "loflot_uncaptioned_label_figure", _("[No caption]")
-    )
-    default_label_tab = _get_conf(
-        app, "loflot_uncaptioned_label_table", _("[No title]")
-    )
-    default_empty_fig = _get_conf(
-        app, "loflot_empty_message_figures", _("(no figures)")
-    )
-    default_empty_tab = _get_conf(app, "loflot_empty_message_tables", _("(no tables)"))
-
-    for node in list(doctree.traverse(list_of_figures_node)):
-        if _maybe_replace_with_latex_native(app, node, "figures"):
-            continue
-        caption = node.get("caption") or None
-        include_uncaptioned = _resolve_bool(
-            node.get("include_uncaptioned"), default_include_uncaptioned_figs
-        )
-        uncaptioned_label = node.get("uncaptioned_label") or default_label_fig
-        empty_message = node.get("empty_message") or default_empty_fig
-        new = _build_list(
-            app,
-            "figures",
-            docname,
-            store["figs"],
-            caption,
-            include_uncaptioned,
-            uncaptioned_label,
-            empty_message,
-        )
-        node.replace_self(new)
-
-    for node in list(doctree.traverse(list_of_tables_node)):
-        if _maybe_replace_with_latex_native(app, node, "tables"):
-            continue
-        caption = node.get("caption") or None
-        include_uncaptioned = _resolve_bool(
-            node.get("include_uncaptioned"), default_include_uncaptioned_tabs
-        )
-        uncaptioned_label = node.get("uncaptioned_label") or default_label_tab
-        empty_message = node.get("empty_message") or default_empty_tab
-        new = _build_list(
-            app,
-            "tables",
-            docname,
-            store["tabs"],
-            caption,
-            include_uncaptioned,
-            uncaptioned_label,
-            empty_message,
-        )
-        node.replace_self(new)
 
 
 # --- Setup ------------------------------------------------------------------
@@ -371,7 +457,9 @@ def setup(app: Sphinx) -> Dict[str, Any]:
     app.connect("doctree-read", on_doctree_read)
     app.connect("env-purge-doc", on_env_purge_doc)
     app.connect("env-merge-info", on_env_merge_info)
-    app.connect("doctree-resolved", on_doctree_resolved)
+
+    # Replace placeholders at write time (numbers finalized or fallback)
+    app.add_post_transform(LoflotPostTransform)
 
     app.add_config_value("loflot_include_uncaptioned_figures", True, "env")
     app.add_config_value("loflot_include_uncaptioned_tables", True, "env")
@@ -381,8 +469,4 @@ def setup(app: Sphinx) -> Dict[str, Any]:
     app.add_config_value("loflot_empty_message_figures", _("(no figures)"), "env")
     app.add_config_value("loflot_empty_message_tables", _("(no tables)"), "env")
 
-    return {
-        "version": "0.4.2",
-        "parallel_read_safe": True,
-        "parallel_write_safe": True,
-    }
+    return {"version": "0.5.1", "parallel_read_safe": True, "parallel_write_safe": True}
