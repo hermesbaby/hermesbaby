@@ -577,6 +577,12 @@ extensions.append("sphinx.ext.todo")
 todo_include_todos = True
 
 
+### Enable Lists of Figures and Tables ########################################
+# @see loflot/README.md
+
+extensions.append("hermesbaby.loflot")
+
+
 ### Add sophistic html elements - use with care ###############################
 # @see https://sphinx-design.readthedocs.io
 
