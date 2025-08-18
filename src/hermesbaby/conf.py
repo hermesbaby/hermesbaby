@@ -577,6 +577,12 @@ extensions.append("sphinx.ext.todo")
 todo_include_todos = True
 
 
+### Enable Lists of Figures and Tables ########################################
+# @see loflot/README.md
+
+extensions.append("hermesbaby.loflot")
+
+
 ### Add sophistic html elements - use with care ###############################
 # @see https://sphinx-design.readthedocs.io
 
@@ -658,6 +664,8 @@ def append_existing_files(file_list, filenames_to_check):
 
 append_existing_files(bibtex_bibfiles, bibtex_bibfiles_candidates)
 
+bibtex_reference_style = "label"  # gives [1], [2], …
+bibtex_default_style = "unsrt"  # unsorted or pick "ieee"/"plain"/"alpha", etc.
 
 ### Make use of Inkscape for PDF output work  #################################
 # @see https://pypi.org/project/sphinxcontrib-svg2pdfconverter/
