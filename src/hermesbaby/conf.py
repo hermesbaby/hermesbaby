@@ -664,6 +664,8 @@ def append_existing_files(file_list, filenames_to_check):
 
 append_existing_files(bibtex_bibfiles, bibtex_bibfiles_candidates)
 
+bibtex_reference_style = "label"  # gives [1], [2], …
+bibtex_default_style = "unsrt"  # unsorted or pick "ieee"/"plain"/"alpha", etc.
 
 ### Make use of Inkscape for PDF output work  #################################
 # @see https://pypi.org/project/sphinxcontrib-svg2pdfconverter/
