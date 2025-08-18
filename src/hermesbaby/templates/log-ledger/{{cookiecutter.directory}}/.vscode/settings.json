@@ -18,7 +18,7 @@
     // *** DOCUMENTING ( including general file, scm, text handling *******
 
     "search.useIgnoreFiles": true,
-    
+
     "workbench.colorTheme": "Visual Studio Light",
 
     "vsicons.presets.hideExplorerArrows": true,
@@ -176,10 +176,15 @@
         }
     ],
 
+
     "pasteImage.defaultName": "Y_MM_DD_HH_mm_ss",
     "pasteImage.encodePath": "none",
     "pasteImage.path": "${currentFileDir}/_figures",
+
     "pasteImage.insertPattern": "```{figure} ${imageFilePath}\n```\n\n",
+
+    //"pasteImage.insertPattern": "(fig_${imageFileNameWithoutExt})=\n\n```{figure} ${imageFilePath}\n${imageFileNameWithoutExt}\n```\n\n",
+
 
     "copyPathWithLineNumber.path.separator": "slash",
 
