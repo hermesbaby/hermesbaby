@@ -240,6 +240,13 @@ config PUBLISH__USER
     string "User with access to publish"
     default ""
 
+config PUBLISH__REPO
+    string "Repository on publish host"
+    default ""
+    help
+        The repository <repo> to publish to in pattern https://<PUBLISH__HOST>/projects|users/<owner>/<repo>/<branch>
+        If not set / empty, then <repo> is derived from <SCM__REPO>
+
 config PUBLISH__SSH_PATH
     string "Relative Path of directory .ssh/"
     default ".ci/.ssh"
