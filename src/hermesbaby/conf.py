@@ -272,6 +272,11 @@ if "sphinx_material" == html_theme:  ###########################################
         f"https://{kconfig.syms['SCM__HOST'].str_value}/{kconfig.syms['SCM__OWNER_KIND'].str_value}/{kconfig.syms['SCM__OWNER'].str_value}/repos/{kconfig.syms['SCM__REPO'].str_value}/browse"
     )
 
+    if "" != kconfig.syms["SCM__REPO__URL_GIT_CLIENT"].str_value:
+        html_theme_options["repo_url"] = kconfig.syms[
+            "SCM__REPO__URL_GIT_CLIENT"
+        ].str_value
+
     ## nav_title ##########################################
     html_theme_options["nav_title"] = kconfig.syms["DOC__TITLE"].str_value
 
