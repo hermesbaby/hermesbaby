@@ -595,7 +595,11 @@ def publish(
     publish_user = _kconfig.syms["PUBLISH__USER"].str_value
     scm_owner_kind = _kconfig.syms["SCM__OWNER_KIND"].str_value
     scm_owner = _kconfig.syms["SCM__OWNER"].str_value
-    scm_repo = _kconfig.syms["SCM__REPO"].str_value
+
+    publish_repo = _kconfig.syms["PUBLISH__REPO"].str_value
+    if publish_repo == "":
+        publish_repo = _kconfig.syms["SCM__REPO"].str_value
+
     dir_build = Path(directory) / _kconfig.syms["BUILD__DIRS__BUILD"].str_value
 
     # In case the publish_user is empty or not defined, use the scm_owner as default
@@ -616,9 +620,7 @@ def publish(
         typer.echo("Could not get git branch. Aborting publish step", err=True)
         raise typer.Exit(code=1)
 
-    publish_url = (
-        f"https://{publish_host}/{scm_owner_kind}/{scm_owner}/{scm_repo}/{git_branch}"
-    )
+    publish_url = f"https://{publish_host}/{scm_owner_kind}/{scm_owner}/{publish_repo}/{git_branch}"
 
     try:
         typer.echo(f"Publishing to {publish_url}")
@@ -641,8 +643,8 @@ def publish(
             f"-o UserKnownHostsFile=/dev/null "
             f"-i {ssh_key_path} "
             f"{publish_user}@{publish_host} "
-            f'"(mkdir -p /var/www/html/{scm_owner_kind}/{scm_owner}/{scm_repo} '
-            f"&&  cd /var/www/html/{scm_owner_kind}/{scm_owner}/{scm_repo} "
+            f'"(mkdir -p /var/www/html/{scm_owner_kind}/{scm_owner}/{publish_repo} '
+            f"&&  cd /var/www/html/{scm_owner_kind}/{scm_owner}/{publish_repo} "
             f'&& rm -rf {git_branch})"'
         )
         subprocess.run(ssh_cleanup_command, shell=True, check=True, text=True)
@@ -655,7 +657,7 @@ def publish(
             f"-o StrictHostKeyChecking=no "
             f"-o UserKnownHostsFile=/dev/null "
             f"-i {ssh_key_path} {publish_user}@{publish_host} "
-            f'"(cd /var/www/html/{scm_owner_kind}/{scm_owner}/{scm_repo} '
+            f'"(cd /var/www/html/{scm_owner_kind}/{scm_owner}/{publish_repo} '
             f"&& mkdir -p {git_branch} "
             f'&& tar -xzf - -C {git_branch})"'
         )
