@@ -692,95 +692,6 @@ extlinks_detect_hardcoded_links = False
 ### Create references to anchors in other documents with intersphinx ##########
 # @see https://www.sphinx-doc.org/en/master/usage/extensions/intersphinx.html
 
-
-## OBSOLETE STUFF BEGIN -->
-
-
-def _intersphinx_populate_mapping(
-    config_path: str, user: str = None, password: str = None
-):
-    """Populate intersphinx_mapping with tuples (URL, None)"""
-
-    REF_INDEX_FILE = "objects.inv"
-
-    ret_val = {}
-
-    # Read in the YAML file
-    config_data = None
-    try:
-        with open(config_path, "r", encoding="utf-8") as config_file:
-            config_data = yaml.safe_load(config_file)
-            ret_val = {
-                spec["identifier"]: (spec["url"], None)
-                for spec in config_data.get("specifications", [])
-            }
-            _intersphinx_delayed_log_messages.append(
-                dict(
-                    level="info", text=f"Loaded intersphinx mappings from {config_path}"
-                )
-            )
-    except FileNotFoundError:
-        _intersphinx_delayed_log_messages.append(
-            dict(
-                level="info",
-                text=f"{config_path} not found. 'intersphinx' stays disabled.",
-            )
-        )
-        return None
-    except yaml.YAMLError as e:
-        _intersphinx_delayed_log_messages.append(
-            dict(level="error", text=f"Error parsing YAML from {config_path}: {e}")
-        )
-        return None
-    except KeyError as e:
-        _intersphinx_delayed_log_messages.append(
-            dict(level="error", text=f"Missing expected key in YAML data: {e}")
-        )
-        return None
-
-    # Inject user and password into URLs
-    if user and password:
-        for key, value in ret_val.items():
-            url = value[0]
-            url_with_auth = url.replace("://", f"://{user}:{password}@")
-            ret_val[key] = (url_with_auth, None)
-
-    # Probe if the URLs are reachable
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    for key, value in ret_val.items():
-        url = value[0]
-        url_wo_auth = url.replace(f"{user}:{password}@", "")
-
-        # probe if there is the file `objects.inv` available (do not download, just check)
-        try:
-            response = requests.head(f"{url}/{REF_INDEX_FILE}", verify=False)
-            if response.status_code == 200:
-                _intersphinx_delayed_log_messages.append(
-                    dict(
-                        level="info",
-                        text=f"Found cross-reference index file at {url_wo_auth} (HTTP {response.status_code})",
-                    )
-                )
-            else:
-                _intersphinx_delayed_log_messages.append(
-                    dict(
-                        level="warning",
-                        text=f"Cross-reference index file not found at {url_wo_auth} (HTTP {response.status_code}). Check {{config_path}}",
-                    )
-                )
-        except requests.exceptions.RequestException as e:
-            _intersphinx_delayed_log_messages.append(
-                dict(level="error", text=f"Error while probing {url_wo_auth}: {e}")
-            )
-            ret_val = None
-
-    return ret_val
-
-
-## <-- OBSOLETE STUFF END
-
-## NEW STUFF ###
-
 _intersphinx_delayed_log_messages = []
 
 
@@ -799,17 +710,152 @@ def setup_app__intersphinx(app):
 
 
 def _create_intersphinx_mapping_from_yaml(some_yaml_heredoc, user, password):
-    config_data = yaml.safe_load(some_yaml_heredoc)
+    """
+    Create intersphinx_mapping from a YAML heredoc.
+    Adds validation, optional basic-auth injection, and reachability probing
+    (HEAD request for objects.inv) while deferring log output via
+    _intersphinx_delayed_log_messages.
+    YAML format:
+      specifications:
+        - identifier: <name>
+          url: https://host/path
+          options: {}            # optional
+    """
+    REF_INDEX_FILE = "objects.inv"
+
+    # Normalize possibly tuple-wrapped credentials (current config captures as single-item tuples)
+    if isinstance(user, (tuple, list)):
+        user = user[0] if user else None
+    if isinstance(password, (tuple, list)):
+        password = password[0] if password else None
+
+    if not some_yaml_heredoc or not some_yaml_heredoc.strip():
+        _intersphinx_delayed_log_messages.append(
+            dict(
+                level="warning",
+                text="Empty YAML provided for intersphinx configuration. 'intersphinx' stays disabled.",
+            )
+        )
+        return None
+
+    try:
+        config_data = yaml.safe_load(some_yaml_heredoc)
+    except yaml.YAMLError as e:
+        _intersphinx_delayed_log_messages.append(
+            dict(level="error", text=f"Error parsing intersphinx YAML: {e}")
+        )
+        return None
+
+    if not isinstance(config_data, dict):
+        _intersphinx_delayed_log_messages.append(
+            dict(
+                level="error",
+                text="Parsed intersphinx YAML root is not a mapping. Aborting.",
+            )
+        )
+        return None
+
+    specs = config_data.get("specifications", [])
+    if not isinstance(specs, list):
+        _intersphinx_delayed_log_messages.append(
+            dict(
+                level="error",
+                text="Key 'specifications' must contain a list. Aborting.",
+            )
+        )
+        return None
 
     intersphinx_mapping = {}
-    for spec in config_data.get("specifications", []):
+    added = 0
+    skipped = 0
+
+    for idx, spec in enumerate(specs):
+        if not isinstance(spec, dict):
+            _intersphinx_delayed_log_messages.append(
+                dict(
+                    level="warning",
+                    text=f"Specification #{idx} is not a mapping. Skipped.",
+                )
+            )
+            skipped += 1
+            continue
+
         identifier = spec.get("identifier")
         url = spec.get("url")
-        if user and password and url:
-            url = url.replace("://", f"://{user}:{password}@")
         options = spec.get("options", {})
-        if identifier and url:
-            intersphinx_mapping[identifier] = (url, options)
+
+        if not identifier:
+            _intersphinx_delayed_log_messages.append(
+                dict(
+                    level="warning",
+                    text=f"Specification #{idx} missing 'identifier'. Skipped.",
+                )
+            )
+            skipped += 1
+            continue
+        if not url:
+            _intersphinx_delayed_log_messages.append(
+                dict(
+                    level="warning",
+                    text=f"Specification '{identifier}' missing 'url'. Skipped.",
+                )
+            )
+            skipped += 1
+            continue
+
+        # Inject credentials
+        if user and password:
+            url = url.replace("://", f"://{user}:{password}@")
+
+        intersphinx_mapping[identifier] = (url, options)
+        added += 1
+
+    if added == 0:
+        _intersphinx_delayed_log_messages.append(
+            dict(
+                level="warning",
+                text="No valid intersphinx specifications found. 'intersphinx' stays disabled.",
+            )
+        )
+        return None
+
+    _intersphinx_delayed_log_messages.append(
+        dict(
+            level="info",
+            text=f"Prepared {added} intersphinx mapping(s), skipped {skipped} invalid specification(s).",
+        )
+    )
+
+    # Probe availability of objects.inv
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    for identifier, (url_with_auth, _opts) in intersphinx_mapping.items():
+        # Remove injected credentials for display
+        display_url = re.sub(r"://[^@]+@", "://", url_with_auth)
+        test_url = f"{url_with_auth.rstrip('/')}/{REF_INDEX_FILE}"
+        try:
+            response = requests.head(test_url, verify=False, timeout=5)
+            if response.status_code == 200:
+                _intersphinx_delayed_log_messages.append(
+                    dict(
+                        level="info",
+                        text=f"[intersphinx:{identifier}] Found cross-reference index at {display_url}",
+                    )
+                )
+            else:
+                _intersphinx_delayed_log_messages.append(
+                    dict(
+                        level="warning",
+                        text=f"[intersphinx:{identifier}] No '{REF_INDEX_FILE}' at {display_url} (HTTP {response.status_code}).",
+                    )
+                )
+        except requests.exceptions.RequestException as e:
+            _intersphinx_delayed_log_messages.append(
+                dict(
+                    level="error",
+                    text=f"[intersphinx:{identifier}] Error probing {display_url}: {e}",
+                )
+            )
+            # continue probing others; keep existing entries
 
     return intersphinx_mapping
 
@@ -825,10 +871,6 @@ def _intersphinx__workaround_corporate_ssl_certificates():
         except Exception as e:
             app.warn(f"Failed to fetch inventory from {uri}: {e}")
             return {}
-
-    # Rule F811 (redefinition of unused 'fetch_inventory') is violated on purpose here.
-    # This is intentional to patch the function for SSL certificate handling.
-    fetch_inventory = patched_fetch_inventory  # noqa
 
 
 intersphinx_mapping = None
