@@ -693,7 +693,7 @@ extlinks_detect_hardcoded_links = False
 # @see https://www.sphinx-doc.org/en/master/usage/extensions/intersphinx.html
 
 
-_intersphinx_delayed_log_messages = []
+## OBSOLETE STUFF BEGIN -->
 
 
 def _intersphinx_populate_mapping(
@@ -726,14 +726,17 @@ def _intersphinx_populate_mapping(
                 text=f"{config_path} not found. 'intersphinx' stays disabled.",
             )
         )
+        return None
     except yaml.YAMLError as e:
         _intersphinx_delayed_log_messages.append(
             dict(level="error", text=f"Error parsing YAML from {config_path}: {e}")
         )
+        return None
     except KeyError as e:
         _intersphinx_delayed_log_messages.append(
             dict(level="error", text=f"Missing expected key in YAML data: {e}")
         )
+        return None
 
     # Inject user and password into URLs
     if user and password:
@@ -769,8 +772,16 @@ def _intersphinx_populate_mapping(
             _intersphinx_delayed_log_messages.append(
                 dict(level="error", text=f"Error while probing {url_wo_auth}: {e}")
             )
+            ret_val = None
 
     return ret_val
+
+
+## <-- OBSOLETE STUFF END
+
+## NEW STUFF ###
+
+_intersphinx_delayed_log_messages = []
 
 
 def setup_app__intersphinx(app):
@@ -787,11 +798,20 @@ def setup_app__intersphinx(app):
             logger.error(text)
 
 
-intersphinx_mapping = _intersphinx_populate_mapping(
-    config_path=os.path.join(_conf_realpath, "cross-doc-ref.config.yaml"),
-    user=kconfig.syms["PUBLISH__CROSS_REFERENCES__USER"].str_value,
-    password=kconfig.syms["PUBLISH__CROSS_REFERENCES__PASSWORD"].str_value,
-)
+def _create_intersphinx_mapping_from_yaml(some_yaml_heredoc, user, password):
+    config_data = yaml.safe_load(some_yaml_heredoc)
+
+    intersphinx_mapping = {}
+    for spec in config_data.get("specifications", []):
+        identifier = spec.get("identifier")
+        url = spec.get("url")
+        if user and password and url:
+            url = url.replace("://", f"://{user}:{password}@")
+        options = spec.get("options", {})
+        if identifier and url:
+            intersphinx_mapping[identifier] = (url, options)
+
+    return intersphinx_mapping
 
 
 def _intersphinx__workaround_corporate_ssl_certificates():
@@ -806,21 +826,38 @@ def _intersphinx__workaround_corporate_ssl_certificates():
             app.warn(f"Failed to fetch inventory from {uri}: {e}")
             return {}
 
-    fetch_inventory = patched_fetch_inventory
+    # Rule F811 (redefinition of unused 'fetch_inventory') is violated on purpose here.
+    # This is intentional to patch the function for SSL certificate handling.
+    fetch_inventory = patched_fetch_inventory  # noqa
 
 
-# TODO: Activate (if activated this will lead to necessity of working communication to the hosts specified in the cross-doc-ref.config.yaml) ). Do not activate before a tolerance is built in to enable a "limb-build" when no connection is available.
-# TODO: Also introduce a dedicated kconfig.syms['PUBLISH__CROSS_REFERENCES__ENABLE'].str_value to enable/disable the intersphinx feature.
-if False:
+intersphinx_mapping = None
+
+_intersphinx_config_path = os.path.join(_src_realpath, "cross-doc-ref.config.yaml")
+_intersphinx_user = (kconfig.syms["PUBLISH__CROSS_REFERENCES__USER"].str_value,) or None
+_intersphinx_password = (
+    kconfig.syms["PUBLISH__CROSS_REFERENCES__PASSWORD"].str_value,
+) or None
+
+_intersphinx_config_as_yaml = None
+if os.path.exists(_intersphinx_config_path):
+    with open(_intersphinx_config_path, "r") as f:
+        _intersphinx_config_as_yaml = f.read()
+
+if _intersphinx_config_as_yaml:
+
+    extensions.append("sphinx.ext.intersphinx")
+
+    _intersphinx__workaround_corporate_ssl_certificates()
+
+    intersphinx_mapping = _create_intersphinx_mapping_from_yaml(
+        _intersphinx_config_as_yaml, _intersphinx_user, _intersphinx_password
+    )
+
     app_setups.append(setup_app__intersphinx)
 
 
-# Activate intersphinx in case configuration file exists and there is at least one entry below `specifications`
-# TODO: Activate after issue with ssl certificates on CIBS is solved
-if False:
-    if intersphinx_mapping:
-        extensions.append("sphinx.ext.intersphinx")
-        _intersphinx__workaround_corporate_ssl_certificates()
+logger.info(f"intersphinx_mapping: {intersphinx_mapping}")
 
 
 ### Link documentation items with "mlx.traceability" ##########################
