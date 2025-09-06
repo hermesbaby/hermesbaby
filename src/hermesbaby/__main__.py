@@ -143,14 +143,15 @@ def _check_plantuml():
     typer.echo("Checking PlantUML installation...")
 
     tools_dir = CFG_CONFIG_DIR / "tools"
-    version = "1.2025.2"
+    version = "1.2025.4"
     plantuml_url = f"https://github.com/plantuml/plantuml/releases/download/v{version}/plantuml-{version}.jar"
+    plantuml_path_version = tools_dir / version
     plantuml_path = tools_dir / "plantuml.jar"
 
     # Create tools directory if it doesn't exist
     os.makedirs(tools_dir, exist_ok=True)
 
-    if plantuml_path.exists():
+    if plantuml_path_version.exists():
         typer.echo("PlantUML is already installed.")
         return
 
@@ -161,6 +162,7 @@ def _check_plantuml():
         with open(plantuml_path, "wb") as out_file:
             for chunk in response.iter_content(chunk_size=8192):
                 out_file.write(chunk)
+        plantuml_path_version.touch()
 
         typer.echo("PlantUML setup complete!")
     except requests.exceptions.RequestException as e:
@@ -329,7 +331,7 @@ def html_live(
         -c {str(CFG_CONFIG_DIR)}
         {_kconfig.syms["BUILD__DIRS__SOURCE"].str_value}
         {build_dir}
-        --watch {str(CFG_CONFIG_DIR)}
+        --watch {_kconfig.syms["BUILD__DIRS__CONFIG"].str_value}
         --re-ignore '_tags/.*'
         --port {int(_kconfig.syms["BUILD__PORTS__HTML__LIVE"].str_value)}
         --open-browser
