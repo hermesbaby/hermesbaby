@@ -625,6 +625,12 @@ tags_badge_colors = {
 extensions.append("sphinx_mdinclude")
 
 
+### Render tables from excel files (xlsx)  ####################################
+# @see https://github.com/kkAyataka/sphinxcontrib-xlsxtable
+
+extensions.append("sphinxcontrib.xlsxtable")
+
+
 ### Register additional lexers for code-block directives  #####################
 
 # Register lexer for *.robot files

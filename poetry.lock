@@ -798,6 +798,18 @@ all = ["pytz (>=2019.1)"]
 dates = ["pytz (>=2019.1)"]
 
 [[package]]
+name = "et-xmlfile"
+version = "2.0.0"
+description = "An implementation of lxml.xmlfile for the standard library"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "et_xmlfile-2.0.0-py3-none-any.whl", hash = "sha256:7a91720bc756843502c3b7504c77b8fe44217c85c537d85037f0f536151b2caa"},
+    {file = "et_xmlfile-2.0.0.tar.gz", hash = "sha256:dab3f4764309081ce75662649be815c4c9081e88f0837825f90fd28317d4da54"},
+]
+
+[[package]]
 name = "exceptiongroup"
 version = "1.2.2"
 description = "Backport of PEP 654 (exception groups)"
@@ -2393,6 +2405,21 @@ files = [
 rsa = ["cryptography (>=3.0.0)"]
 signals = ["blinker (>=1.4.0)"]
 signedtoken = ["cryptography (>=3.0.0)", "pyjwt (>=2.0.0,<3)"]
+
+[[package]]
+name = "openpyxl"
+version = "3.1.5"
+description = "A Python library to read/write Excel 2010 xlsx/xlsm files"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "openpyxl-3.1.5-py2.py3-none-any.whl", hash = "sha256:5282c12b107bffeef825f4617dc029afaf41d0ea60823bbb665ef3079dc79de2"},
+    {file = "openpyxl-3.1.5.tar.gz", hash = "sha256:cf0e3cf56142039133628b5acffe8ef0c12bc902d2aadd3e0fe5878dc08d1050"},
+]
+
+[package.dependencies]
+et-xmlfile = "*"
 
 [[package]]
 name = "packaging"
@@ -4123,6 +4150,22 @@ Sphinx = ">=1.6.3"
 cairosvg = ["cairosvg (>=1.0)"]
 
 [[package]]
+name = "sphinxcontrib-xlsxtable"
+version = "1.1.1"
+description = "A sphinx extension for making table from Excel file"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "sphinxcontrib-xlsxtable-1.1.1.tar.gz", hash = "sha256:316f3021c40b4088e295722808ae7e6f4c0edb2fa3d515f85b01d31e6bcf7f90"},
+    {file = "sphinxcontrib_xlsxtable-1.1.1-py3-none-any.whl", hash = "sha256:83f36b1305f6a302efce5b70f6fb9460856b07b30ca5a5cb62557be51eb45519"},
+]
+
+[package.dependencies]
+openpyxl = ">=3.0.0"
+Sphinx = ">=2.0.0"
+
+[[package]]
 name = "sphinxext-rediraffe"
 version = "0.2.7"
 description = "Sphinx Extension that redirects non-existent pages to working pages."
@@ -4905,4 +4948,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "dc719bed608df5795b90be1fd85864fcb544e749e3e22ed2085ad043ccd29d4d"
+content-hash = "7a7717c6e9354369a5aaea36083d3dcb7efe5283a512f232de55db3d5bb2f4cd"
