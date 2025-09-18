@@ -675,8 +675,35 @@ def append_existing_files(file_list, filenames_to_check):
 
 append_existing_files(bibtex_bibfiles, bibtex_bibfiles_candidates)
 
-bibtex_reference_style = "label"  # gives [1], [2], …
-bibtex_default_style = "unsrt"  # unsorted or pick "ieee"/"plain"/"alpha", etc.
+#
+# This section defines a custom style from references
+#
+# For techreports, online, and misc references the 
+# KeyLabelStyle allows to define a custom label using the 
+# 'key' field or the 'number' field
+#
+from pybtex.style.formatting.unsrt import Style as UnsrtStyle
+from pybtex.style.labels.alpha import LabelStyle as AlphaLabelStyle
+
+class KeyLabelStyle(AlphaLabelStyle):
+    def format_label(self, entry):
+        label = super(KeyLabelStyle, self).format_label(entry)
+        if (entry.type in ['techreport', 'online', 'misc']):
+            label = entry.fields.get('key', entry.fields.get('number', label))
+        return label
+
+class CustomKeyStyle(UnsrtStyle):
+    default_sorting_style = 'author_year_title'
+
+    def __init__(self, *args, **kwargs):
+        super(CustomKeyStyle, self).__init__(*args, **kwargs)
+        self.label_style = KeyLabelStyle()
+        self.format_labels = self.label_style.format_labels
+
+from pybtex.plugin import register_plugin
+register_plugin('pybtex.style.formatting', 'customkey', CustomKeyStyle)
+
+bibtex_default_style = "customkey"  # unsorted or pick "ieee"/"plain"/"alpha", etc.
 
 ### Make use of Inkscape for PDF output work  #################################
 # @see https://pypi.org/project/sphinxcontrib-svg2pdfconverter/
