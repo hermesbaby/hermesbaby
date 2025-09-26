@@ -2,7 +2,7 @@
 # Quality Requirements
 
 ```{todo}
-Add {ref}`sec_quality_requirements`, see [arc42-guideline](https://docs.arc42.org/section-10/). Siehe dazu auch {cite:p}`aim42`.
+Add {ref}`sec_quality_requirements`, see [arc42-guideline](https://docs.arc42.org/section-10/), {cite:p}`aim42` and [iso25000.com](https://iso25000.com/index.php/en/iso-25000-standards/iso-25010).
 ```
 
 This section contains all relevant quality requirements.
@@ -14,7 +14,7 @@ The most important of these requirements have already been described in section 
 
 (fig_quality_tree)=
 ```{uml} _figures/quality_tree.puml
-:caption: The quality scenarios and their place in the quality tree.
+:caption: The quality scenarios and their place in the quality tree. For more information about the quality characteristics, please refer to [iso25000.com](https://iso25000.com/index.php/en/iso-25000-standards/iso-25010).
 ```
 
 (sec_quality_scenarios)=
