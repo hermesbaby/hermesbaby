@@ -1,6 +1,6 @@
 ' @see https://plantuml.com/sequence-diagram
 
-@startuml
+@startuml quality-scenario-01
 !pragma teoz true
 
 hide footbox
