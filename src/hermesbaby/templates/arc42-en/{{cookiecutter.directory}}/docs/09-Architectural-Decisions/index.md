@@ -13,7 +13,6 @@ Add {ref}`sec_architectural_decisions`, see [arc42-guideline](https://docs.arc42
 % See also `needtable` and `need`: <https://sphinx-needs.readthedocs.io/en/latest/directives/needtable.html>
 
 (tab_architectural_decisions)=
-
 ```{needtable} Architecture Decisions
 :types: decision
 :columns: id;title
