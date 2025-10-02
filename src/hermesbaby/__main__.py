@@ -30,7 +30,6 @@ from typing import List
 
 import git
 import kconfiglib
-import requests
 import typer
 from cookiecutter.main import cookiecutter
 
@@ -133,41 +132,6 @@ def _tools_install_tool(tool: str, info: dict) -> bool:
     else:
         typer.echo("      Installation did not succeed.")
         return False
-
-
-def _check_plantuml():
-    """
-    Checks for PlantUML.
-    If not installed, downloads it.
-    """
-
-    typer.echo("Checking PlantUML installation...")
-
-    tools_dir = CFG_CONFIG_DIR / "tools"
-    version = "1.2025.4"
-    plantuml_url = f"https://github.com/plantuml/plantuml/releases/download/v{version}/plantuml-{version}.jar"
-    plantuml_path_version = tools_dir / version
-    plantuml_path = tools_dir / "plantuml.jar"
-
-    # Create tools directory if it doesn't exist
-    os.makedirs(tools_dir, exist_ok=True)
-
-    if plantuml_path_version.exists():
-        typer.echo("PlantUML is already installed.")
-        return
-
-    typer.echo(f"Downloading PlantUML version {version} to {plantuml_path}...")
-    try:
-        response = requests.get(plantuml_url, stream=True)
-        response.raise_for_status()  # Raise an exception for HTTP errors
-        with open(plantuml_path, "wb") as out_file:
-            for chunk in response.iter_content(chunk_size=8192):
-                out_file.write(chunk)
-        plantuml_path_version.touch()
-
-        typer.echo("PlantUML setup complete!")
-    except requests.exceptions.RequestException as e:
-        typer.echo(f"Error downloading PlantUML: {e}")
 
 
 class SortedGroup(typer.core.TyperGroup):
@@ -294,8 +258,6 @@ def html(
     _set_env()
     _load_config()
 
-    _check_plantuml()
-
     build_dir = Path(_kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
     build_dir.mkdir(parents=True, exist_ok=True)
     executable = os.path.join(_tool_path, "sphinx-build")
@@ -324,8 +286,6 @@ def html_live(
 
     _set_env()
     _load_config()
-
-    _check_plantuml()
 
     build_dir = Path(_kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
     build_dir.mkdir(parents=True, exist_ok=True)
