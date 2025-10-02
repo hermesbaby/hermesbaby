@@ -820,18 +820,18 @@ def check_vscode_extensions(
     # Build table data
     table_data = []
     missing_extensions = []
-    
+
     def compare_versions(installed_ver, hb_ver):
         """Compare semantic versions and return status"""
         try:
-            inst_parts = [int(x) for x in installed_ver.split('.')]
-            hb_parts = [int(x) for x in hb_ver.split('.')]
-            
+            inst_parts = [int(x) for x in installed_ver.split(".")]
+            hb_parts = [int(x) for x in hb_ver.split(".")]
+
             # Pad shorter version with zeros
             max_len = max(len(inst_parts), len(hb_parts))
             inst_parts.extend([0] * (max_len - len(inst_parts)))
             hb_parts.extend([0] * (max_len - len(hb_parts)))
-            
+
             if inst_parts > hb_parts:
                 return "installed-newer"
             elif inst_parts < hb_parts:
@@ -841,7 +841,7 @@ def check_vscode_extensions(
         except (ValueError, AttributeError):
             # If version comparison fails, just return installed
             return "installed"
-    
+
     for ext_name, hb_version in sorted(recommendations.items()):
         if ext_name in installed_extensions:
             inst_version = installed_extensions[ext_name]
@@ -850,20 +850,22 @@ def check_vscode_extensions(
             inst_version = ""
             status = "missing"
             missing_extensions.append(ext_name)
-        
-        table_data.append({
-            "extension": ext_name,
-            "hb": hb_version,
-            "installed": inst_version,
-            "status": status
-        })
+
+        table_data.append(
+            {
+                "extension": ext_name,
+                "hb": hb_version,
+                "installed": inst_version,
+                "status": status,
+            }
+        )
 
     # Calculate column widths
     max_ext_len = max(len(row["extension"]) for row in table_data)
     max_hb_len = max(len(row["hb"]) for row in table_data)
     max_inst_len = max(len(row["installed"]) for row in table_data)
     max_status_len = max(len(row["status"]) for row in table_data)
-    
+
     # Ensure minimum widths for headers
     max_ext_len = max(max_ext_len, len("extension"))
     max_hb_len = max(max_hb_len, len("version-hb"))
@@ -893,20 +895,39 @@ def check_vscode_extensions(
     # Handle installation if requested
     if missing_extensions:
         if install:
-            typer.echo("\nAttempting to install missing extensions...")
+            typer.echo(
+                "\nAttempting to install missing extensions using embedded VSIX files..."
+            )
+
+            # Build a mapping of extension names to their VSIX file paths
+            vsix_files = {}
+            for file in extensions_dir.iterdir():
+                if file.is_file() and file.name.endswith(".vsix"):
+                    match = version_pattern.search(file.name)
+                    if match:
+                        extension_name = version_pattern.sub("", file.name)
+                        vsix_files[extension_name] = file
+
             for ext in missing_extensions:
-                try:
-                    subprocess.run(
-                        ["code", "--install-extension", ext], check=True, shell=True
-                    )
-                    typer.echo(f"Installed {ext} successfully.")
-                except subprocess.CalledProcessError as e:
-                    typer.echo(f"Failed to install {ext}: {e}")
+                if ext in vsix_files:
+                    vsix_path = vsix_files[ext]
+                    typer.echo(f"Installing {ext} from {vsix_path.name}...")
+                    try:
+                        subprocess.run(
+                            ["code", "--install-extension", str(vsix_path)],
+                            check=True,
+                            shell=True,
+                        )
+                        typer.echo(f"  Installed {ext} successfully.")
+                    except subprocess.CalledProcessError as e:
+                        typer.echo(f"  Failed to install {ext}: {e}")
+                else:
+                    typer.echo(f"  Warning: VSIX file not found for {ext}")
             typer.echo("\nPlease run the command again to verify installation.")
         else:
             typer.echo(
                 f"\n{len(missing_extensions)} extension(s) missing. "
-                "Use --install to install them automatically."
+                "Use --install to install them from the VSIX file shipped with HermesBaby."
             )
 
 
