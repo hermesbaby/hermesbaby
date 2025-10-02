@@ -20,6 +20,7 @@ import json
 import logging
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -761,7 +762,7 @@ def check_vscode_extensions(
     )
 ):
     """
-    Checks for the presence of recommended VSCode extensions (as defined in extensions.json)
+    Checks for the presence of recommended VSCode extensions (from vscode-extensions directory)
     and installs missing extensions if --install is specified.
     """
     if not shutil.which("code"):
@@ -770,26 +771,30 @@ def check_vscode_extensions(
         )
         raise typer.Exit(code=1)
 
-    # Load recommended VSCode extensions
+    # Load recommended VSCode extensions from directory
+    extensions_dir = CFG_CONFIG_DIR / "vscode-extensions"
+
+    if not extensions_dir.exists():
+        typer.echo(f"Error: Directory {extensions_dir} not found.")
+        raise typer.Exit(code=1)
+
+    # List all .vsix files and extract extension names
+    recommendations = []
+    version_pattern = re.compile(r"-\d+\.\d+\.\d+\.vsix$")
+
     try:
-        with open(CFG_CONFIG_DIR / "extensions.json", "r") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        typer.echo("extensions.json not found.")
-        raise typer.Exit(code=1)
-    except json.JSONDecodeError:
-        typer.echo("Error: extensions.json is not a valid JSON file.")
-        raise typer.Exit(code=1)
-
-    # Validate that data is in the expected format.
-    if not isinstance(data, dict):
-        typer.echo("Error: extensions.json must be a JSON object.")
-        raise typer.Exit(code=1)
-    if "recommendations" not in data or not isinstance(data["recommendations"], list):
-        typer.echo("Error: extensions.json must contain a 'recommendations' list.")
+        for file in extensions_dir.iterdir():
+            if file.is_file() and file.name.endswith(".vsix"):
+                # Remove version suffix from filename
+                extension_name = version_pattern.sub("", file.name)
+                recommendations.append(extension_name)
+    except Exception as e:
+        typer.echo(f"Error reading extensions directory: {e}")
         raise typer.Exit(code=1)
 
-    recommendations = data["recommendations"]
+    if not recommendations:
+        typer.echo(f"No .vsix files found in {extensions_dir}")
+        raise typer.Exit(code=1)
 
     # List currently installed extensions
     try:
