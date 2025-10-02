@@ -759,11 +759,14 @@ def check(
 def check_vscode_extensions(
     install: bool = typer.Option(
         False, "--install", help="Automatically install missing VSCode extensions."
-    )
+    ),
+    uninstall: bool = typer.Option(
+        False, "--uninstall", help="Uninstall all recommended VSCode extensions."
+    ),
 ):
     """
     Checks for the presence of recommended VSCode extensions (from vscode-extensions directory)
-    and installs missing extensions if --install is specified.
+    and installs missing extensions if --install is specified, or uninstalls them if --uninstall is specified.
     """
     if not shutil.which("code"):
         typer.echo(
@@ -891,6 +894,35 @@ def check_vscode_extensions(
             f"{row['status']:<{max_status_len}}"
         )
         typer.echo(line)
+
+    # Handle uninstallation if requested
+    if uninstall:
+        # Get list of recommended extensions that are currently installed
+        installed_recommended = [
+            ext_name
+            for ext_name in recommendations.keys()
+            if ext_name in installed_extensions
+        ]
+
+        if not installed_recommended:
+            typer.echo("\nNo recommended extensions are currently installed.")
+        else:
+            typer.echo(
+                f"\nUninstalling {len(installed_recommended)} recommended extension(s)..."
+            )
+            for ext in installed_recommended:
+                typer.echo(f"Uninstalling {ext}...")
+                try:
+                    subprocess.run(
+                        ["code", "--uninstall-extension", ext],
+                        check=True,
+                        shell=True,
+                    )
+                    typer.echo(f"  Uninstalled {ext} successfully.")
+                except subprocess.CalledProcessError as e:
+                    typer.echo(f"  Failed to uninstall {ext}: {e}")
+            typer.echo("\nPlease run the command again to verify uninstallation.")
+        return
 
     # Handle installation if requested
     if missing_extensions:
