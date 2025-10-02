@@ -781,6 +781,95 @@ def _vscode_get_extensions_dir():
     return extensions_dir
 
 
+def _vscode_check_constraints(installed_version):
+    """Check if installed VSCode version meets constraints"""
+    constraints_file = CFG_CONFIG_DIR / "vscode-extensions" / "_constraints"
+
+    if not constraints_file.exists():
+        return None  # No constraints to check
+
+    try:
+        with open(constraints_file, "r") as f:
+            content = f.read().strip()
+
+        # Parse constraint like "code>=1.98.2"
+        for line in content.split("\n"):
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+
+            if line.startswith("code>="):
+                required_version = line.replace("code>=", "").strip()
+
+                # Compare versions
+                try:
+                    installed_parts = [int(x) for x in installed_version.split(".")]
+                    required_parts = [int(x) for x in required_version.split(".")]
+
+                    # Pad shorter version with zeros
+                    max_len = max(len(installed_parts), len(required_parts))
+                    installed_parts.extend([0] * (max_len - len(installed_parts)))
+                    required_parts.extend([0] * (max_len - len(required_parts)))
+
+                    if installed_parts >= required_parts:
+                        return True, required_version
+                    else:
+                        return False, required_version
+                except ValueError:
+                    return None  # Can't parse versions
+
+    except Exception as e:
+        typer.echo(f"Warning: Could not read constraints file: {e}")
+        return None
+
+    return None
+
+
+def _vscode_display_info():
+    """Display VSCode installation path and version information"""
+    # Display VSCode installation path
+    code_path = shutil.which("code")
+    if code_path:
+        typer.echo()
+        typer.echo(f"VSCode CLI path: {code_path}")
+
+    # Get and display VSCode version
+    installed_version = None
+    try:
+        result = subprocess.run(
+            ["code", "--version"],
+            capture_output=True,
+            text=True,
+            check=True,
+            shell=True,
+        )
+        version_lines = result.stdout.strip().split("\n")
+        if version_lines:
+            installed_version = version_lines[0]
+            typer.echo(f"VSCode version: {installed_version}")
+            if len(version_lines) > 1:
+                typer.echo(f"Commit: {version_lines[1]}")
+
+            # Check constraints
+            constraint_result = _vscode_check_constraints(installed_version)
+            if constraint_result is not None:
+                meets_constraint, required_version = constraint_result
+                if meets_constraint:
+                    typer.echo(f"✓ Version meets constraint: code>={required_version}")
+                else:
+                    typer.echo(
+                        f"✗ Version does NOT meet constraint: code>={required_version}"
+                    )
+                    typer.echo(
+                        f"  Please upgrade VSCode to version {required_version} or later"
+                    )
+
+    except subprocess.CalledProcessError as e:
+        typer.echo(f"Could not retrieve VSCode version: {e}")
+
+    typer.echo()  # Add blank line after info
+
+
 def _vscode_load_recommendations(extensions_dir):
     """Load recommended extensions from directory"""
     version_pattern = re.compile(r"-(\d+\.\d+\.\d+)\.vsix$")
@@ -911,6 +1000,8 @@ def _vscode_display_table(recommendations, installed_extensions):
 def vscode_check():
     """Check VSCode extension status and display table"""
     _vscode_check_code_available()
+    _vscode_display_info()
+
     extensions_dir = _vscode_get_extensions_dir()
     recommendations, _ = _vscode_load_recommendations(extensions_dir)
     installed_extensions = _vscode_get_installed_extensions()
@@ -919,7 +1010,7 @@ def vscode_check():
     if missing_extensions:
         typer.echo(
             f"\n{len(missing_extensions)} extension(s) missing. "
-            "Use 'hb vscode-extensions install' to install them from the VSIX files shipped with HermesBaby."
+            "Use 'hb vscode install' to install them from the VSIX files shipped with HermesBaby."
         )
 
 
