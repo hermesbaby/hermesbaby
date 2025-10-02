@@ -182,14 +182,14 @@ def version(
 def new(
     ctx: typer.Context,
     directory: str = typer.Argument(
-        None,
-        help="Directory where to create the project. Default: subdirectory with name of template.",
+        ".",
+        help="Directory where to create the project. Optional: defaults to '.' (current directory).",
     ),
     template: str = typer.Option(
-        None, "--template", "-t", help="Template to use. Default: hello."
+        None, "--template", "-t", help="Template to use. Default: zero"
     ),
     list_templates: bool = typer.Option(
-        False, "--list", "-l", help="List available templates"
+        False, "--list-templates", "-l", help="List available templates"
     ),
 ):
     """Create a new project"""
@@ -198,11 +198,6 @@ def new(
     _load_config()
 
     templates_root_path = _get_template_dir()
-
-    if template is None:
-        template = "hello"
-    if directory is None:
-        directory = template
 
     # If --list is provided, list available template directories and exit.
     if list_templates:
@@ -219,6 +214,9 @@ def new(
                 typer.echo(f"  - {t}")
         raise typer.Exit()
 
+    if template is None:
+        template = "zero"
+
     template_path = templates_root_path / template
 
     # The output directory is the current working directory plus
@@ -231,6 +229,18 @@ def new(
         )
         raise typer.Abort()
 
+    # Check if target directory is empty or doesn't exist
+    target_dir = Path(directory)
+    if target_dir.exists():
+        # Check if directory is empty
+        if any(target_dir.iterdir()):
+            typer.echo(
+                f"Error: Directory '{directory}' is not empty. "
+                f"Please choose an empty directory or one that doesn't exist.",
+                err=True,
+            )
+            raise typer.Abort()
+
     # Execution
 
     cookiecutter(
@@ -241,7 +251,7 @@ def new(
     )
 
     typer.echo(
-        f"Created new project in directory {directory} using template {template}"
+        f'Created new project in directory {directory} using template "{template}"'
     )
 
 

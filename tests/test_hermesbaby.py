@@ -81,7 +81,7 @@ def test_task_new(cli_runner, project_dir, some_rel_path_as_str, option):
 
     some_rel_path = Path(some_rel_path_as_str)
     if some_rel_path_as_str == "":
-        some_rel_path = "hello"
+        some_rel_path = "."
 
     path_to_index_md = project_dir / some_rel_path / "docs" / "index.md"
 
@@ -112,13 +112,13 @@ def test_task_config_file(cli_runner, project_dir):
     # Create a file ".hermesbaby" and write some content
     build_dir = "my-own-build-dir"
 
+    # Run the "new" command to set up the project
+    result = cli_runner.invoke(app, ["new", ""])
+    assert result.exit_code == 0, "Setup failed"
+
     config_file = project_dir / ".hermesbaby"
     with config_file.open("w") as f:
         f.write(f'CONFIG_BUILD__DIRS__BUILD="{build_dir}"' + os.linesep)
-
-    # Run the "new" command to set up the project
-    result = cli_runner.invoke(app, ["new", "."])
-    assert result.exit_code == 0, "Setup failed"
 
     result = cli_runner.invoke(app, ["html"])
     assert result.exit_code == 0, "Call failed"
