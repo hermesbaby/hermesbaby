@@ -179,7 +179,7 @@ class SortedGroup(typer.core.TyperGroup):
 app = typer.Typer(
     help="The Software and Systems Engineers' Typewriter",
     no_args_is_help=True,
-    # cls=SortedGroup,
+    cls=SortedGroup,
 )
 
 app_htaccess = typer.Typer(
@@ -189,7 +189,7 @@ app_htaccess = typer.Typer(
 app.add_typer(app_htaccess, name="htaccess")
 
 app_tools = typer.Typer(
-    help="All about tools called while building the documentation",
+    help="Manage tools used during document build",
     no_args_is_help=True,
 )
 app.add_typer(app_tools, name="tools")
@@ -408,6 +408,7 @@ def venv(
         help="Directory where to execute the command. ",
     ),
 ):
+    """Create a virtual environment from the python environment shipped with HermesBaby"""
 
     if not directory:
         typer.echo(ctx.get_help())
@@ -594,7 +595,7 @@ def publish(
     ),
 ):
     """
-    Publish the build output to the configured server using SSH.
+    Publish the build output to the configured server using SSH
     """
 
     _set_env()
@@ -980,7 +981,9 @@ def vscode_uninstall():
 
     # Get list of recommended extensions that are currently installed
     installed_recommended = [
-        ext_name for ext_name in recommendations.keys() if ext_name in installed_extensions
+        ext_name
+        for ext_name in recommendations.keys()
+        if ext_name in installed_extensions
     ]
 
     if not installed_recommended:
