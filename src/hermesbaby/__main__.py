@@ -755,7 +755,7 @@ def check(
         raise typer.Exit(code=1)
 
 
-@app_tools.command()
+@app.command()
 def vscode_extensions(
     ctx: typer.Context,
     check: bool = typer.Option(
