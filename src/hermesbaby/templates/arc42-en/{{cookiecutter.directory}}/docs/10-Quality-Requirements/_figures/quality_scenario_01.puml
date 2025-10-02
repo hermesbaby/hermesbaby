@@ -1,0 +1,20 @@
+' @see https://plantuml.com/sequence-diagram
+
+@startuml quality-scenario-01
+!pragma teoz true
+
+hide footbox
+autonumber
+
+participant System
+participant Neighbor
+
+{t_start} [-> System++: IF_USER_SYS (x = a)
+{t_a} System -> Neighbor++: IF_SYS_NB (y = a 3.141592)
+||50||
+{t_b} System <-- Neighbor--
+{t_end} [<-- System--:
+{t_start} <-> {t_end}: {<= 0.67s}
+{t_a} <-> {t_b}: {[0.2s .. 0.5s)}
+
+@enduml

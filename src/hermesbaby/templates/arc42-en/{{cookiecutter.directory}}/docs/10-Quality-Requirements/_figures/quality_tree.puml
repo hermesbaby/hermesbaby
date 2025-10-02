@@ -1,0 +1,71 @@
+@startmindmap quality-tree
+
+*_ Product Quality
+
+** Functional Suitability
+***_ Functional Completeness
+***_ Functional Correctness
+***_ Functional Appropriateness
+
+
+** Flexibility
+***_ Adaptability
+***_ Scalability
+***_ Installability
+***_ Replaceability
+
+** Interaction Capability
+***_ Appropriateness recognizability
+***_ Learnability
+***_ Operability
+***_ User error protection
+***_ User engagement
+***_ Inclusivity
+***_ User assistance
+***_ Self-descriptiveness
+
+
+** Compatibility
+***_ Co-existence
+***_ Interoperability
+
+
+** Performance Efficiency
+***_ Time behaviour
+**** Quality Scenario 01
+***_ Resource utilization
+***_ Capacity
+
+
+** Safety
+***_ Operational constraint
+***_ Risk identification
+***_ Fail safe
+***_ Hazard warning
+***_ Safe integration
+
+
+** Security
+***_ Confidentiality
+***_ Integrity
+***_ Non-repudiation
+***_ Accountability
+***_ Authenticity
+***_ Resistance
+
+
+** Maintainability
+***_ Modularity
+***_ Reusability
+***_ Analysability
+***_ Modifiability
+***_ Testability
+
+
+** Reliability
+***_ Faultlessness
+***_ Availability
+***_ Fault tolerance
+***_ Recoverability
+
+@endmindmap
