@@ -757,6 +757,12 @@ def check(
 
 @app_tools.command()
 def vscode_extensions(
+    ctx: typer.Context,
+    check: bool = typer.Option(
+        False,
+        "--check",
+        help="Check extension status and display table.",
+    ),
     install: bool = typer.Option(
         False,
         "--install",
@@ -767,9 +773,13 @@ def vscode_extensions(
     ),
 ):
     """
-    Checks for the presence of recommended VSCode extensions (from vscode-extensions directory)
-    and installs missing extensions if --install is specified, or uninstalls them if --uninstall is specified.
+    Manage VSCode extensions: check status, install missing ones, or uninstall all recommended extensions.
     """
+    # If no action is specified, show help
+    if not (check or install or uninstall):
+        typer.echo(ctx.get_help())
+        raise typer.Exit()
+
     if not shutil.which("code"):
         typer.echo(
             "Visual Studio Code is not installed or 'code' command is not in PATH."
