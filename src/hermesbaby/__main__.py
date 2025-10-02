@@ -198,7 +198,7 @@ app_vscode_extensions = typer.Typer(
     help="Manage VSCode extensions",
     no_args_is_help=True,
 )
-app.add_typer(app_vscode_extensions, name="vscode-extensions")
+app.add_typer(app_vscode_extensions, name="vscode")
 
 
 @app.callback(invoke_without_command=False)
