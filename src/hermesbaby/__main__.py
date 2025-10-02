@@ -794,47 +794,49 @@ def vscode_extensions(
         raise typer.Exit(code=1)
 
     # List all .vsix files and extract extension names with versions
-    recommendations = {}  # {extension_name: hb_version}
     version_pattern = re.compile(r"-(\d+\.\d+\.\d+)\.vsix$")
 
-    try:
-        for file in extensions_dir.iterdir():
-            if file.is_file() and file.name.endswith(".vsix"):
-                # Extract version from filename
-                match = version_pattern.search(file.name)
-                if match:
-                    hb_version = match.group(1)
-                    extension_name = version_pattern.sub("", file.name)
-                    recommendations[extension_name] = hb_version
-    except Exception as e:
-        typer.echo(f"Error reading extensions directory: {e}")
-        raise typer.Exit(code=1)
+    def load_recommendations():
+        """Load recommended extensions from directory"""
+        recommendations = {}  # {extension_name: hb_version}
+        try:
+            for file in extensions_dir.iterdir():
+                if file.is_file() and file.name.endswith(".vsix"):
+                    # Extract version from filename
+                    match = version_pattern.search(file.name)
+                    if match:
+                        hb_version = match.group(1)
+                        extension_name = version_pattern.sub("", file.name)
+                        recommendations[extension_name] = hb_version
+        except Exception as e:
+            typer.echo(f"Error reading extensions directory: {e}")
+            raise typer.Exit(code=1)
 
-    if not recommendations:
-        typer.echo(f"No .vsix files found in {extensions_dir}")
-        raise typer.Exit(code=1)
+        if not recommendations:
+            typer.echo(f"No .vsix files found in {extensions_dir}")
+            raise typer.Exit(code=1)
 
-    # List currently installed extensions with versions
-    try:
-        result = subprocess.run(
-            ["code", "--list-extensions", "--show-versions"],
-            capture_output=True,
-            text=True,
-            check=True,
-            shell=True,
-        )
-        installed_extensions = {}  # {extension_name: installed_version}
-        for line in result.stdout.splitlines():
-            if "@" in line:
-                name, version = line.rsplit("@", 1)
-                installed_extensions[name] = version
-    except subprocess.CalledProcessError as e:
-        typer.echo(f"Error listing VSCode extensions: {e}")
-        raise typer.Exit(code=1)
+        return recommendations
 
-    # Build table data
-    table_data = []
-    missing_extensions = []
+    def get_installed_extensions():
+        """Get currently installed extensions with versions"""
+        try:
+            result = subprocess.run(
+                ["code", "--list-extensions", "--show-versions"],
+                capture_output=True,
+                text=True,
+                check=True,
+                shell=True,
+            )
+            installed_extensions = {}  # {extension_name: installed_version}
+            for line in result.stdout.splitlines():
+                if "@" in line:
+                    name, version = line.rsplit("@", 1)
+                    installed_extensions[name] = version
+            return installed_extensions
+        except subprocess.CalledProcessError as e:
+            typer.echo(f"Error listing VSCode extensions: {e}")
+            raise typer.Exit(code=1)
 
     def compare_versions(installed_ver, hb_ver):
         """Compare semantic versions and return status"""
@@ -857,55 +859,68 @@ def vscode_extensions(
             # If version comparison fails, just return installed
             return "installed"
 
-    for ext_name, hb_version in sorted(recommendations.items()):
-        if ext_name in installed_extensions:
-            inst_version = installed_extensions[ext_name]
-            status = compare_versions(inst_version, hb_version)
-        else:
-            inst_version = ""
-            status = "missing"
-            missing_extensions.append(ext_name)
+    def display_table(recommendations, installed_extensions):
+        """Display the extensions table"""
+        # Build table data
+        table_data = []
+        missing_extensions = []
 
-        table_data.append(
-            {
-                "extension": ext_name,
-                "hb": hb_version,
-                "installed": inst_version,
-                "status": status,
-            }
+        for ext_name, hb_version in sorted(recommendations.items()):
+            if ext_name in installed_extensions:
+                inst_version = installed_extensions[ext_name]
+                status = compare_versions(inst_version, hb_version)
+            else:
+                inst_version = ""
+                status = "missing"
+                missing_extensions.append(ext_name)
+
+            table_data.append(
+                {
+                    "extension": ext_name,
+                    "hb": hb_version,
+                    "installed": inst_version,
+                    "status": status,
+                }
+            )
+
+        # Calculate column widths
+        max_ext_len = max(len(row["extension"]) for row in table_data)
+        max_hb_len = max(len(row["hb"]) for row in table_data)
+        max_inst_len = max(len(row["installed"]) for row in table_data)
+        max_status_len = max(len(row["status"]) for row in table_data)
+
+        # Ensure minimum widths for headers
+        max_ext_len = max(max_ext_len, len("extension"))
+        max_hb_len = max(max_hb_len, len("version-hb"))
+        max_inst_len = max(max_inst_len, len("version-installed"))
+        max_status_len = max(max_status_len, len("status"))
+
+        # Print table header
+        header = (
+            f"{'extension':<{max_ext_len}}  "
+            f"{'version-hb':<{max_hb_len}}  "
+            f"{'version-installed':<{max_inst_len}}  "
+            f"{'status':<{max_status_len}}"
         )
+        typer.echo(header)
+        typer.echo("-" * len(header))
 
-    # Calculate column widths
-    max_ext_len = max(len(row["extension"]) for row in table_data)
-    max_hb_len = max(len(row["hb"]) for row in table_data)
-    max_inst_len = max(len(row["installed"]) for row in table_data)
-    max_status_len = max(len(row["status"]) for row in table_data)
+        # Print table rows
+        for row in table_data:
+            line = (
+                f"{row['extension']:<{max_ext_len}}  "
+                f"{row['hb']:<{max_hb_len}}  "
+                f"{row['installed']:<{max_inst_len}}  "
+                f"{row['status']:<{max_status_len}}"
+            )
+            typer.echo(line)
 
-    # Ensure minimum widths for headers
-    max_ext_len = max(max_ext_len, len("extension"))
-    max_hb_len = max(max_hb_len, len("version-hb"))
-    max_inst_len = max(max_inst_len, len("version-installed"))
-    max_status_len = max(max_status_len, len("status"))
+        return missing_extensions
 
-    # Print table header
-    header = (
-        f"{'extension':<{max_ext_len}}  "
-        f"{'version-hb':<{max_hb_len}}  "
-        f"{'version-installed':<{max_inst_len}}  "
-        f"{'status':<{max_status_len}}"
-    )
-    typer.echo(header)
-    typer.echo("-" * len(header))
-
-    # Print table rows
-    for row in table_data:
-        line = (
-            f"{row['extension']:<{max_ext_len}}  "
-            f"{row['hb']:<{max_hb_len}}  "
-            f"{row['installed']:<{max_inst_len}}  "
-            f"{row['status']:<{max_status_len}}"
-        )
-        typer.echo(line)
+    # Load data and display initial table
+    recommendations = load_recommendations()
+    installed_extensions = get_installed_extensions()
+    missing_extensions = display_table(recommendations, installed_extensions)
 
     # Handle uninstallation if requested
     if uninstall:
@@ -933,12 +948,16 @@ def vscode_extensions(
                     typer.echo(f"  Uninstalled {ext} successfully.")
                 except subprocess.CalledProcessError as e:
                     typer.echo(f"  Failed to uninstall {ext}: {e}")
-            typer.echo("\nPlease run the command again to verify uninstallation.")
+
+            # Re-run check after uninstallation
+            typer.echo("\nVerifying uninstallation...\n")
+            installed_extensions = get_installed_extensions()
+            display_table(recommendations, installed_extensions)
         return
 
     # Handle installation if requested
-    if missing_extensions:
-        if install:
+    if install:
+        if missing_extensions:
             typer.echo(
                 "\nAttempting to install missing extensions using embedded VSIX files..."
             )
@@ -967,12 +986,21 @@ def vscode_extensions(
                         typer.echo(f"  Failed to install {ext}: {e}")
                 else:
                     typer.echo(f"  Warning: VSIX file not found for {ext}")
-            typer.echo("\nPlease run the command again to verify installation.")
+
+            # Re-run check after installation
+            typer.echo("\nVerifying installation...\n")
+            installed_extensions = get_installed_extensions()
+            display_table(recommendations, installed_extensions)
         else:
-            typer.echo(
-                f"\n{len(missing_extensions)} extension(s) missing. "
-                "Use --install to install them from the VSIX file shipped with HermesBaby."
-            )
+            typer.echo("\nAll recommended extensions are already installed.")
+        return
+
+    # For --check flag, just show message about missing extensions
+    if check and missing_extensions:
+        typer.echo(
+            f"\n{len(missing_extensions)} extension(s) missing. "
+            "Use --install to install them from the VSIX file shipped with HermesBaby."
+        )
 
 
 @app_tools.command()
