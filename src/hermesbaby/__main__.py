@@ -269,7 +269,7 @@ def html(
     _load_config()
 
     build_dir = Path(_kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
-    build_dir.mkdir(parents=True, exist_ok=True)
+
     executable = os.path.join(_tool_path, "sphinx-build")
     command = f"""
         {executable}
@@ -298,7 +298,6 @@ def html_live(
     _load_config()
 
     build_dir = Path(_kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
-    build_dir.mkdir(parents=True, exist_ok=True)
     executable = os.path.join(_tool_path, "sphinx-autobuild")
     command = f"""
         {executable}
