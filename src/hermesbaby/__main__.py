@@ -756,9 +756,11 @@ def check(
 
 
 @app_tools.command()
-def check_vscode_extensions(
+def vscode_extensions(
     install: bool = typer.Option(
-        False, "--install", help="Automatically install missing VSCode extensions."
+        False,
+        "--install",
+        help="Install missing VSCode extensions from embedded VSIX containers.",
     ),
     uninstall: bool = typer.Option(
         False, "--uninstall", help="Uninstall all recommended VSCode extensions."
