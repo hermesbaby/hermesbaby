@@ -1306,7 +1306,7 @@ _extensions_under_development_path = os.path.join(_conf_realpath, "..")
 sys.path.append(_extensions_under_development_path)
 
 ### Tag sections, paragraphs, figures, ... anything ###########################
-# @see ../sphinx-contrib/pre-post-build/README.md
+# @see hermesbaby/pre-post-build/README.md
 
 
 extensions.append("hermesbaby.pre-post-build")
@@ -1332,7 +1332,7 @@ pre_post_build_programs = {
 
 
 ### Conditional toctree entries with toctree-only #############################
-# @see ../sphinx-contrib/toctree-only/README.md
+# @see hermesbaby/toctree-only/README.md
 
 extensions.append("hermesbaby.toctree-only")
 
@@ -1371,6 +1371,13 @@ def setup_app__rstjinja(app):
 
 if False:
     app_setups.append(setup_app__rstjinja)
+
+
+### Check for update of hermesbaby ############################################
+# @see hermesbaby/update/README.md
+
+extensions.append("hermesbaby.update")
+
 
 ###############################################################################
 ### END OF EXTENSIONS UNDER EARLY DEVELOPMENT #################################

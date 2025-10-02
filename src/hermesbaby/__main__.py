@@ -33,6 +33,8 @@ import kconfiglib
 import typer
 from cookiecutter.main import cookiecutter
 
+from hermesbaby.installation_kind import InstallKind, detect_install_kind
+
 __version__ = importlib.metadata.version("hermesbaby")
 
 logger = logging.getLogger(__name__)
@@ -132,6 +134,71 @@ def _tools_install_tool(tool: str, info: dict) -> bool:
     else:
         typer.echo("      Installation did not succeed.")
         return False
+
+
+def _get_latest_version() -> str | None:
+    """Fetches the latest available version of the package using pip."""
+    try:
+        result = subprocess.run(
+            ["pip", "index", "versions", "hermesbaby"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        for line in result.stdout.splitlines():
+            if line.startswith("Available versions:"):
+                versions = line.split("Available versions:")[1].strip()
+                latest_version = versions.split(",")[0].strip()
+                return latest_version
+    except subprocess.CalledProcessError:
+        return None
+
+
+def _check_version_and_print(enforce_latest: bool = False) -> bool:
+    """Returns True if up-to-date, False otherwise."""
+
+    print(f"Current version: {__version__}")
+
+    latest_version = _get_latest_version()
+
+    if latest_version is None:
+        print("Could not check for the latest version (pip unreachable).")
+        return True  # We allow continuing
+    elif latest_version == __version__:
+        print("You are up-to-date.")
+        return True
+    else:
+        print(f"Most recent version: {latest_version}")
+        kind = detect_install_kind()
+        print("\nUpdate method based on install kind:")
+        if kind == InstallKind.PIPX:
+            print("  Installed via pipx -> Run: pipx upgrade hermesbaby")
+        elif kind == InstallKind.VIRTUALENV:
+            print("  Installed in virtualenv -> Run: pip install --upgrade hermesbaby")
+        elif kind == InstallKind.GLOBAL:
+            print(
+                "  Globally installed via pip -> Run: pip install --upgrade hermesbaby"
+            )
+        elif kind == InstallKind.EDITABLE:
+            print("  Editable/development install -> Run: git pull && pip install -e .")
+        elif kind == InstallKind.SYSTEM:
+            print("  Installed via system package manager -> Use: apt/yum/brew")
+        else:
+            print("  Unknown install kind -> Please upgrade manually.")
+
+        if __version__ == "1976.6.4.1":
+            print(
+                "\nYou are using a development version of HermesBaby. --enforced-latest is disabled and you are allowed to continue."
+            )
+            return True
+
+        if enforce_latest:
+            print(
+                "\nYou are not using the latest version of HermesBaby. Exiting with code 1. Update to most recent version as shown above."
+            )
+            sys.exit(1)
+
+        return not enforce_latest
 
 
 class SortedGroup(typer.core.TyperGroup):
