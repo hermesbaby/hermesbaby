@@ -1,15 +1,15 @@
 {
     "recommendations": [
         "actboy168.tasks",
-        "executablebookproject.myst-highlight",
-        "DavidAnson.vscode-markdownlint",
+        "adam-bender.commit-message-editor",
+        "danlevett.pattern-links",
         "darkriszty.markdown-table-prettify",
+        "davidanson.vscode-markdownlint",
+        "executablebookproject.myst-highlight",
         "ionutvmi.path-autocomplete",
         "mhutchie.git-graph",
-        "adam-bender.commit-message-editor",
         "mushan.vscode-paste-image",
         "hediet.vscode-drawio",
-        "jebbs.plantuml",
-        "jdanlevett.pattern-links"
+        "jebbs.plantuml"
     ]
 }
