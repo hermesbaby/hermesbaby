@@ -20,6 +20,7 @@ import json
 import logging
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -29,7 +30,6 @@ from typing import List
 
 import git
 import kconfiglib
-import requests
 import typer
 from cookiecutter.main import cookiecutter
 
@@ -134,41 +134,6 @@ def _tools_install_tool(tool: str, info: dict) -> bool:
         return False
 
 
-def _check_plantuml():
-    """
-    Checks for PlantUML.
-    If not installed, downloads it.
-    """
-
-    typer.echo("Checking PlantUML installation...")
-
-    tools_dir = CFG_CONFIG_DIR / "tools"
-    version = "1.2025.4"
-    plantuml_url = f"https://github.com/plantuml/plantuml/releases/download/v{version}/plantuml-{version}.jar"
-    plantuml_path_version = tools_dir / version
-    plantuml_path = tools_dir / "plantuml.jar"
-
-    # Create tools directory if it doesn't exist
-    os.makedirs(tools_dir, exist_ok=True)
-
-    if plantuml_path_version.exists():
-        typer.echo("PlantUML is already installed.")
-        return
-
-    typer.echo(f"Downloading PlantUML version {version} to {plantuml_path}...")
-    try:
-        response = requests.get(plantuml_url, stream=True)
-        response.raise_for_status()  # Raise an exception for HTTP errors
-        with open(plantuml_path, "wb") as out_file:
-            for chunk in response.iter_content(chunk_size=8192):
-                out_file.write(chunk)
-        plantuml_path_version.touch()
-
-        typer.echo("PlantUML setup complete!")
-    except requests.exceptions.RequestException as e:
-        typer.echo(f"Error downloading PlantUML: {e}")
-
-
 class SortedGroup(typer.core.TyperGroup):
     def list_commands(self, ctx):
         commands = super().list_commands(ctx)
@@ -178,7 +143,7 @@ class SortedGroup(typer.core.TyperGroup):
 app = typer.Typer(
     help="The Software and Systems Engineers' Typewriter",
     no_args_is_help=True,
-    # cls=SortedGroup,
+    cls=SortedGroup,
 )
 
 app_htaccess = typer.Typer(
@@ -188,10 +153,16 @@ app_htaccess = typer.Typer(
 app.add_typer(app_htaccess, name="htaccess")
 
 app_tools = typer.Typer(
-    help="All about tools called while building the documentation",
+    help="Manage tools used during document build",
     no_args_is_help=True,
 )
 app.add_typer(app_tools, name="tools")
+
+app_vscode_extensions = typer.Typer(
+    help="Manage VSCode extensions",
+    no_args_is_help=True,
+)
+app.add_typer(app_vscode_extensions, name="vscode")
 
 
 @app.callback(invoke_without_command=False)
@@ -287,8 +258,6 @@ def html(
     _set_env()
     _load_config()
 
-    _check_plantuml()
-
     build_dir = Path(_kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
     build_dir.mkdir(parents=True, exist_ok=True)
     executable = os.path.join(_tool_path, "sphinx-build")
@@ -317,8 +286,6 @@ def html_live(
 
     _set_env()
     _load_config()
-
-    _check_plantuml()
 
     build_dir = Path(_kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
     build_dir.mkdir(parents=True, exist_ok=True)
@@ -401,6 +368,7 @@ def venv(
         help="Directory where to execute the command. ",
     ),
 ):
+    """Create a virtual environment from the python environment shipped with HermesBaby"""
 
     if not directory:
         typer.echo(ctx.get_help())
@@ -587,7 +555,7 @@ def publish(
     ),
 ):
     """
-    Publish the build output to the configured server using SSH.
+    Publish the build output to the configured server using SSH
     """
 
     _set_env()
@@ -754,105 +722,343 @@ def check(
         raise typer.Exit(code=1)
 
 
-@app_tools.command()
-def check_vscode_extensions(
-    install: bool = typer.Option(
-        False, "--install", help="Automatically install missing VSCode extensions."
-    )
-):
-    """
-    Checks for the presence of recommended VSCode extensions (as defined in extensions.json)
-    and installs missing extensions if --install is specified.
-    """
+# Helper functions for VSCode extensions management
+def _vscode_check_code_available():
+    """Check if VSCode CLI is available"""
     if not shutil.which("code"):
         typer.echo(
             "Visual Studio Code is not installed or 'code' command is not in PATH."
         )
         raise typer.Exit(code=1)
 
-    # Load recommended VSCode extensions
+
+def _vscode_get_extensions_dir():
+    """Get the extensions directory path"""
+    extensions_dir = CFG_CONFIG_DIR / "vscode-extensions"
+    if not extensions_dir.exists():
+        typer.echo(f"Error: Directory {extensions_dir} not found.")
+        raise typer.Exit(code=1)
+    return extensions_dir
+
+
+def _vscode_check_constraints(installed_version):
+    """Check if installed VSCode version meets constraints"""
+    constraints_file = CFG_CONFIG_DIR / "vscode-extensions" / "_constraints"
+
+    if not constraints_file.exists():
+        return None  # No constraints to check
+
     try:
-        with open(CFG_CONFIG_DIR / "extensions.json", "r") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        typer.echo("extensions.json not found.")
-        raise typer.Exit(code=1)
-    except json.JSONDecodeError:
-        typer.echo("Error: extensions.json is not a valid JSON file.")
-        raise typer.Exit(code=1)
+        with open(constraints_file, "r") as f:
+            content = f.read().strip()
 
-    # Validate that data is in the expected format.
-    if not isinstance(data, dict):
-        typer.echo("Error: extensions.json must be a JSON object.")
-        raise typer.Exit(code=1)
-    if "recommendations" not in data or not isinstance(data["recommendations"], list):
-        typer.echo("Error: extensions.json must contain a 'recommendations' list.")
-        raise typer.Exit(code=1)
+        # Parse constraint like "code>=1.98.2"
+        for line in content.split("\n"):
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
 
-    recommendations = data["recommendations"]
+            if line.startswith("code>="):
+                required_version = line.replace("code>=", "").strip()
 
-    # List currently installed extensions
+                # Compare versions
+                try:
+                    installed_parts = [int(x) for x in installed_version.split(".")]
+                    required_parts = [int(x) for x in required_version.split(".")]
+
+                    # Pad shorter version with zeros
+                    max_len = max(len(installed_parts), len(required_parts))
+                    installed_parts.extend([0] * (max_len - len(installed_parts)))
+                    required_parts.extend([0] * (max_len - len(required_parts)))
+
+                    if installed_parts >= required_parts:
+                        return True, required_version
+                    else:
+                        return False, required_version
+                except ValueError:
+                    return None  # Can't parse versions
+
+    except Exception as e:
+        typer.echo(f"Warning: Could not read constraints file: {e}")
+        return None
+
+    return None
+
+
+def _vscode_display_info():
+    """Display VSCode installation path and version information"""
+    # Display VSCode installation path
+    code_path = shutil.which("code")
+    if code_path:
+        typer.echo()
+        typer.echo(f"VSCode CLI path: {code_path}")
+
+    # Get and display VSCode version
+    installed_version = None
     try:
         result = subprocess.run(
-            ["code", "--list-extensions"],
+            ["code", "--version"],
             capture_output=True,
             text=True,
             check=True,
             shell=True,
         )
-        installed_extensions = set(result.stdout.splitlines())
+        version_lines = result.stdout.strip().split("\n")
+        if version_lines:
+            installed_version = version_lines[0]
+            typer.echo(f"VSCode version: {installed_version}")
+            if len(version_lines) > 1:
+                typer.echo(f"Commit: {version_lines[1]}")
+
+            # Check constraints
+            constraint_result = _vscode_check_constraints(installed_version)
+            if constraint_result is not None:
+                meets_constraint, required_version = constraint_result
+                if meets_constraint:
+                    typer.echo(f"✓ Version meets constraint: code>={required_version}")
+                else:
+                    typer.echo(
+                        f"✗ Version does NOT meet constraint: code>={required_version}"
+                    )
+                    typer.echo(
+                        f"  Please upgrade VSCode to version {required_version} or later"
+                    )
+
     except subprocess.CalledProcessError as e:
-        typer.echo("Error listing VSCode extensions:", e)
+        typer.echo(f"Could not retrieve VSCode version: {e}")
+
+    typer.echo()  # Add blank line after info
+
+
+def _vscode_load_recommendations(extensions_dir):
+    """Load recommended extensions from directory"""
+    version_pattern = re.compile(r"-(\d+\.\d+\.\d+)\.vsix$")
+    recommendations = {}  # {extension_name: hb_version}
+    try:
+        for file in extensions_dir.iterdir():
+            if file.is_file() and file.name.endswith(".vsix"):
+                # Extract version from filename
+                match = version_pattern.search(file.name)
+                if match:
+                    hb_version = match.group(1)
+                    extension_name = version_pattern.sub("", file.name)
+                    recommendations[extension_name] = hb_version
+    except Exception as e:
+        typer.echo(f"Error reading extensions directory: {e}")
         raise typer.Exit(code=1)
 
-    missing_extensions = [
-        ext for ext in recommendations if ext not in installed_extensions
-    ]
+    if not recommendations:
+        typer.echo(f"No .vsix files found in {extensions_dir}")
+        raise typer.Exit(code=1)
 
-    if not missing_extensions:
-        typer.echo("All recommended VSCode extensions are installed.")
-    else:
-        typer.echo("Missing VSCode extensions:")
+    return recommendations, version_pattern
+
+
+def _vscode_get_installed_extensions():
+    """Get currently installed extensions with versions"""
+    try:
+        result = subprocess.run(
+            ["code", "--list-extensions", "--show-versions"],
+            capture_output=True,
+            text=True,
+            check=True,
+            shell=True,
+        )
+        installed_extensions = {}  # {extension_name: installed_version}
+        for line in result.stdout.splitlines():
+            if "@" in line:
+                name, version = line.rsplit("@", 1)
+                installed_extensions[name] = version
+        return installed_extensions
+    except subprocess.CalledProcessError as e:
+        typer.echo(f"Error listing VSCode extensions: {e}")
+        raise typer.Exit(code=1)
+
+
+def _vscode_compare_versions(installed_ver, hb_ver):
+    """Compare semantic versions and return status"""
+    try:
+        inst_parts = [int(x) for x in installed_ver.split(".")]
+        hb_parts = [int(x) for x in hb_ver.split(".")]
+
+        # Pad shorter version with zeros
+        max_len = max(len(inst_parts), len(hb_parts))
+        inst_parts.extend([0] * (max_len - len(inst_parts)))
+        hb_parts.extend([0] * (max_len - len(hb_parts)))
+
+        if inst_parts > hb_parts:
+            return "installed-newer"
+        elif inst_parts < hb_parts:
+            return "installed-older"
+        else:
+            return "installed"
+    except (ValueError, AttributeError):
+        # If version comparison fails, just return installed
+        return "installed"
+
+
+def _vscode_display_table(recommendations, installed_extensions):
+    """Display the extensions table"""
+    # Build table data
+    table_data = []
+    missing_extensions = []
+
+    for ext_name, hb_version in sorted(recommendations.items()):
+        if ext_name in installed_extensions:
+            inst_version = installed_extensions[ext_name]
+            status = _vscode_compare_versions(inst_version, hb_version)
+        else:
+            inst_version = ""
+            status = "missing"
+            missing_extensions.append(ext_name)
+
+        table_data.append(
+            {
+                "extension": ext_name,
+                "hb": hb_version,
+                "installed": inst_version,
+                "status": status,
+            }
+        )
+
+    # Calculate column widths
+    max_ext_len = max(len(row["extension"]) for row in table_data)
+    max_hb_len = max(len(row["hb"]) for row in table_data)
+    max_inst_len = max(len(row["installed"]) for row in table_data)
+    max_status_len = max(len(row["status"]) for row in table_data)
+
+    # Ensure minimum widths for headers
+    max_ext_len = max(max_ext_len, len("extension"))
+    max_hb_len = max(max_hb_len, len("version-hb"))
+    max_inst_len = max(max_inst_len, len("version-installed"))
+    max_status_len = max(max_status_len, len("status"))
+
+    # Print table header
+    header = (
+        f"{'extension':<{max_ext_len}}  "
+        f"{'version-hb':<{max_hb_len}}  "
+        f"{'version-installed':<{max_inst_len}}  "
+        f"{'status':<{max_status_len}}"
+    )
+    typer.echo(header)
+    typer.echo("-" * len(header))
+
+    # Print table rows
+    for row in table_data:
+        line = (
+            f"{row['extension']:<{max_ext_len}}  "
+            f"{row['hb']:<{max_hb_len}}  "
+            f"{row['installed']:<{max_inst_len}}  "
+            f"{row['status']:<{max_status_len}}"
+        )
+        typer.echo(line)
+
+    return missing_extensions
+
+
+@app_vscode_extensions.command(name="check")
+def vscode_check():
+    """Check VSCode extension status and display table"""
+    _vscode_check_code_available()
+    _vscode_display_info()
+
+    extensions_dir = _vscode_get_extensions_dir()
+    recommendations, _ = _vscode_load_recommendations(extensions_dir)
+    installed_extensions = _vscode_get_installed_extensions()
+    missing_extensions = _vscode_display_table(recommendations, installed_extensions)
+
+    if missing_extensions:
+        typer.echo(
+            f"\n{len(missing_extensions)} extension(s) missing. "
+            "Use 'hb vscode install' to install them from the VSIX files shipped with HermesBaby."
+        )
+
+
+@app_vscode_extensions.command(name="install")
+def vscode_install():
+    """Install missing VSCode extensions from embedded VSIX files"""
+    _vscode_check_code_available()
+    extensions_dir = _vscode_get_extensions_dir()
+    recommendations, version_pattern = _vscode_load_recommendations(extensions_dir)
+    installed_extensions = _vscode_get_installed_extensions()
+    missing_extensions = _vscode_display_table(recommendations, installed_extensions)
+
+    if missing_extensions:
+        typer.echo(
+            "\nAttempting to install missing extensions using embedded VSIX files..."
+        )
+
+        # Build a mapping of extension names to their VSIX file paths
+        vsix_files = {}
+        for file in extensions_dir.iterdir():
+            if file.is_file() and file.name.endswith(".vsix"):
+                match = version_pattern.search(file.name)
+                if match:
+                    extension_name = version_pattern.sub("", file.name)
+                    vsix_files[extension_name] = file
+
         for ext in missing_extensions:
-            typer.echo(f"  {ext}")
-        if install:
-            typer.echo("\nAttempting to install missing extensions...")
-            for ext in missing_extensions:
+            if ext in vsix_files:
+                vsix_path = vsix_files[ext]
+                typer.echo(f"Installing {ext} from {vsix_path.name}...")
                 try:
                     subprocess.run(
-                        ["code", "--install-extension", ext], check=True, shell=True
+                        ["code", "--install-extension", str(vsix_path)],
+                        check=True,
+                        shell=True,
                     )
-                    typer.echo(f"Installed {ext} successfully.")
+                    typer.echo(f"  Installed {ext} successfully.")
                 except subprocess.CalledProcessError as e:
-                    typer.echo(f"Failed to install {ext}: {e}")
-            # Re-check installed extensions after installation attempts
-            result = subprocess.run(
-                ["code", "--list-extensions"],
-                capture_output=True,
-                text=True,
-                check=True,
-                shell=True,
-            )
-            installed_extensions = set(result.stdout.splitlines())
-            missing_extensions = [
-                ext for ext in recommendations if ext not in installed_extensions
-            ]
-            if missing_extensions:
-                typer.echo("\nThe following extensions are still missing:")
-                for ext in missing_extensions:
-                    typer.echo(f"  {ext}")
-                raise typer.Exit(code=1)
+                    typer.echo(f"  Failed to install {ext}: {e}")
             else:
-                typer.echo("\nAll missing VSCode extensions installed successfully.")
-        else:
-            typer.echo(
-                "\nPlease install the missing extensions manually using commands like:"
-            )
-            typer.echo(
-                "   code --install-extension   "
-                + " ; code --install-extension ".join(missing_extensions)
-            )
-            raise typer.Exit(code=1)
+                typer.echo(f"  Warning: VSIX file not found for {ext}")
+
+        # Re-run check after installation
+        typer.echo("\nVerifying installation...\n")
+        installed_extensions = _vscode_get_installed_extensions()
+        _vscode_display_table(recommendations, installed_extensions)
+    else:
+        typer.echo("\nAll recommended extensions are already installed.")
+
+
+@app_vscode_extensions.command(name="uninstall")
+def vscode_uninstall():
+    """Uninstall all recommended VSCode extensions"""
+    _vscode_check_code_available()
+    extensions_dir = _vscode_get_extensions_dir()
+    recommendations, _ = _vscode_load_recommendations(extensions_dir)
+    installed_extensions = _vscode_get_installed_extensions()
+    _vscode_display_table(recommendations, installed_extensions)
+
+    # Get list of recommended extensions that are currently installed
+    installed_recommended = [
+        ext_name
+        for ext_name in recommendations.keys()
+        if ext_name in installed_extensions
+    ]
+
+    if not installed_recommended:
+        typer.echo("\nNo recommended extensions are currently installed.")
+    else:
+        typer.echo(
+            f"\nUninstalling {len(installed_recommended)} recommended extension(s)..."
+        )
+        for ext in installed_recommended:
+            typer.echo(f"Uninstalling {ext}...")
+            try:
+                subprocess.run(
+                    ["code", "--uninstall-extension", ext],
+                    check=True,
+                    shell=True,
+                )
+                typer.echo(f"  Uninstalled {ext} successfully.")
+            except subprocess.CalledProcessError as e:
+                typer.echo(f"  Failed to uninstall {ext}: {e}")
+
+        # Re-run check after uninstallation
+        typer.echo("\nVerifying uninstallation...\n")
+        installed_extensions = _vscode_get_installed_extensions()
+        _vscode_display_table(recommendations, installed_extensions)
 
 
 @app_tools.command()
