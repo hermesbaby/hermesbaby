@@ -255,11 +255,11 @@ def new(
         ".",
         help="Directory where to create the project. Optional: defaults to '.' (current directory).",
     ),
-    template: str = typer.Option(
-        None, "--template", "-t", help="Template to use. Default: zero"
-    ),
     list_templates: bool = typer.Option(
         False, "--list-templates", "-l", help="List available templates"
+    ),
+    template: str = typer.Option(
+        None, "--template", "-t", help="Template to use. Default: zero"
     ),
 ):
     """Create a new project"""
