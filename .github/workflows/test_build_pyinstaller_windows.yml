@@ -47,3 +47,16 @@ jobs:
         ./hb.exe new --template zero test01
         cd test01
         ../hb.exe html
+        shell: cmd
+
+    - name: Create MSI installer
+      run: |
+        $AppDir = "C:\data\d\github\hermesbaby\hermesbaby\dist\hermesbaby"
+        $env:PRODUCT_VERSION = "25.10.03.41"
+        wix build `
+        -arch x64 `
+        -bindpath app="$AppDir" `
+        -define ProductVersion=$env:PRODUCT_VERSION `
+        -out ".\dist\HermesBaby-$env:PRODUCT_VERSION-x64.msi" `
+        "Package.wxs"
+      shell: pwsh
