@@ -83,7 +83,7 @@ datas += extra_datas
 
 # --- Add executables explicitly used by HermesBaby ----------------
 scripts_dir = Path(sys.executable).parent
-entry_points = ["sphinx-build", "sphinx-apidoc", "sphinx-autobuild", "guiconfig"]
+entry_points = ["sphinx-build", "sphinx-apidoc", "sphinx-autobuild", "guiconfig", "menuconfig"]
 
 for ep in entry_points:
     exe_file = scripts_dir / (ep + (".exe" if sys.platform.startswith("win") else ""))
