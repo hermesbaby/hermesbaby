@@ -9,9 +9,8 @@ on:
       - '**'
 
 jobs:
-  test_build_package:
+  test:
     runs-on: ubuntu-latest
-
     steps:
     - name: Install Poetry
       run: |
@@ -20,9 +19,14 @@ jobs:
         pipx runpip poetry install poetry-dynamic-versioning
 
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
 
     - name: Install dependencies
       run: |
@@ -36,6 +40,117 @@ jobs:
       run: |
         poetry run pytest
 
-    - name: Build package
+  build:
+    needs: test
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            binary-name: hb
+          - os: windows-latest
+            binary-name: hb.exe
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install Poetry
+      run: |
+        pip install pipx
+        pipx install poetry
+        pipx runpip poetry install poetry-dynamic-versioning
+
+    - name: Install dependencies
+      run: |
+        poetry install --with dev
+
+    - name: Install external tools
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          # Skip external tools setup on Windows for now - PyInstaller includes dependencies
+          echo "Skipping external tools setup on Windows"
+        else
+          sudo ./src/hermesbaby/setup.sh
+        fi
+      shell: bash
+
+    - name: Build PyInstaller executable
+      run: |
+        poetry run pyinstaller hermesbaby.spec
+
+    - name: Test executable
+      run: |
+        cd dist/hb
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          ./hb.exe --version
+          ./hb.exe --help | head -5
+          ./hb.exe new --list
+        else
+          ./hb --version
+          ./hb --help | head -5
+          ./hb new --list
+        fi
+      shell: bash
+
+    - name: Create distribution archive
+      run: |
+        cd dist
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          7z a -tzip hb-${{ runner.os }}.zip hb/
+        else
+          tar -czf hb-${{ runner.os }}.tar.gz hb/
+        fi
+      shell: bash
+
+    - name: Upload executable artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: hb-${{ runner.os }}
+        path: |
+          dist/hb-${{ runner.os }}.*
+        retention-days: 90
+
+    - name: Build Python package
+      if: matrix.os == 'ubuntu-latest'
       run: |
         poetry build
+
+    - name: Upload Python package artifact
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-package
+        path: dist/*.whl
+        retention-days: 90
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          hb-Linux/hb-Linux.tar.gz
+          hb-Windows/hb-Windows.zip
+          python-package/*.whl
+        generate_release_notes: true
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
