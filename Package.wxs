@@ -5,7 +5,7 @@
       Name="HermesBaby"
       Manufacturer="basejumpa"
       Version="25.10.02.40"
-      Scope="perMachine"
+      Scope="perUser"
       Id="com.github.hermesbaby.hermesbaby">
 
     <!-- Define your icon resource -->
@@ -15,7 +15,7 @@
     <Property Id="ARPPRODUCTICON" Value="HermesBabyIcon"/>
 
     <!-- Install into Program Files -->
-    <StandardDirectory Id="ProgramFiles6432Folder">
+    <StandardDirectory Id="LocalAppDataFolder">
       <Directory Id="INSTALLFOLDER" Name="HermesBaby">
         <Directory Id="ApplicationProgramsFolder" Name="HermesBaby" />
       </Directory>
@@ -36,7 +36,7 @@
             Permanent="no"
             Part="last"
             Action="set"
-            System="yes" />
+            System="no" />
         <RegistryValue Root="HKCU"
                        Key="Software\basejumpa\HermesBaby"
                        Name="PathAdded"
