@@ -28,16 +28,41 @@ from importlib.resources import files
 from pathlib import Path
 from typing import List
 
-import git
-import kconfiglib
 import typer
-from cookiecutter.main import cookiecutter
 
 __version__ = importlib.metadata.version("hermesbaby")
 
 logger = logging.getLogger(__name__)
 
 CFG_CONFIG_CUSTOM_FILE = ".hermesbaby"
+
+
+def _lazy_import_git():
+    """Lazy import git to avoid startup cost."""
+    import git
+
+    return git
+
+
+def _lazy_import_kconfiglib():
+    """Lazy import kconfiglib to avoid startup cost."""
+    import kconfiglib
+
+    return kconfiglib
+
+
+def _lazy_import_requests():
+    """Lazy import requests to avoid startup cost."""
+    import requests
+
+    return requests
+
+
+def _lazy_import_cookiecutter():
+    """Lazy import cookiecutter to avoid startup cost."""
+    from cookiecutter.main import cookiecutter
+
+    return cookiecutter
 
 
 def _get_config_dir():
@@ -76,14 +101,23 @@ def _get_template_dir():
 
 
 _config_file = _get_resource_path("Kconfig")
-_kconfig = kconfiglib.Kconfig(_config_file)
+_kconfig = None  # Will be initialized lazily
+
+
+def _get_kconfig():
+    """Get the kconfig instance, initializing it lazily."""
+    global _kconfig
+    if _kconfig is None:
+        kconfiglib = _lazy_import_kconfiglib()
+        _kconfig = kconfiglib.Kconfig(_config_file)
+    return _kconfig
 
 
 def _load_config():
-    global _kconfig
+    kconfig = _get_kconfig()
     hermesbaby__config_file = Path(os.getcwd()) / CFG_CONFIG_CUSTOM_FILE
     if hermesbaby__config_file.exists():
-        _kconfig.load_config(str(hermesbaby__config_file))
+        kconfig.load_config(str(hermesbaby__config_file))
         logger.info(f"Using configuration {hermesbaby__config_file}")
     else:
         logger.info("There is no '{hermesbaby__config_file}'. Using default config.")
@@ -270,6 +304,7 @@ def new(
 
     # Execution
 
+    cookiecutter = _lazy_import_cookiecutter()
     cookiecutter(
         template=str(template_path),
         output_dir=directory,
@@ -295,7 +330,9 @@ def html(
     _set_env()
     _load_config()
 
-    build_dir = Path(_kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
+    build_dir = (
+        Path(_get_kconfig().syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
+    )
 
     executable = os.path.join(_tool_path, "sphinx-build")
     command = f"""
@@ -303,7 +340,7 @@ def html(
         -b html
         -W
         -c {_get_resource_path("")}
-        {_kconfig.syms["BUILD__DIRS__SOURCE"].str_value}
+        {_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value}
         {build_dir}
     """
     typer.echo(command)
@@ -324,7 +361,8 @@ def html_live(
     _set_env()
     _load_config()
 
-    build_dir = Path(_kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
+    kconfig = _get_kconfig()
+    build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
     executable = os.path.join(_tool_path, "sphinx-autobuild")
     command = f"""
         {executable}
@@ -332,11 +370,11 @@ def html_live(
         -j 10
         -W
         -c {_get_resource_path("")}
-        {_kconfig.syms["BUILD__DIRS__SOURCE"].str_value}
+        {kconfig.syms["BUILD__DIRS__SOURCE"].str_value}
         {build_dir}
-        --watch {_kconfig.syms["BUILD__DIRS__CONFIG"].str_value}
+        --watch {kconfig.syms["BUILD__DIRS__CONFIG"].str_value}
         --re-ignore '_tags/.*'
-        --port {int(_kconfig.syms["BUILD__PORTS__HTML__LIVE"].str_value)}
+        --port {int(kconfig.syms["BUILD__PORTS__HTML__LIVE"].str_value)}
         --open-browser
     """
     typer.echo(command)
@@ -390,7 +428,9 @@ def clean(
     _set_env()
     _load_config()
 
-    folder_to_remove = Path(directory) / _kconfig.syms["BUILD__DIRS__BUILD"].str_value
+    folder_to_remove = (
+        Path(directory) / _get_kconfig().syms["BUILD__DIRS__BUILD"].str_value
+    )
     typer.echo(f"Remove {folder_to_remove}")
     if Path(folder_to_remove).exists():
         shutil.rmtree(folder_to_remove)
@@ -457,7 +497,7 @@ def venv(
 
     # If the file docs/requirements.txt exists, install the requirements
     requirements_file = Path(directory) / os.path.join(
-        _kconfig.syms["BUILD__DIRS__CONFIG"].str_value, "requirements.txt"
+        _get_kconfig().syms["BUILD__DIRS__CONFIG"].str_value, "requirements.txt"
     )
 
     if requirements_file.exists():
@@ -560,15 +600,16 @@ def update(
 
     from .web_access_ctrl import create_htaccess_entries
 
+    kconfig = _get_kconfig()
     yaml_template_file = _get_resource_path("htaccess.yaml")
     yaml_file = Path(directory) / os.path.join(
-        _kconfig.syms["BUILD__DIRS__CONFIG"].str_value, "htaccess.yaml"
+        kconfig.syms["BUILD__DIRS__CONFIG"].str_value, "htaccess.yaml"
     )
     outfile_file = Path(directory) / os.path.join(
-        _kconfig.syms["BUILD__DIRS__SOURCE"].str_value, "web_root", ".htaccess"
+        kconfig.syms["BUILD__DIRS__SOURCE"].str_value, "web_root", ".htaccess"
     )
     expand_file = Path(directory) / os.path.join(
-        _kconfig.syms["BUILD__DIRS__SOURCE"].str_value,
+        kconfig.syms["BUILD__DIRS__SOURCE"].str_value,
         "99-Appendix/99-Access-to-Published-Document/_tables/htaccess__all_users.yaml",
     )
 
@@ -597,16 +638,17 @@ def publish(
     _set_env()
     _load_config()
 
-    publish_host = _kconfig.syms["PUBLISH__HOST"].str_value
-    publish_user = _kconfig.syms["PUBLISH__USER"].str_value
-    scm_owner_kind = _kconfig.syms["SCM__OWNER_KIND"].str_value
-    scm_owner = _kconfig.syms["SCM__OWNER"].str_value
+    kconfig = _get_kconfig()
+    publish_host = kconfig.syms["PUBLISH__HOST"].str_value
+    publish_user = kconfig.syms["PUBLISH__USER"].str_value
+    scm_owner_kind = kconfig.syms["SCM__OWNER_KIND"].str_value
+    scm_owner = kconfig.syms["SCM__OWNER"].str_value
 
-    publish_repo = _kconfig.syms["PUBLISH__REPO"].str_value
+    publish_repo = kconfig.syms["PUBLISH__REPO"].str_value
     if publish_repo == "":
-        publish_repo = _kconfig.syms["SCM__REPO"].str_value
+        publish_repo = kconfig.syms["SCM__REPO"].str_value
 
-    dir_build = Path(directory) / _kconfig.syms["BUILD__DIRS__BUILD"].str_value
+    dir_build = Path(directory) / kconfig.syms["BUILD__DIRS__BUILD"].str_value
 
     # In case the publish_user is empty or not defined, use the scm_owner as default
     if not publish_user:
@@ -616,14 +658,15 @@ def publish(
         )
 
     ssh_key_path = (
-        Path(directory) / _kconfig.syms["PUBLISH__SSH_PATH"].str_value / "id_rsa"
+        Path(directory) / kconfig.syms["PUBLISH__SSH_PATH"].str_value / "id_rsa"
     )
 
     try:
+        git = _lazy_import_git()
         _repo = git.Repo(search_parent_directories=True, path=directory)
         git_branch = _repo.active_branch.name
-    except:
-        typer.echo("Could not get git branch. Aborting publish step", err=True)
+    except Exception as e:
+        typer.echo(f"Could not get git branch: {e}. Aborting publish step", err=True)
         raise typer.Exit(code=1)
 
     publish_url = f"https://{publish_host}/{scm_owner_kind}/{scm_owner}/{publish_repo}/{git_branch}"

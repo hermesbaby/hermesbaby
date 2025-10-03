@@ -78,20 +78,10 @@ hiddenimports = [
     'typer',
     'kconfiglib',
     'cookiecutter',
-    'gitpython',
-    'atlassian',
-    'bs4',
-    'PIL',
-    'yaml',
-    'pandas',
-    'pytz',
+    # Only include commonly used imports, others will be lazy loaded
     'requests',
     'urllib3',
     'sphinx',
-    'myst_nb',
-    'myst_parser',
-    'jupyter_sphinx',
-    'robotframeworklexer',
 ]
 
 # Analysis configuration
@@ -104,9 +94,14 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=[
+        # Only exclude clearly unused GUI packages
+        'turtle', 'pydoc_data',
+        # Exclude unused networking/crypto (if not needed)
+        'ftplib', 'poplib', 'imaplib',
+    ],
     noarchive=False,
-    optimize=0,
+    optimize=2,  # Enable Python optimization level 2
 )
 
 # Package configuration
@@ -122,8 +117,8 @@ exe = EXE(
     name='hermesbaby',
     debug=False,
     bootloader_ignore_signals=False,
-    strip=False,
-    upx=True,
+    strip=True,  # Enable stripping to reduce size
+    upx=True,    # Enable UPX compression
     upx_exclude=[],
     runtime_tmpdir=None,
     console=True,
