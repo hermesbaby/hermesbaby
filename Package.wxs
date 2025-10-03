@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+
+  <Package
+      Name="HermesBaby"
+      Manufacturer="basejumpa"
+      Version="25.10.02.40"
+      Scope="perMachine"
+      Id="com.github.hermesbaby.hermesbaby">
+
+    <!-- Define your icon resource -->
+    <Icon Id="HermesBabyIcon" SourceFile="hermesbaby.ico"/>
+
+    <!-- Tell Windows Installer to use it for ARP -->
+    <Property Id="ARPPRODUCTICON" Value="HermesBabyIcon"/>
+
+    <!-- Install into Program Files -->
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="INSTALLFOLDER" Name="HermesBaby">
+        <Directory Id="ApplicationProgramsFolder" Name="HermesBaby" />
+      </Directory>
+    </StandardDirectory>
+
+    <!-- Harvest everything from the PyInstaller output -->
+    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
+      <Files Include="!(bindpath.app)**"/>
+    </ComponentGroup>
+
+    <!-- Add INSTALLFOLDER to PATH -->
+    <ComponentGroup Id="PathEntry" Directory="INSTALLFOLDER">
+      <Component Id="AddToPath" Guid="*">
+        <Environment
+            Id="HermesBabyPath"
+            Name="PATH"
+            Value="[INSTALLFOLDER]"
+            Permanent="no"
+            Part="last"
+            Action="set"
+            System="yes" />
+        <RegistryValue Root="HKCU"
+                       Key="Software\basejumpa\HermesBaby"
+                       Name="PathAdded"
+                       Value="1"
+                       Type="integer"
+                       KeyPath="yes"/>
+      </Component>
+    </ComponentGroup>
+
+    <!-- Main feature -->
+    <Feature Id="Main" Title="HermesBaby" Level="1">
+      <ComponentGroupRef Id="AppFiles"/>
+      <ComponentGroupRef Id="PathEntry"/>
+    </Feature>
+
+    <!-- Upgrade handling -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of HermesBaby is already installed."/>
+    <MediaTemplate EmbedCab="yes"/>
+
+  </Package>
+</Wix>
