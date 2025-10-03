@@ -80,7 +80,7 @@ jobs:
 
     - name: Test executable
       run: |
-        cd dist/hb
+        cd dist/hb-dist
         if [ "$RUNNER_OS" == "Windows" ]; then
           ./hb.exe --version
           ./hb.exe --help | head -5
@@ -96,9 +96,9 @@ jobs:
       run: |
         cd dist
         if [ "$RUNNER_OS" == "Windows" ]; then
-          7z a -tzip hb-${{ runner.os }}.zip hb/
+          7z a -tzip hb-${{ runner.os }}.zip hb-dist/
         else
-          tar -czf hb-${{ runner.os }}.tar.gz hb/
+          tar -czf hb-${{ runner.os }}.tar.gz hb-dist/
         fi
       shell: bash
 
