@@ -13,6 +13,21 @@ jobs:
     runs-on: windows-latest
 
     steps:
+    - name: Install WiX
+      run: |
+        $version = "6.0.2"
+        $msiUrl = "https://github.com/wixtoolset/wix/releases/download/v$version/wix-cli-x64.msi"
+        Invoke-WebRequest $msiUrl -OutFile wix-cli.msi
+        # Silent install
+        msiexec /i wix-cli.msi /quiet /norestart
+
+        # C:\Program Files (x86)\WiX Toolset v6\bin
+        $installBin = "C:\Program Files (x86)\WiX Toolset v6\bin"
+        Write-Output $installBin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+        wix --version
+      shell: pwsh
+
     - name: Checkout code
       uses: actions/checkout@v4
       with:
@@ -48,12 +63,6 @@ jobs:
         cd test01
         ..\hb.exe html
       shell: cmd
-
-    - name: Install WiX v4
-      run: |
-        curl -L -o wix.zip https://github.com/wixtoolset/wix/releases/download/v4.0.4/wix-4.0.4.zip
-        Expand-Archive wix.zip -DestinationPath $Env:ProgramFiles\wix
-        echo "$Env:ProgramFiles\wix" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
     - name: Create MSI installer
       run: |
