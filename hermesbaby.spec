@@ -126,11 +126,11 @@ coll = COLLECT(
     strip=False,
     upx=True if sys.platform.startswith("win") else False,
     upx_exclude=[],
-    name="hb-dist",
+    name="hermesbaby",
 )
 
 # --- Post-process: copy entry point executables to dist root -------
-dist_root = Path("dist") / "hb-dist"
+dist_root = Path("dist") / "hermesbaby"
 for ep in entry_points:
     exe_name = ep + (".exe" if sys.platform.startswith("win") else "")
     exe_src = scripts_dir / exe_name
