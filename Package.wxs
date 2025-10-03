@@ -4,7 +4,7 @@
   <Package
       Name="HermesBaby"
       Manufacturer="basejumpa"
-      Version="25.10.02.40"
+      Version="$(var.ProductVersion)"
       Scope="perUser"
       Id="com.github.hermesbaby.hermesbaby">
 
