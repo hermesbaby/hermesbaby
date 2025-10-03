@@ -49,10 +49,11 @@ datas = [
     (str(hermesbaby_dir / "templates"), "hermesbaby/templates"),
     # Configuration files
     (str(hermesbaby_dir / "external_tools.json"), "hermesbaby"),
-    (str(hermesbaby_dir / "extensions.json"), "hermesbaby"),
+    (str(hermesbaby_dir / "vscode-extensions"), "hermesbaby/vscode-extensions"),
     (str(hermesbaby_dir / "htaccess.yaml"), "hermesbaby"),
     (str(hermesbaby_dir / "Kconfig"), "hermesbaby"),
     (str(hermesbaby_dir / "Makefile"), "hermesbaby"),
+    (str(hermesbaby_dir / "tools"), "hermesbaby/tools"),
     (str(hermesbaby_dir / "plantuml.config"), "hermesbaby"),
     (str(hermesbaby_dir / "puppeteer.config.json"), "hermesbaby"),
     (str(hermesbaby_dir / "scoopfile-build.json"), "hermesbaby"),
