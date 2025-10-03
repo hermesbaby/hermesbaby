@@ -47,7 +47,13 @@ jobs:
         ./hb.exe new --template zero test01
         cd test01
         ../hb.exe html
-        shell: cmd
+      shell: cmd
+
+    - name: Install WiX v4
+      run: |
+        curl -L -o wix.zip https://github.com/wixtoolset/wix/releases/download/v4.0.4/wix-4.0.4.zip
+        Expand-Archive wix.zip -DestinationPath $Env:ProgramFiles\wix
+        echo "$Env:ProgramFiles\wix" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
     - name: Create MSI installer
       run: |
