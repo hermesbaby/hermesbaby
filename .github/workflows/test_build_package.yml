@@ -71,6 +71,7 @@ jobs:
         pipx runpip poetry install poetry-dynamic-versioning
 
     - name: Install dependencies
+      if: matrix.os == 'windows-latest'
       run: |
         poetry install --with dev
 
@@ -79,12 +80,16 @@ jobs:
         poetry run pyinstaller hermesbaby.spec
 
     - name: Test executable
+      if: matrix.os == 'windows-latest'
       run: |
         cd dist/hb-dist
         if [ "$RUNNER_OS" == "Windows" ]; then
           ./hb.exe --version
           ./hb.exe --help | head -5
           ./hb.exe new --list
+          ./hb.exe new --template zero test-zero
+          cd test-zero
+          ../hb.exe html
         else
           ./hb --version
           ./hb --help | head -5
@@ -93,6 +98,7 @@ jobs:
       shell: bash
 
     - name: Create distribution archive
+      if: matrix.os == 'windows-latest'
       run: |
         cd dist
         if [ "$RUNNER_OS" == "Windows" ]; then
@@ -103,6 +109,7 @@ jobs:
       shell: bash
 
     - name: Upload executable artifact
+      if: matrix.os == 'windows-latest'
       uses: actions/upload-artifact@v4
       with:
         name: hb-${{ runner.os }}
