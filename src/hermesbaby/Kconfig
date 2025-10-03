@@ -72,7 +72,7 @@ config DOC__CONFIDENTIALITY_LEVEL
 
     choice
         prompt "Confidentiality Level"
-        default DOC__CONFIDENTIALITY_STRICTLY_CONFIDENTIAL
+        default DOC__CONFIDENTIALITY_PUBLIC
 
     config DOC__CONFIDENTIALITY_PUBLIC
         bool "Public"
