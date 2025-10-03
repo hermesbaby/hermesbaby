@@ -47,8 +47,6 @@ datas = [
     (str(hermesbaby_dir / "setup.sh"), "hermesbaby"),
     (str(hermesbaby_dir / "setup.cmd"), "hermesbaby"),
     (str(hermesbaby_dir / "setup.ps1"), "hermesbaby"),
-    # Tools directory (if exists)
-    (str(hermesbaby_dir / "tools"), "hermesbaby/tools"),
     # Package subdirectories
     (str(hermesbaby_dir / "atlassian-admin"), "hermesbaby/atlassian-admin"),
     (str(hermesbaby_dir / "loflot"), "hermesbaby/loflot"),
@@ -62,6 +60,9 @@ datas = [
     # Cookiecutter data files
     (str(cookiecutter_path / "VERSION.txt"), "cookiecutter"),
 ]
+
+# Note: The tools directory is excluded as it contains downloaded tools 
+# that will be fetched at runtime (e.g., PlantUML)
 
 # Hidden imports - packages that might not be automatically detected
 hiddenimports = [
