@@ -334,6 +334,9 @@ def html(
         Path(_get_kconfig().syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
     )
 
+    build_dir = (
+        Path(_get_kconfig().syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
+    )
     executable = os.path.join(_tool_path, "sphinx-build")
     command = f"""
         {executable}

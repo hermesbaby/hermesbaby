@@ -18,5 +18,5 @@
 __pycache__/
 *.pyc
 
-dist/
-
+/dist/
+/build/
