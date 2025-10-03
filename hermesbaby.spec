@@ -39,7 +39,7 @@ if not sys.platform.startswith('win'):
         if python_lib_name and os.path.exists(os.path.join(python_lib_path, python_lib_name)):
             binaries.append((os.path.join(python_lib_path, python_lib_name), '.'))
         # Also try the instsoname variant
-        python_lib_instsoname = sysconfig.get_config_var('INSTSONAME') 
+        python_lib_instsoname = sysconfig.get_config_var('INSTSONAME')
         if python_lib_instsoname and os.path.exists(os.path.join(python_lib_path, python_lib_instsoname)):
             binaries.append((os.path.join(python_lib_path, python_lib_instsoname), '.'))
 
@@ -221,7 +221,6 @@ exe = EXE(
     pyz,
     a.scripts,
     [],  # Empty - binaries and datas will be in COLLECT
-    name='hb',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,  # Disable stripping on all platforms to avoid shared library issues
@@ -234,6 +233,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='hermesbaby.ico' if sys.platform.startswith('win') else None,
     # Add additional flags for Linux shared library handling
     **({'exclude_binaries': True} if not sys.platform.startswith('win') else {}),
 )
