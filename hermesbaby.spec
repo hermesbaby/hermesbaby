@@ -191,6 +191,10 @@ a = Analysis(
     ],
     noarchive=False,
     optimize=2,  # Enable Python optimization level 2
+    win_no_prefer_redirects=False,
+    win_private_assemblies=False,
+    cipher=None,
+    # Add explicit handling for shared library issues on Linux
 )
 
 # Package configuration
@@ -204,7 +208,7 @@ exe = EXE(
     name='hb',
     debug=False,
     bootloader_ignore_signals=False,
-    strip=True,  # Enable stripping to reduce size
+    strip=False,  # Disable stripping on all platforms to avoid shared library issues
     upx=True if sys.platform.startswith('win') else False,  # UPX only on Windows
     upx_exclude=[],
     runtime_tmpdir=None,
@@ -221,7 +225,7 @@ coll = COLLECT(
     exe,
     a.binaries,
     a.datas,
-    strip=True,
+    strip=False,  # Disable stripping on all platforms to avoid shared library issues
     upx=True if sys.platform.startswith('win') else False,  # UPX only on Windows
     upx_exclude=[],
     name='hb-dist'
