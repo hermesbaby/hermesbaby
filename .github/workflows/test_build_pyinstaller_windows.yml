@@ -1,0 +1,49 @@
+name: Test, Build and Package
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install Poetry
+      run: |
+        pip install pipx
+        pipx install poetry
+        pipx runpip poetry install poetry-dynamic-versioning
+
+    - name: Install dependencies
+      run: |
+        poetry install --with dev
+
+    - name: Build package
+      run: |
+        poetry run pyinstaller hermesbaby.spec
+
+    - name: Smoke Test executable
+      run: |
+        cd dist/hermesbaby
+        ./hb.exe
+        ./hb.exe --help
+        ./hb.exe --version
+        ./hb.exe new --list-templates
+        ./hb.exe new --template zero test01
+        cd test01
+        ../hb.exe html
