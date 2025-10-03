@@ -47,22 +47,40 @@ datas = [
     (str(hermesbaby_dir / "setup.sh"), "hermesbaby"),
     (str(hermesbaby_dir / "setup.cmd"), "hermesbaby"),
     (str(hermesbaby_dir / "setup.ps1"), "hermesbaby"),
-    # Package subdirectories
-    (str(hermesbaby_dir / "atlassian-admin"), "hermesbaby/atlassian-admin"),
-    (str(hermesbaby_dir / "loflot"), "hermesbaby/loflot"),
-    (str(hermesbaby_dir / "pre-post-build"), "hermesbaby/pre-post-build"),
-    (str(hermesbaby_dir / "rst-frontmatter"), "hermesbaby/rst-frontmatter"),
-    (str(hermesbaby_dir / "tag-anything"), "hermesbaby/tag-anything"),
-    (str(hermesbaby_dir / "toctree-only"), "hermesbaby/toctree-only"),
-    (str(hermesbaby_dir / "toolbox"), "hermesbaby/toolbox"),
-    (str(hermesbaby_dir / "update"), "hermesbaby/update"),
-    (str(hermesbaby_dir / "web_access_ctrl"), "hermesbaby/web_access_ctrl"),
     # Cookiecutter data files
     (str(cookiecutter_path / "VERSION.txt"), "cookiecutter"),
 ]
 
-# Note: The tools directory is excluded as it contains downloaded tools 
-# that will be fetched at runtime (e.g., PlantUML)
+# Conditionally add package subdirectories that exist and have content
+package_dirs = [
+    "atlassian-admin",
+    "loflot",
+    "pre-post-build",
+    "rst-frontmatter",
+    "tag-anything",
+    "toctree-only",
+    "toolbox",
+    "update",
+    "web_access_ctrl"
+]
+
+for pkg_dir in package_dirs:
+    pkg_path = hermesbaby_dir / pkg_dir
+    if pkg_path.exists():
+        # Check if directory has Python files or other meaningful content
+        try:
+            has_content = any(
+                f.suffix in ['.py', '.yaml', '.yml', '.json', '.txt', '.md']
+                for f in pkg_path.rglob('*')
+                if f.is_file() and not f.name.startswith('.') and '__pycache__' not in str(f)
+            )
+            if has_content:
+                datas.append((str(pkg_path), f"hermesbaby/{pkg_dir}"))
+        except Exception:
+            # If we can't read the directory, skip it
+            pass
+# Note: Package directories are conditionally included based on content
+# Tools directory is excluded as it contains downloaded tools that will be fetched at runtime
 
 # Hidden imports - packages that might not be automatically detected
 hiddenimports = [
