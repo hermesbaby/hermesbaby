@@ -82,18 +82,9 @@ for pkg_dir in package_dirs:
 # Note: Package directories are conditionally included based on content
 # Tools directory is excluded as it contains downloaded tools that will be fetched at runtime
 
-# Hidden imports - packages that might not be automatically detected
-hiddenimports = [
+# Build dynamic hidden imports list based on available package directories
+base_hiddenimports = [
     'hermesbaby',
-    'hermesbaby.atlassian-admin',
-    'hermesbaby.loflot',
-    'hermesbaby.pre-post-build',
-    'hermesbaby.rst-frontmatter',
-    'hermesbaby.tag-anything',
-    'hermesbaby.toctree-only',
-    'hermesbaby.toolbox',
-    'hermesbaby.update',
-    'hermesbaby.web_access_ctrl',
     'typer',
     'kconfiglib',
     'cookiecutter',
@@ -102,6 +93,24 @@ hiddenimports = [
     'urllib3',
     'sphinx',
 ]
+
+# Add package-specific hidden imports only if they were included in datas
+dynamic_hiddenimports = []
+for pkg_dir in package_dirs:
+    pkg_path = hermesbaby_dir / pkg_dir
+    if pkg_path.exists():
+        try:
+            has_content = any(
+                f.suffix in ['.py', '.yaml', '.yml', '.json', '.txt', '.md']
+                for f in pkg_path.rglob('*') 
+                if f.is_file() and not f.name.startswith('.') and '__pycache__' not in str(f)
+            )
+            if has_content:
+                dynamic_hiddenimports.append(f'hermesbaby.{pkg_dir}')
+        except Exception:
+            pass
+
+hiddenimports = base_hiddenimports + dynamic_hiddenimports
 
 # Analysis configuration
 a = Analysis(
@@ -135,7 +144,7 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=True,  # Enable stripping to reduce size
-    upx=True,    # Enable UPX compression
+    upx=True if sys.platform.startswith('win') else False,  # UPX only on Windows
     upx_exclude=[],
     runtime_tmpdir=None,
     console=True,
@@ -152,7 +161,7 @@ coll = COLLECT(
     a.binaries,
     a.datas,
     strip=True,
-    upx=True,
+    upx=True if sys.platform.startswith('win') else False,  # UPX only on Windows
     upx_exclude=[],
     name='hb'
 )
