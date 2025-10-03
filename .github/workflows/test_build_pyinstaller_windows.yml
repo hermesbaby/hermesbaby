@@ -40,13 +40,13 @@ jobs:
     - name: Smoke Test executable
       run: |
         cd dist/hermesbaby
-        ./hb.exe
-        ./hb.exe --help
-        ./hb.exe --version
-        ./hb.exe new --list-templates
-        ./hb.exe new --template zero test01
+        .\hb.exe
+        .\hb.exe --help
+        .\hb.exe --version
+        .\hb.exe new --list-templates
+        .\hb.exe new --template zero test01
         cd test01
-        ../hb.exe html
+        ..\hb.exe html
       shell: cmd
 
     - name: Install WiX v4
