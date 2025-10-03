@@ -112,7 +112,7 @@ exe = EXE(
     pyz,
     a.scripts,
     [],  # Empty - binaries and datas will be in COLLECT
-    name='hermesbaby',
+    name='hb',
     debug=False,
     bootloader_ignore_signals=False,
     strip=True,  # Enable stripping to reduce size
@@ -135,5 +135,5 @@ coll = COLLECT(
     strip=True,
     upx=True,
     upx_exclude=[],
-    name='hermesbaby'
+    name='hb'
 )
