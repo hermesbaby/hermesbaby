@@ -579,7 +579,7 @@ def groups(
         typer.echo(ctx.get_help())
         raise typer.Exit()
 
-    from .web_access_ctrl import shared_groups
+    from hermesbaby.web_access_ctrl import shared_groups
 
     shared_groups.main(members)
 
@@ -601,7 +601,7 @@ def members(
 
     typer.echo("Grab a coffee, this may take a while...")
 
-    from .web_access_ctrl import group_members
+    from hermesbaby.web_access_ctrl import group_members
 
     group_members.main(groups)
 
@@ -623,7 +623,7 @@ def update(
     _set_env()
     _load_config()
 
-    from .web_access_ctrl import create_htaccess_entries
+    from hermesbaby.web_access_ctrl import create_htaccess_entries
 
     kconfig = _get_kconfig()
     yaml_template_file = _get_resource_path("htaccess.yaml")
