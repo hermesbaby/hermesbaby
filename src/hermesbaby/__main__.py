@@ -606,7 +606,6 @@ def members(
     group_members.main(groups)
 
 
-# Obsolete. Use hb htaccess --update instead
 @app_htaccess.command()
 def update(
     ctx: typer.Context,
@@ -641,6 +640,8 @@ def update(
 
     if not os.path.exists(yaml_file):
         typer.echo(f"Created template file {yaml_file}")
+        # Ensure parent directory exists before copying
+        yaml_file.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(yaml_template_file, yaml_file)
 
     if not os.path.exists(expand_file):
