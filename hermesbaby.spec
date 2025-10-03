@@ -28,6 +28,21 @@ hermesbaby_dir = src_dir / "hermesbaby"
 import cookiecutter
 cookiecutter_path = Path(cookiecutter.__file__).parent
 
+# Platform-specific binary handling for Linux shared library issues
+binaries = []
+if not sys.platform.startswith('win'):
+    # On Linux, explicitly include Python shared library if found
+    import sysconfig
+    python_lib_path = sysconfig.get_config_var('LIBDIR')
+    if python_lib_path:
+        python_lib_name = sysconfig.get_config_var('LDLIBRARY')
+        if python_lib_name and os.path.exists(os.path.join(python_lib_path, python_lib_name)):
+            binaries.append((os.path.join(python_lib_path, python_lib_name), '.'))
+        # Also try the instsoname variant
+        python_lib_instsoname = sysconfig.get_config_var('INSTSONAME') 
+        if python_lib_instsoname and os.path.exists(os.path.join(python_lib_path, python_lib_instsoname)):
+            binaries.append((os.path.join(python_lib_path, python_lib_instsoname), '.'))
+
 # Data files to include
 datas = [
     # Templates directory
@@ -177,7 +192,7 @@ hiddenimports = base_hiddenimports + dynamic_hiddenimports
 a = Analysis(
     [str(hermesbaby_dir / "__main__.py")],
     pathex=[str(src_dir)],
-    binaries=[],
+    binaries=binaries,  # Include platform-specific binaries
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=[],
@@ -218,6 +233,8 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    # Add additional flags for Linux shared library handling
+    **({'exclude_binaries': True} if not sys.platform.startswith('win') else {}),
 )
 
 # One-directory distribution for faster startup
