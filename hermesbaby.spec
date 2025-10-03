@@ -163,5 +163,5 @@ coll = COLLECT(
     strip=True,
     upx=True if sys.platform.startswith('win') else False,  # UPX only on Windows
     upx_exclude=[],
-    name='hb'
+    name='hb_dist'
 )
