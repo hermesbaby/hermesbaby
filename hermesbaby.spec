@@ -107,13 +107,11 @@ a = Analysis(
 # Package configuration
 pyz = PYZ(a.pure)
 
-# Executable configuration
+# Create COLLECT for one-directory mode (faster startup)
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
-    a.datas,
-    [],
+    [],  # Empty - binaries and datas will be in COLLECT
     name='hermesbaby',
     debug=False,
     bootloader_ignore_signals=False,
@@ -127,4 +125,15 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+)
+
+# One-directory distribution for faster startup
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.datas,
+    strip=True,
+    upx=True,
+    upx_exclude=[],
+    name='hermesbaby'
 )
