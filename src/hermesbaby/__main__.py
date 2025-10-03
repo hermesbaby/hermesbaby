@@ -67,7 +67,10 @@ def _lazy_import_cookiecutter():
 
 def _get_config_dir():
     """Get the configuration directory, handling both development and PyInstaller contexts."""
-    return files("hermesbaby")
+    if hasattr(sys, '_MEIPASS'):
+        return Path(sys._MEIPASS) / "hermesbaby"
+    else:
+        return files("hermesbaby")
 
 
 def _get_config_file():
@@ -97,7 +100,12 @@ _tool_path = Path(sys.executable).parent
 
 
 def _get_template_dir():
-    return files("hermesbaby").joinpath("templates")
+    # In PyInstaller, use sys._MEIPASS to find the templates directory
+    if hasattr(sys, '_MEIPASS'):
+        return Path(sys._MEIPASS) / "hermesbaby" / "templates"
+    else:
+        # Normal development/installation - use importlib.resources
+        return files("hermesbaby").joinpath("templates")
 
 
 _config_file = _get_resource_path("Kconfig")
@@ -266,14 +274,16 @@ def new(
             templates = [d.name for d in templates_root_path.iterdir() if d.is_dir()]
         except Exception as e:
             typer.echo(f"Error listing templates: {e}", err=True)
-            raise typer.Abort()
+            typer.echo(f"Template path: {templates_root_path}", err=True)
+            raise typer.Exit(code=1)
         if not templates:
             typer.echo(f"No templates found in {templates_root_path}")
+            raise typer.Exit(code=1)
         else:
             typer.echo("Available templates:")
             for t in sorted(templates):
                 typer.echo(f"  - {t}")
-        raise typer.Exit()
+        raise typer.Exit(code=0)  # Explicitly use exit code 0 for success
 
     if template is None:
         template = "zero"
