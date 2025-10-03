@@ -281,9 +281,12 @@ def new(
             typer.echo(f"No templates found in {templates_root_path}")
             raise typer.Exit(code=1)
         else:
-            typer.echo("Available templates:")
+            typer.echo("\nAvailable templates:\n")
             for t in sorted(templates):
                 typer.echo(f"  - {t}")
+            typer.echo(
+                "\nPick one and use it via:\n\nhb new --template <template> [<directory>]\n"
+            )
         raise typer.Exit(code=0)  # Explicitly use exit code 0 for success
 
     if template is None:
