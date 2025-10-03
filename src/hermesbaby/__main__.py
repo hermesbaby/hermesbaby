@@ -67,7 +67,7 @@ def _lazy_import_cookiecutter():
 
 def _get_config_dir():
     """Get the configuration directory, handling both development and PyInstaller contexts."""
-    if hasattr(sys, '_MEIPASS'):
+    if hasattr(sys, "_MEIPASS"):
         return Path(sys._MEIPASS) / "hermesbaby"
     else:
         return files("hermesbaby")
@@ -83,7 +83,7 @@ def _get_resource_path(filename):
     """Get a resource file path as a string, handling both development and PyInstaller contexts."""
     if hasattr(sys, "_MEIPASS"):
         # Running as PyInstaller executable
-        return os.path.join(sys._MEIPASS, "hermesbaby", filename)
+        return Path(sys._MEIPASS) / "hermesbaby" / filename
     else:
         # Running as normal Python script
         config_dir = _get_config_dir()
@@ -91,9 +91,9 @@ def _get_resource_path(filename):
         # For importlib.resources Traversable, we need to read it differently
         if hasattr(resource, "read_text"):
             # This is for accessing content, not file path
-            return str(resource)
+            return Path(str(resource))
         else:
-            return str(resource)
+            return Path(str(resource))
 
 
 _tool_path = Path(sys.executable).parent
@@ -101,7 +101,7 @@ _tool_path = Path(sys.executable).parent
 
 def _get_template_dir():
     # In PyInstaller, use sys._MEIPASS to find the templates directory
-    if hasattr(sys, '_MEIPASS'):
+    if hasattr(sys, "_MEIPASS"):
         return Path(sys._MEIPASS) / "hermesbaby" / "templates"
     else:
         # Normal development/installation - use importlib.resources
