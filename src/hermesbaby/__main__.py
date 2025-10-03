@@ -38,7 +38,34 @@ __version__ = importlib.metadata.version("hermesbaby")
 logger = logging.getLogger(__name__)
 
 CFG_CONFIG_CUSTOM_FILE = ".hermesbaby"
-CFG_CONFIG_DIR = Path(__file__).parent
+
+
+def _get_config_dir():
+    """Get the configuration directory, handling both development and PyInstaller contexts."""
+    return files("hermesbaby")
+
+
+def _get_config_file():
+    """Get the Kconfig file path, handling both development and PyInstaller contexts."""
+    config_dir = _get_config_dir()
+    return config_dir.joinpath("Kconfig")
+
+
+def _get_resource_path(filename):
+    """Get a resource file path as a string, handling both development and PyInstaller contexts."""
+    if hasattr(sys, "_MEIPASS"):
+        # Running as PyInstaller executable
+        return os.path.join(sys._MEIPASS, "hermesbaby", filename)
+    else:
+        # Running as normal Python script
+        config_dir = _get_config_dir()
+        resource = config_dir.joinpath(filename)
+        # For importlib.resources Traversable, we need to read it differently
+        if hasattr(resource, "read_text"):
+            # This is for accessing content, not file path
+            return str(resource)
+        else:
+            return str(resource)
 
 
 _tool_path = Path(sys.executable).parent
@@ -48,8 +75,8 @@ def _get_template_dir():
     return files("hermesbaby").joinpath("templates")
 
 
-_config_file = CFG_CONFIG_DIR / "Kconfig"
-_kconfig = kconfiglib.Kconfig(str(_config_file))
+_config_file = _get_resource_path("Kconfig")
+_kconfig = kconfiglib.Kconfig(_config_file)
 
 
 def _load_config():
@@ -67,7 +94,7 @@ def _set_env():
 
 
 def _tools_load_external_tools() -> dict:
-    file_path = CFG_CONFIG_DIR / "external_tools.json"
+    file_path = _get_resource_path("external_tools.json")
     try:
         with open(file_path, "r") as f:
             return json.load(f)
@@ -170,7 +197,7 @@ def version(
     version: bool = typer.Option(
         None,
         "--version",
-        callback=lambda value: print(__version__) or exit() if value else None,
+        callback=lambda value: print(__version__) or sys.exit() if value else None,
         is_eager=True,
         help="Show the version and exit.",
     )
@@ -275,7 +302,7 @@ def html(
         {executable}
         -b html
         -W
-        -c {str(CFG_CONFIG_DIR)}
+        -c {_get_resource_path("")}
         {_kconfig.syms["BUILD__DIRS__SOURCE"].str_value}
         {build_dir}
     """
@@ -304,7 +331,7 @@ def html_live(
         -b html
         -j 10
         -W
-        -c {str(CFG_CONFIG_DIR)}
+        -c {_get_resource_path("")}
         {_kconfig.syms["BUILD__DIRS__SOURCE"].str_value}
         {build_dir}
         --watch {_kconfig.syms["BUILD__DIRS__CONFIG"].str_value}
@@ -533,7 +560,7 @@ def update(
 
     from .web_access_ctrl import create_htaccess_entries
 
-    yaml_template_file = CFG_CONFIG_DIR / "htaccess.yaml"
+    yaml_template_file = _get_resource_path("htaccess.yaml")
     yaml_file = Path(directory) / os.path.join(
         _kconfig.syms["BUILD__DIRS__CONFIG"].str_value, "htaccess.yaml"
     )
@@ -743,7 +770,7 @@ def _vscode_check_code_available():
 
 def _vscode_get_extensions_dir():
     """Get the extensions directory path"""
-    extensions_dir = CFG_CONFIG_DIR / "vscode-extensions"
+    extensions_dir = _get_resource_path("vscode-extensions")
     if not extensions_dir.exists():
         typer.echo(f"Error: Directory {extensions_dir} not found.")
         raise typer.Exit(code=1)
@@ -752,7 +779,7 @@ def _vscode_get_extensions_dir():
 
 def _vscode_check_constraints(installed_version):
     """Check if installed VSCode version meets constraints"""
-    constraints_file = CFG_CONFIG_DIR / "vscode-extensions" / "_constraints"
+    constraints_file = _get_resource_path("vscode-extensions") / "_constraints"
 
     if not constraints_file.exists():
         return None  # No constraints to check

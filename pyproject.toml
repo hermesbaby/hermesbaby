@@ -41,7 +41,7 @@ hb = "hermesbaby.__main__:app"
 
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.12"
 atlassian-python-api = "^3.41.14"
 beautifulsoup4 = "^4.12.3"
 cookiecutter = "^2.6.0"
@@ -87,6 +87,7 @@ sphinxcontrib-xlsxtable = "^1.1.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
+pyinstaller = { version = "^6.0", markers = "python_version < '3.13'" }
 
 
 [build-system]
