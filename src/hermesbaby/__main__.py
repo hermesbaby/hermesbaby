@@ -21,6 +21,7 @@ import logging
 import os
 import platform
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -348,16 +349,18 @@ def html(
         Path(_get_kconfig().syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
     )
     executable = os.path.join(_tool_path, "sphinx-build")
-    command = f"""
-        {executable}
-        -b html
-        -W
-        -c {_get_resource_path("")}
-        {_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value}
-        {build_dir}
-    """
-    typer.echo(command)
-    result = subprocess.run(command.split(), cwd=directory)
+    command = [
+        f"{executable}",
+        "-b",
+        "html",
+        "-W",
+        "-c",
+        f"{_get_resource_path('')}",
+        f"{_get_kconfig().syms['BUILD__DIRS__SOURCE'].str_value}",
+        f"{build_dir}",
+    ]
+    typer.echo(" ".join(shlex.quote(a) for a in command))
+    result = subprocess.run(command, cwd=directory, check=True)
     sys.exit(result.returncode)
 
 
@@ -377,21 +380,27 @@ def html_live(
     kconfig = _get_kconfig()
     build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
     executable = os.path.join(_tool_path, "sphinx-autobuild")
-    command = f"""
-        {executable}
-        -b html
-        -j 10
-        -W
-        -c {_get_resource_path("")}
-        {kconfig.syms["BUILD__DIRS__SOURCE"].str_value}
-        {build_dir}
-        --watch {kconfig.syms["BUILD__DIRS__CONFIG"].str_value}
-        --re-ignore '_tags/.*'
-        --port {int(kconfig.syms["BUILD__PORTS__HTML__LIVE"].str_value)}
-        --open-browser
-    """
-    typer.echo(command)
-    result = subprocess.run(command.split(), cwd=directory)
+    command = [
+        f"{executable}",
+        "-b",
+        "html",
+        "-j",
+        "10",
+        "-W",
+        "-c",
+        f"{_get_resource_path('')}",
+        f"{kconfig.syms['BUILD__DIRS__SOURCE'].str_value}",
+        f"{build_dir}",
+        "--watch",
+        f"{kconfig.syms['BUILD__DIRS__CONFIG'].str_value}",
+        "--re-ignore",
+        "_tags/.*",
+        "--port",
+        f"{int(kconfig.syms['BUILD__PORTS__HTML__LIVE'].str_value)}",
+        "--open-browser",
+    ]
+    typer.echo(" ".join(shlex.quote(a) for a in command))
+    result = subprocess.run(command, cwd=directory, check=True)
     sys.exit(result.returncode)
 
 
@@ -418,9 +427,10 @@ def configure(
     config_tool = "menuconfig" if is_headless else "guiconfig"
 
     # Start the configuration tool as a subprocess
-    command = f"{_tool_path}/{config_tool} {_config_file}"
-    typer.echo(command)
-    result = subprocess.run(command.split(), cwd=directory)
+
+    command = [os.path.join(_tool_path, config_tool), str(_config_file)]
+    typer.echo(" ".join(shlex.quote(a) for a in command))
+    result = subprocess.run(command, cwd=directory, check=True)
 
     # Don't retain any *.old file
     Path(CFG_CONFIG_CUSTOM_FILE + ".old").unlink(missing_ok=True)
@@ -699,31 +709,50 @@ def publish(
         subprocess.run(["chmod", "600", str(ssh_key_path)], check=True, text=True)
 
         # Create and clean up remote directories
-        ssh_cleanup_command = (
-            f"ssh "
-            f"-o StrictHostKeyChecking=no "
-            f"-o UserKnownHostsFile=/dev/null "
-            f"-i {ssh_key_path} "
-            f"{publish_user}@{publish_host} "
-            f'"(mkdir -p /var/www/html/{scm_owner_kind}/{scm_owner}/{publish_repo} '
-            f"&&  cd /var/www/html/{scm_owner_kind}/{scm_owner}/{publish_repo} "
-            f'&& rm -rf {git_branch})"'
-        )
+        ssh_cleanup_command = [
+            "ssh",
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
+            "-i",
+            f"{ssh_key_path}",
+            f"{publish_user}@{publish_host}",
+            f"(mkdir -p /var/www/html/{scm_owner_kind}/{scm_owner}/{publish_repo} "
+            f"&& cd /var/www/html/{scm_owner_kind}/{scm_owner}/{publish_repo} "
+            f"&& rm -rf {git_branch})",
+        ]
+
         subprocess.run(ssh_cleanup_command, shell=True, check=True, text=True)
 
         # Compress and transfer files
-        tar_command = (
-            f"tar -czf - "
-            f"-C {publish_source_folder} . "
-            f"| ssh "
-            f"-o StrictHostKeyChecking=no "
-            f"-o UserKnownHostsFile=/dev/null "
-            f"-i {ssh_key_path} {publish_user}@{publish_host} "
-            f'"(cd /var/www/html/{scm_owner_kind}/{scm_owner}/{publish_repo} '
+        tar_command = [
+            "tar",
+            "-czf",
+            "-",
+            "-C",
+            f"{publish_source_folder}",
+            ".",
+        ]
+
+        ssh_command = [
+            "ssh",
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
+            "-i",
+            f"{ssh_key_path}",
+            f"{publish_user}@{publish_host}",
+            f"(cd /var/www/html/{scm_owner_kind}/{scm_owner}/{publish_repo} "
             f"&& mkdir -p {git_branch} "
-            f'&& tar -xzf - -C {git_branch})"'
-        )
-        subprocess.run(tar_command, shell=True, check=True, text=True)
+            f"&& tar -xzf - -C {git_branch})",
+        ]
+        # Run tar -> ssh with pipe
+        tar_proc = subprocess.Popen(tar_command, stdout=subprocess.PIPE)
+        subprocess.run(ssh_command, stdin=tar_proc.stdout, check=True)
+        tar_proc.stdout.close()
+        tar_proc.wait()
 
         typer.echo(f"Published to {publish_url}")
 
