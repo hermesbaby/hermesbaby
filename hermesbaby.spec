@@ -84,14 +84,75 @@ for pkg_dir in package_dirs:
 
 # Build dynamic hidden imports list based on available package directories
 base_hiddenimports = [
+    # Core hermesbaby package
     'hermesbaby',
+
+    # CLI framework
     'typer',
+
+    # Configuration management
     'kconfiglib',
+
+    # Template engine
     'cookiecutter',
-    # Only include commonly used imports, others will be lazy loaded
+
+    # HTTP requests
     'requests',
     'urllib3',
+
+    # Documentation framework
     'sphinx',
+    'sphinx.util',
+    'sphinx.util.logging',
+    'sphinx.ext.intersphinx',
+    'sphinx.highlighting',
+
+    # Git operations
+    'git',
+
+    # Date/time handling
+    'datetime',
+    'tzlocal',
+
+    # Document processing
+    'docutils',
+    'docutils.nodes',
+    'docutils.parsers.rst',
+    'docutils.parsers.rst.roles',
+
+    # Web scraping/parsing
+    'bs4',
+
+    # YAML processing
+    'yaml',
+
+    # Bibliography
+    'pybtex',
+    'pybtex.style.formatting.unsrt',
+    'pybtex.style.labels.alpha',
+    'pybtex.plugin',
+
+    # Robot Framework lexer
+    'robotframeworklexer',
+
+    # Traceability
+    'mlx.traceability',
+
+    # Package resources
+    'pkg_resources',
+
+    # Standard library modules that might need explicit inclusion
+    'importlib.metadata',
+    'importlib.resources',
+    'json',
+    'platform',
+    'subprocess',
+    'pathlib',
+    'ssl',
+    'html',
+    're',
+    'runpy',
+    'getpass',
 ]
 
 # Add package-specific hidden imports only if they were included in datas
@@ -102,7 +163,7 @@ for pkg_dir in package_dirs:
         try:
             has_content = any(
                 f.suffix in ['.py', '.yaml', '.yml', '.json', '.txt', '.md']
-                for f in pkg_path.rglob('*') 
+                for f in pkg_path.rglob('*')
                 if f.is_file() and not f.name.startswith('.') and '__pycache__' not in str(f)
             )
             if has_content:
