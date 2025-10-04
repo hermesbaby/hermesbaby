@@ -66,6 +66,43 @@ def _lazy_import_cookiecutter():
     return cookiecutter
 
 
+def _is_terminal_only() -> bool:
+    """
+    Returns True if running in a terminal-only environment (no graphical UI available).
+    Works across Linux, macOS, and Windows.
+    """
+
+    # 1. Explicit override for testing or user forcing
+    if "HERMESBABY_TERMINAL_ONLY" in os.environ:
+        return os.environ["HERMESBABY_TERMINAL_ONLY"].lower() in ("1", "true", "yes")
+
+    # 2. CI/CD environments are almost always non-graphical
+    if (
+        os.environ.get("CI")
+        or os.environ.get("GITHUB_ACTIONS")
+        or os.environ.get("CONTAINER")
+    ):
+        return True
+
+    system = platform.system()
+
+    # 3. On Linux / macOS, check for display servers
+    if system in ("Linux", "Darwin"):
+        if os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"):
+            return False
+        # Running over SSH or TTY-only session
+        if os.environ.get("SSH_CONNECTION"):
+            return True
+        return True
+
+    # 4. On Windows, assume desktop GUI is available
+    if system == "Windows":
+        return False
+
+    # 5. Fallback (unknown system → play safe)
+    return True
+
+
 def _get_config_dir():
     """Get the configuration directory, handling both development and PyInstaller contexts."""
     if hasattr(sys, "_MEIPASS"):
@@ -422,12 +459,8 @@ def configure(
 
     # Set environment variable KCONFIG_CONFIG to the value of CFG_CONFIG_CUSTOM_FILE
     os.environ["KCONFIG_CONFIG"] = CFG_CONFIG_CUSTOM_FILE
-
-    # Check if we're running in a headless environment (like GitHub Codespace)
-    is_headless = "DISPLAY" not in os.environ or not os.environ["DISPLAY"]
-
     # Use text-based config (menuconfig) in headless environments, GUI (guiconfig) otherwise
-    config_tool = "menuconfig" if is_headless else "guiconfig"
+    config_tool = "menuconfig" if _is_terminal_only() else "guiconfig"
 
     # Start the configuration tool as a subprocess
 
