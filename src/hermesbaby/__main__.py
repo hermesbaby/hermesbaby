@@ -134,9 +134,6 @@ def _get_resource_path(filename):
             return Path(str(resource))
 
 
-_tool_path = Path(sys.executable).parent
-
-
 def _get_template_dir():
     # In PyInstaller, use sys._MEIPASS to find the templates directory
     if hasattr(sys, "_MEIPASS"):
@@ -181,6 +178,24 @@ def _tools_load_external_tools() -> dict:
     except FileNotFoundError:
         typer.echo(f"Error: {file_path} not found.")
         return {}
+
+
+def _resolve_tool(name: str) -> str:
+    exe_dir = Path(sys.executable).parent
+    candidates = [
+        exe_dir / f"{name}.exe",  # Windows same dir
+        exe_dir / name,  # Unix same dir
+        exe_dir / "Scripts" / f"{name}.exe",  # Windows embedded layout
+        exe_dir / "bin" / name,  # Unix embedded layout
+    ]
+    for c in candidates:
+        if c.exists():
+            return str(c)
+    # Fallback to PATH
+    found = shutil.which(name)
+    if found:
+        return found
+    raise FileNotFoundError(f"{name} not found in {exe_dir} or PATH")
 
 
 def _install_scoop() -> bool:
@@ -388,7 +403,7 @@ def html(
     build_dir = (
         Path(_get_kconfig().syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
     )
-    executable = os.path.join(_tool_path, "sphinx-build")
+    executable = _resolve_tool("sphinx-build")
     command = [
         f"{executable}",
         "-b",
@@ -419,7 +434,7 @@ def html_live(
 
     kconfig = _get_kconfig()
     build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
-    executable = os.path.join(_tool_path, "sphinx-autobuild")
+    executable = _resolve_tool("sphinx-autobuild")
     command = [
         f"{executable}",
         "-b",
@@ -464,7 +479,8 @@ def configure(
 
     # Start the configuration tool as a subprocess
 
-    command = [os.path.join(_tool_path, config_tool), str(_config_file)]
+    executable = _resolve_tool(config_tool)
+    command = [executable, str(_config_file)]
     typer.echo(" ".join(shlex.quote(a) for a in command))
     result = subprocess.run(command, cwd=directory, check=True)
 
