@@ -512,46 +512,48 @@ plantuml_latex_output_format = "pdf"
 # @see https://sphinxcontrib-mermaid-demo.readthedocs.io
 # @see https://mermaid.js.org/syntax/gitgraph.html
 
-extensions.append("sphinxcontrib.mermaid")
+if False:
 
-# Set the output format depending on builder:
-# Use svg but overwrite it in case we want to build a pdf via latex-builder
+    extensions.append("sphinxcontrib.mermaid")
 
-mermaid_output_format = "svg"
+    # Set the output format depending on builder:
+    # Use svg but overwrite it in case we want to build a pdf via latex-builder
 
-
-def setup_app__mermaid(app):
-    app.connect("builder-inited", _mermaid_on_builder_inited)
+    mermaid_output_format = "svg"
 
 
-app_setups.append(setup_app__mermaid)
+    def setup_app__mermaid(app):
+        app.connect("builder-inited", _mermaid_on_builder_inited)
 
 
-def _mermaid_on_builder_inited(app):
-
-    if "latex" == app.builder.name:
-        # Override setting(s)
-        app.config.mermaid_output_format = "pdf"
+    app_setups.append(setup_app__mermaid)
 
 
-# This allows commands other than binary executables to be executed on Windows.
-# Does work on Windows, only.
-if "Windows" == platform.system():
-    mermaid_cmd_shell = "True"
+    def _mermaid_on_builder_inited(app):
 
-# For individual parameters, a list of parameters can be added. Refer to https://github.com/mermaidjs/mermaid.cli#options.
-mermaid_params = []
+        if "latex" == app.builder.name:
+            # Override setting(s)
+            app.config.mermaid_output_format = "pdf"
 
-# Make it work under Linux as root (in CI in docker container)
-# Works on Windows with any user as well.
-mermaid_params += ["-p", winning_config_realpath("puppeteer.config.json")]
 
-# Styling
-mermaid_params += ["--backgroundColor", "transparent"]
-mermaid_params += ["--theme", "forest"]
-mermaid_params += ["--width", "400"]
+    # This allows commands other than binary executables to be executed on Windows.
+    # Does work on Windows, only.
+    if "Windows" == platform.system():
+        mermaid_cmd_shell = "True"
 
-mermaid_d3_zoom = True
+    # For individual parameters, a list of parameters can be added. Refer to https://github.com/mermaidjs/mermaid.cli#options.
+    mermaid_params = []
+
+    # Make it work under Linux as root (in CI in docker container)
+    # Works on Windows with any user as well.
+    mermaid_params += ["-p", winning_config_realpath("puppeteer.config.json")]
+
+    # Styling
+    mermaid_params += ["--backgroundColor", "transparent"]
+    mermaid_params += ["--theme", "forest"]
+    mermaid_params += ["--width", "400"]
+
+    mermaid_d3_zoom = True
 
 
 ### Author diagrams of arbitrary types with "Graphviz" ########################
@@ -559,13 +561,15 @@ mermaid_d3_zoom = True
 # @see https://graphviz.org/gallery/
 # @see https://graphviz.org/docs/attrs/rankdir/
 
-extensions.append("sphinx.ext.graphviz")
+if False:
 
-# In case a pdf is generated, we use pdf as output format:
-if "latex" == builder:
-    graphviz_output_format = "pdf"
-else:
-    graphviz_output_format = "svg"
+    extensions.append("sphinx.ext.graphviz")
+
+    # In case a pdf is generated, we use pdf as output format:
+    if "latex" == builder:
+        graphviz_output_format = "pdf"
+    else:
+        graphviz_output_format = "svg"
 
 
 ### Add copy-to-clipboard button to codeblocks ################################
@@ -708,7 +712,8 @@ bibtex_default_style = "customkey"  # unsorted or pick "ieee"/"plain"/"alpha", e
 ### Make use of Inkscape for PDF output work  #################################
 # @see https://pypi.org/project/sphinxcontrib-svg2pdfconverter/
 
-extensions.append("sphinxcontrib.inkscapeconverter")
+if False:
+    extensions.append("sphinxcontrib.inkscapeconverter")
 
 
 ### Create hyperlinks to issues  ##############################################
