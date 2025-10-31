@@ -14,22 +14,11 @@
         "tags": ["authoring", "build", "headless"],
         "website": "https://www.diagrams.net/",
         "install": {
-            "windows" : "scoop bucket add extras && scoop install draw.io"
+            "windows" : "Check if it is in our PATH"
         },
         "run": {
             "windows" : "draw.io",
             "linux" : "drawio"
-        }
-    },
-    "Node.js": {
-        "tags": ["authoring", "build", "headless"],
-        "website": "https://nodejs.org/",
-        "install": {
-            "windows" : "scoop install nodejs"
-        },
-        "run": {
-            "windows" : "node",
-            "linux" : "node"
         }
     },
     "Java": {
@@ -41,28 +30,6 @@
         "run": {
             "windows" : "java",
             "linux" : "java"
-        }
-    },
-    "Graphviz": {
-        "tags": ["authoring", "build", "headless"],
-        "website": "https://graphviz.org/",
-        "install": {
-            "windows" : "scoop install graphviz"
-        },
-        "run": {
-            "windows" : "dot",
-            "linux" : "dot"
-        }
-    },
-    "Mermaid CLI": {
-        "tags": ["authoring", "build", "headless"],
-        "website": "https://mermaid.js.org/",
-        "install": {
-            "windows" : "npm install -g @mermaid-js/mermaid-cli"
-        },
-        "run": {
-            "windows" : "mmdc",
-            "linux" : "mmdc"
         }
     }
 }
