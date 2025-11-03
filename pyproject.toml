@@ -54,6 +54,7 @@ pandas = "^2.2.2"
 pillow = "^10.3.0"
 pip-system-certs = "^4.0"
 pyad = "^0.6.0"
+pywin32 = { markers = "sys_platform == 'win32'" }
 pytz = "^2024.1"
 pyyaml = "^6.0.1"
 robotframeworklexer = "^1.1"
