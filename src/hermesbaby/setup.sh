@@ -87,28 +87,6 @@ fi
 java --version
 
 
-### Install mermaid command line tool #########################################
-
-# Install nodejs (brings package manager npm with it)
-if which node; then
-    echo "nodejs is already installed"
-else
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash
-    $SUDO apt install -y nodejs
-fi
-node --version
-
-
-# Mermaid CLI
-if which mmdc; then
-    echo "mermaid-cli is already installed"
-else
-    $SUDO npm install -g @mermaid-js/mermaid-cli
-fi
-mmdc --version
-
-
-
 ### Reload environment ########################################################
 source ~/.bashrc
 
