@@ -260,7 +260,7 @@ if "sphinx_material" == html_theme:  ###########################################
 
     html_theme_options = {
         "repo_name": "Code",
-        "globaltoc_depth": 3,
+        "globaltoc_depth": kconfig.syms["STYLING__GLOBALTOC_DEPTH"].int_value,
         "globaltoc_collapse": "true",
         "globaltoc_includehidden": "true",
         # "localtoc_label_text": "Seiteninhalt",
