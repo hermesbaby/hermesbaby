@@ -460,6 +460,37 @@ def html_live(
 
 
 @app.command()
+def pdf(
+    ctx: typer.Context,
+    directory: str = typer.Argument(
+        ".",
+        help="Directory where to execute the command. ",
+    ),
+):
+    """Build to format PDF via LaTeX"""
+
+    _set_env()
+    _load_config()
+
+    build_dir = (
+        Path(_get_kconfig().syms["BUILD__DIRS__BUILD"].str_value) / "latex"
+    )
+    executable = _resolve_tool("sphinx-build")
+    command = [
+        f"{executable}",
+        "-b",
+        "latex",
+        "-c",
+        f"{_get_resource_path('')}",
+        f"{_get_kconfig().syms['BUILD__DIRS__SOURCE'].str_value}",
+        f"{build_dir}",
+    ]
+    typer.echo(" ".join(shlex.quote(a) for a in command))
+    result = subprocess.run(command, cwd=directory, check=True)
+    sys.exit(result.returncode)
+
+
+@app.command()
 def configure(
     ctx: typer.Context,
     directory: str = typer.Argument(
