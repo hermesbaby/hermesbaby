@@ -426,11 +426,6 @@ if os.path.exists(redirects_file):
     rediraffe_branch = _git_branch
 
 
-# RSS-Feed support removed (sphinxfeed extension)
-# The extension was causing issues on macOS and is not used.
-# See: https://github.com/hermesbaby/hermesbaby/issues/24
-
-
 ### Draw diagrams with "draw.io" ##############################################
 # @see https://pypi.org/project/sphinxcontrib-drawio/
 
