@@ -675,7 +675,7 @@ def update(
     from hermesbaby.web_access_ctrl import create_htaccess_entries
 
     kconfig = _get_kconfig()
-    yaml_template_file = _get_resource_path("htaccess.yaml")
+    yaml_template_file = _get_resource_path("web_access_ctrl/htaccess.yaml")
     yaml_file = Path(directory) / os.path.join(
         kconfig.syms["BUILD__DIRS__CONFIG"].str_value, "htaccess.yaml"
     )
