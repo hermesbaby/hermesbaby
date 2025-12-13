@@ -426,29 +426,9 @@ if os.path.exists(redirects_file):
     rediraffe_branch = _git_branch
 
 
-### Enable support for RSS-Feed readers #######################################
-# @see https://github.com/lsaffre/sphinxfeed
-#
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# !!! Sphinxfeed will include only .rst files !!!
-# !!! that have a :date: field with a date    !!!
-# !!! that does not lie in the future.        !!!
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#
-
-extensions.append("sphinxfeed")
-
-# mandatory options
-feed_base_url = f"https://{kconfig.syms['PUBLISH__HOST'].str_value}"
-feed_description = f"{kconfig.syms['DOC__TITLE'].str_value}"
-feed_author = kconfig.syms["DOC__AUTHOR"].str_value
-
-# optional options
-feed_field_name = _print_out_timestamp
-feed_filename = "rss.xml"
-feed_entry_permalink = True
-feed_use_atom = True
-use_dirhtml = False
+# RSS-Feed support removed (sphinxfeed extension)
+# The extension was causing issues on macOS and is not used.
+# See: https://github.com/hermesbaby/hermesbaby/issues/24
 
 
 ### Draw diagrams with "draw.io" ##############################################
