@@ -137,3 +137,57 @@ def test_task_install(cli_runner):
 
     result = cli_runner.invoke(app_tools, ["check", "--tag", "headless"])
     assert result.exit_code == 0, "Not all tools were installed"
+
+
+def test_table_alignment(cli_runner, project_dir):
+    """Test that table alignment classes are properly applied in HTML output."""
+    from src.hermesbaby.__main__ import app
+    from pathlib import Path
+
+    # Run the "new" command to set up the project
+    result = cli_runner.invoke(app, ["new", "."])
+    assert result.exit_code == 0, "Setup failed"
+
+    # Create a markdown file with a table that has alignment
+    docs_dir = project_dir / "docs"
+    index_md = docs_dir / "index.md"
+    
+    table_content = """# Table Alignment Test
+
+| left-aligned | center-aligned | right-aligned |
+| :--- | :----: | ----: |
+| a    | b      | c     |
+"""
+    
+    index_md.write_text(table_content)
+
+    # Build HTML
+    result = cli_runner.invoke(app, ["html"])
+    assert result.exit_code == 0, "Build failed"
+
+    # Check the generated HTML - look in both possible locations
+    index_html = project_dir / "out" / "docs" / "html" / "index.html"
+    if not index_html.exists():
+        # Check if there's a custom build directory from a previous test
+        custom_build_dir = project_dir / "my-own-build-dir" / "html" / "index.html"
+        if custom_build_dir.exists():
+            index_html = custom_build_dir
+        else:
+            # List available directories for debugging
+            build_dirs = list(project_dir.glob("*/html/index.html"))
+            assert False, f"Build output not found. Available paths: {build_dirs}"
+    
+    assert index_html.exists(), f"Build output does not exist: {index_html}"
+    
+    html_content = index_html.read_text()
+    
+    # Verify that alignment classes are present in the HTML
+    assert 'class="head text-left"' in html_content, "text-left class missing"
+    assert 'class="head text-center"' in html_content, "text-center class missing"
+    assert 'class="head text-right"' in html_content, "text-right class missing"
+    assert 'class="text-left"' in html_content, "text-left class missing in body"
+    assert 'class="text-center"' in html_content, "text-center class missing in body"
+    assert 'class="text-right"' in html_content, "text-right class missing in body"
+    
+    # Verify that custom.css is included
+    assert 'custom.css' in html_content, "custom.css not included"
