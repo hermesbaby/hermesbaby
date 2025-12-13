@@ -41,6 +41,11 @@ def replace_placeholders(value, output_dir, source_dir, config_dir):
 
 def call_programs(app: Sphinx, phase: str):
     logger = logging.getLogger(__name__)
+    
+    # Skip post-build commands if in test mode
+    if os.environ.get('HERMESBABY_SKIP_POST_BUILD', '').lower() in ('1', 'true', 'yes'):
+        logger.info(f"Skipping {phase}-build programs (HERMESBABY_SKIP_POST_BUILD is set)")
+        return
 
     # Get the current builder
     builder = app.builder.name
