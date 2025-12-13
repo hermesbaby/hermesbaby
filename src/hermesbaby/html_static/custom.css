@@ -7,8 +7,26 @@ table.docutils {
 table.docutils th,
 table.docutils td {
     border: 1px solid black;
-    text-align: center;
     padding: 4px;
+}
+
+/* Default center alignment for tables without explicit alignment */
+table.docutils th:not(.text-left):not(.text-center):not(.text-right),
+table.docutils td:not(.text-left):not(.text-center):not(.text-right) {
+    text-align: center;
+}
+
+/* Respect alignment classes from MyST-Parser */
+table.docutils .text-left {
+    text-align: left;
+}
+
+table.docutils .text-center {
+    text-align: center;
+}
+
+table.docutils .text-right {
+    text-align: right;
 }
 
 /* Improve header row appearance */
