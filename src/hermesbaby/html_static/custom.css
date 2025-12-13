@@ -53,29 +53,7 @@ table.docutils thead th:last-child {
 }
 
 /* Make links more prominent by adding underlines */
-/* Applies to regular hyperlinks */
-a:link,
-a:visited {
-    text-decoration: underline;
-}
-
-/* Keep underline on hover and active states */
-a:hover,
-a:active {
-    text-decoration: underline;
-}
-
-/* Ensure cross-references (internal links) are also underlined */
-a.reference {
-    text-decoration: underline;
-}
-
-/* Ensure external links are underlined */
-a.reference.external {
-    text-decoration: underline;
-}
-
-/* Ensure internal links are underlined */
-a.reference.internal {
+/* Applies to all links including hyperlinks, cross-references, internal and external links */
+a {
     text-decoration: underline;
 }
