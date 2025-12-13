@@ -51,3 +51,8 @@ table.docutils thead th:first-child {
 table.docutils thead th:last-child {
     border-top-right-radius: 6px;
 }
+
+/* Make links more prominent by adding underlines to all link types */
+a {
+    text-decoration: underline;
+}
