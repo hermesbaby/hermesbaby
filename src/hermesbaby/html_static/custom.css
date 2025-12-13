@@ -52,8 +52,7 @@ table.docutils thead th:last-child {
     border-top-right-radius: 6px;
 }
 
-/* Make links more prominent by adding underlines */
-/* Applies to all links including hyperlinks, cross-references, internal and external links */
+/* Make links more prominent by adding underlines to all link types */
 a {
     text-decoration: underline;
 }
