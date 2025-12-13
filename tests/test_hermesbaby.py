@@ -165,20 +165,12 @@ def test_table_alignment(cli_runner, project_dir):
     result = cli_runner.invoke(app, ["html"])
     assert result.exit_code == 0, "Build failed"
 
-    # Check the generated HTML - look in both possible locations
-    index_html = project_dir / "out" / "docs" / "html" / "index.html"
-    if not index_html.exists():
-        # Check if there's a custom build directory from a previous test
-        custom_build_dir = project_dir / "my-own-build-dir" / "html" / "index.html"
-        if custom_build_dir.exists():
-            index_html = custom_build_dir
-        else:
-            # List available directories for debugging
-            build_dirs = list(project_dir.glob("*/html/index.html"))
-            assert False, f"Build output not found. Available paths: {build_dirs}"
+    # Find the generated HTML file - search for it in case of custom build directories
+    html_files = list(project_dir.glob("**/html/index.html"))
+    assert len(html_files) > 0, f"No HTML output found in {project_dir}"
     
-    assert index_html.exists(), f"Build output does not exist: {index_html}"
-    
+    # Use the first found HTML file (should only be one in a fresh test)
+    index_html = html_files[0]
     html_content = index_html.read_text()
     
     # Verify that alignment classes are present in the HTML
