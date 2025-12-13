@@ -6,3 +6,11 @@ ldap-group:
     - group1
     - group2
     - group3
+
+# Optional: Specify maintainers to be contacted for access requests
+# maintainers:
+#   ldap-user:
+#     - maintainer1
+#     - maintainer2
+#   ldap-group:
+#     - maintainerGroup

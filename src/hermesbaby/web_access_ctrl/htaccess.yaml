@@ -5,3 +5,10 @@ ldap-user:
 ldap-group:
     - SOME_Group
     - some_o-THER-gROUP
+
+# Optional: Specify maintainers to be contacted for access requests
+# maintainers:
+#   ldap-user:
+#     - someUser
+#   ldap-group:
+#     - someGroup
