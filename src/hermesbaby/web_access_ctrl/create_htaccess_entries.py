@@ -139,7 +139,7 @@ def main(names, yaml_file, out_file, expand_file):
                 error_doc = (
                     f'ErrorDocument 401 "<h2>Access denied</h2>'
                     f'<p>You don\'t have permission to view this documentation.</p>'
-                    f'<p>Please contact one of the maintainers {maintainers_list}, to request access.</p>"'
+                    f'<p>Please contact one of the maintainers {maintainers_list} to request access.</p>"'
                 )
                 print(file=file)
                 print(error_doc, file=file)
