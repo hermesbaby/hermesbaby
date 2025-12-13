@@ -70,15 +70,41 @@ def expand_users(ldap_groups):
     return sorted(all_users)
 
 
+def get_maintainer_names(maintainers_config):
+    """
+    Extract and expand all maintainer names from the maintainers configuration.
+    For ldap-group entries, expand to individual users.
+    Returns a sorted list of unique maintainer names.
+    """
+    maintainer_names = set()
+    
+    if not maintainers_config:
+        return []
+    
+    # Add individual users
+    ldap_users = maintainers_config.get("ldap-user", [])
+    maintainer_names.update(ldap_users)
+    
+    # Expand groups to individual users
+    ldap_groups = maintainers_config.get("ldap-group", [])
+    if ldap_groups:
+        expanded = expand_users(ldap_groups)
+        maintainer_names.update(expanded)
+    
+    return sorted(maintainer_names)
+
+
 def main(names, yaml_file, out_file, expand_file):
     all_names = set(names)
     ldap_groups = []
+    maintainers_config = None
 
     if yaml_file:
         with open(yaml_file, "r") as file:
             config = yaml.safe_load(file)
             ldap_groups = config.get("ldap-group", [])
             ldap_users = config.get("ldap-user", [])
+            maintainers_config = config.get("maintainers", None)
             all_names.update(ldap_groups + ldap_users)
 
     users = []
@@ -104,6 +130,19 @@ def main(names, yaml_file, out_file, expand_file):
         for group in groups:
             print(group, file=file)
         print("</RequireAny>", file=file)
+        
+        # Add ErrorDocument if maintainers are defined
+        if maintainers_config:
+            maintainer_names = get_maintainer_names(maintainers_config)
+            if maintainer_names:
+                maintainers_list = ", ".join(maintainer_names)
+                error_doc = (
+                    f'ErrorDocument 401 "<h2>Access denied</h2>'
+                    f'<p>You don\'t have permission to view this documentation.</p>'
+                    f'<p>Please contact one of the maintainers {maintainers_list} to request access.</p>"'
+                )
+                print(file=file)
+                print(error_doc, file=file)
 
     print(f"LDAP objects written to {out_file}", file=sys.stderr)
 

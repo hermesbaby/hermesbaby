@@ -67,7 +67,7 @@ extra_datas = [
     (str(hermesbaby_dir / "templates"), "hermesbaby/templates"),
     (str(hermesbaby_dir / "external_tools.json"), "hermesbaby"),
     (str(hermesbaby_dir / "vscode-extensions"), "hermesbaby/vscode-extensions"),
-    (str(hermesbaby_dir / "htaccess.yaml"), "hermesbaby"),
+    (str(hermesbaby_dir / "web_access_ctrl/htaccess.yaml"), "hermesbaby/web_access_ctrl"),
     (str(hermesbaby_dir / "Kconfig"), "hermesbaby"),
     (str(hermesbaby_dir / "Makefile"), "hermesbaby"),
     (str(hermesbaby_dir / "tools"), "hermesbaby/tools"),
