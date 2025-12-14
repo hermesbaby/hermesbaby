@@ -31,7 +31,14 @@ def cli_runner():
 def project_dir(tmp_path):
     current_dir_as_str = Path.cwd()
     os.chdir(tmp_path)
+    
+    # Reset the global kconfig cache to prevent test pollution
+    import src.hermesbaby.__main__ as main_module
+    main_module._kconfig = None
 
     yield tmp_path
 
     os.chdir(current_dir_as_str)
+    
+    # Reset again after test
+    main_module._kconfig = None
