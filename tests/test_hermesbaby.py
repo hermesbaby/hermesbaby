@@ -151,14 +151,14 @@ def test_table_alignment(cli_runner, project_dir):
     # Create a markdown file with a table that has alignment
     docs_dir = project_dir / "docs"
     index_md = docs_dir / "index.md"
-    
+
     table_content = """# Table Alignment Test
 
 | left-aligned | center-aligned | right-aligned |
 | :--- | :----: | ----: |
 | a    | b      | c     |
 """
-    
+
     index_md.write_text(table_content)
 
     # Build HTML
@@ -168,11 +168,11 @@ def test_table_alignment(cli_runner, project_dir):
     # Find the generated HTML file - search for it in case of custom build directories
     html_files = list(project_dir.glob("**/html/index.html"))
     assert len(html_files) > 0, f"No HTML output found in {project_dir}"
-    
+
     # Use the first found HTML file (should only be one in a fresh test)
     index_html = html_files[0]
     html_content = index_html.read_text()
-    
+
     # Verify that alignment classes are present in the HTML
     assert 'class="head text-left"' in html_content, "text-left class missing"
     assert 'class="head text-center"' in html_content, "text-center class missing"
@@ -180,9 +180,28 @@ def test_table_alignment(cli_runner, project_dir):
     assert 'class="text-left"' in html_content, "text-left class missing in body"
     assert 'class="text-center"' in html_content, "text-center class missing in body"
     assert 'class="text-right"' in html_content, "text-right class missing in body"
-    
+
     # Verify that custom.css is included
     assert 'custom.css' in html_content, "custom.css not included"
+
+    # Verify that the built `custom.css` (next to the found index.html) contains rules for text alignment
+    built_css = index_html.parent / "_static" / "custom.css"
+    assert built_css.exists(), f"built custom.css not found at {built_css}"
+    css_content = built_css.read_text()
+
+    assert (
+        '.md-typeset table td.text-center' in css_content
+        or 'td.text-center' in css_content
+        or '.text-center' in css_content
+    ), "CSS rule for center alignment missing"
+    assert 'text-align: center' in css_content, "CSS missing 'text-align: center'"
+
+    assert (
+        '.md-typeset table td.text-right' in css_content
+        or 'td.text-right' in css_content
+        or '.text-right' in css_content
+    ), "CSS rule for right alignment missing"
+    assert 'text-align: right' in css_content, "CSS missing 'text-align: right'"
 
 
 def test_globaltoc_depth_default(cli_runner, project_dir):
@@ -201,10 +220,10 @@ def test_globaltoc_depth_default(cli_runner, project_dir):
     # Find the generated HTML file
     html_files = list(project_dir.glob("**/html/index.html"))
     assert len(html_files) > 0, f"No HTML output found in {project_dir}"
-    
+
     index_html = html_files[0]
     html_content = index_html.read_text()
-    
+
     # The default depth of 3 should be used - we can check this indirectly
     # by verifying that the build succeeded (the configuration was read correctly)
     assert index_html.exists(), "HTML output should exist with default configuration"
@@ -231,7 +250,7 @@ def test_globaltoc_depth_custom(cli_runner, project_dir):
     # Find the generated HTML file
     html_files = list(project_dir.glob("**/html/index.html"))
     assert len(html_files) > 0, f"No HTML output found in {project_dir}"
-    
+
     index_html = html_files[0]
     # Verify that the build succeeded with custom configuration
     assert index_html.exists(), "HTML output should exist with custom globaltoc_depth"

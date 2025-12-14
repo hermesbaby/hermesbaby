@@ -1,36 +1,48 @@
-/* Apply borders and center alignment to all tables */
-table.docutils {
+/* Apply borders and center alignment to tables inside rendered content */
+.md-typeset table {
     border-collapse: collapse;
     width: 100%;
 }
 
-table.docutils th,
-table.docutils td {
+.md-typeset table th,
+.md-typeset table td {
     border: 1px solid black;
     padding: 4px;
 }
 
 /* Default center alignment for tables without explicit alignment */
-table.docutils th:not(.text-left):not(.text-center):not(.text-right),
-table.docutils td:not(.text-left):not(.text-center):not(.text-right) {
+/* Default center alignment for tables without explicit alignment.
+   Match the theme's more specific selectors (table:not([class]) / td:not([align]))
+   so our rules win when loaded later. */
+.md-typeset table:not([class]) th:not([align]):not(.text-left):not(.text-center):not(.text-right),
+.md-typeset table:not([class]) td:not([align]):not(.text-left):not(.text-center):not(.text-right) {
     text-align: center;
 }
 
-/* Respect alignment classes from MyST-Parser */
-table.docutils .text-left {
+/* Respect alignment classes from MyST-Parser (use same specificity to override) */
+.md-typeset table:not([class]) th.text-left,
+.md-typeset table:not([class]) td.text-left,
+.md-typeset table th.text-left,
+.md-typeset table td.text-left {
     text-align: left;
 }
 
-table.docutils .text-center {
+.md-typeset table:not([class]) th.text-center,
+.md-typeset table:not([class]) td.text-center,
+.md-typeset table th.text-center,
+.md-typeset table td.text-center {
     text-align: center;
 }
 
-table.docutils .text-right {
+.md-typeset table:not([class]) th.text-right,
+.md-typeset table:not([class]) td.text-right,
+.md-typeset table th.text-right,
+.md-typeset table td.text-right {
     text-align: right;
 }
 
 /* Improve header row appearance */
-table.docutils thead th {
+.md-typeset table thead th {
     background-color: #f0f0f0;     /* light gray background */
     color: #333;                   /* dark text */
     font-weight: bold;             /* ensure boldness */
@@ -40,15 +52,15 @@ table.docutils thead th {
 }
 
 /* Optional: add hover effect for entire row */
-table.docutils tbody tr:hover {
+.md-typeset table tbody tr:hover {
     background-color: #f9f9f9;
 }
 
 
-table.docutils thead th:first-child {
+.md-typeset table thead th:first-child {
     border-top-left-radius: 6px;
 }
-table.docutils thead th:last-child {
+.md-typeset table thead th:last-child {
     border-top-right-radius: 6px;
 }
 
