@@ -491,6 +491,40 @@ def html_live(
 
 
 @app.command()
+def pdf_live(
+    ctx: typer.Context,
+    directory: str = typer.Argument(
+        ".",
+        help="Directory where to execute the command. ",
+    ),
+):
+    """Build to format PDF with live reload"""
+
+    _set_env()
+    _load_config()
+
+    _check_plantuml()
+
+    build_dir = Path(_kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
+    build_dir.mkdir(parents=True, exist_ok=True)
+    executable = os.path.join(_tool_path, "sphinx-autobuild")
+    command = f"""
+        {executable}
+        -b latex
+        -j 10
+        -W
+        -c {str(CFG_CONFIG_DIR)}
+        {_kconfig.syms["BUILD__DIRS__SOURCE"].str_value}
+        {build_dir}
+        --watch {str(CFG_CONFIG_DIR)}
+        --re-ignore '_tags/.*'
+    """
+    typer.echo(command)
+    result = subprocess.run(command.split(), cwd=directory)
+    sys.exit(result.returncode)
+
+
+@app.command()
 def configure(
     ctx: typer.Context,
     directory: str = typer.Argument(
