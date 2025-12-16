@@ -420,6 +420,37 @@ def html(
 
 
 @app.command()
+def pdf(
+    ctx: typer.Context,
+    directory: str = typer.Argument(
+        ".",
+        help="Directory where to execute the command. ",
+    ),
+):
+    """Build to format PDF. Requires Valid LaTeX installation."""
+
+    _set_env()
+    _load_config()
+
+    _check_plantuml()
+
+    build_dir = Path(_kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
+    build_dir.mkdir(parents=True, exist_ok=True)
+    executable = os.path.join(_tool_path, "sphinx-build")
+    command = f"""
+        {executable}
+        -b latex
+        -W
+        -c {str(CFG_CONFIG_DIR)}
+        {_kconfig.syms["BUILD__DIRS__SOURCE"].str_value}
+        {build_dir}
+    """
+    typer.echo(command)
+    result = subprocess.run(command.split(), cwd=directory)
+    sys.exit(result.returncode)
+
+
+@app.command()
 def html_live(
     ctx: typer.Context,
     directory: str = typer.Argument(
