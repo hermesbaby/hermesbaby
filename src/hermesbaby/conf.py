@@ -320,9 +320,13 @@ if os.path.exists(web_root_dir):
 # @see https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-latex-output
 # @see more settings at https://www.sphinx-doc.org/en/master/latex.html#the-latex-elements-configuration-setting
 
+# Place metadata (build information) on the title page instead of the date.
+if builder == "latex":
+    today = _metadata
+
 latex_elements = {
     "papersize": "a4paper",
-    "pointsize": "12pt"
+    "pointsize": "12pt",
 }
 
 
