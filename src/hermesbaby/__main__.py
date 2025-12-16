@@ -432,21 +432,26 @@ def pdf(
     _set_env()
     _load_config()
 
-    _check_plantuml()
+    build_dir = (
+        Path(_get_kconfig().syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
+    )
 
-    build_dir = Path(_kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
-    build_dir.mkdir(parents=True, exist_ok=True)
-    executable = os.path.join(_tool_path, "sphinx-build")
-    command = f"""
-        {executable}
-        -b latex
-        -W
-        -c {str(CFG_CONFIG_DIR)}
-        {_kconfig.syms["BUILD__DIRS__SOURCE"].str_value}
-        {build_dir}
-    """
-    typer.echo(command)
-    result = subprocess.run(command.split(), cwd=directory)
+    build_dir = (
+        Path(_get_kconfig().syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
+    )
+    executable = _resolve_tool("sphinx-build")
+    command = [
+        f"{executable}",
+        "-b",
+        "latex",
+        "-W",
+        "-c",
+        f"{_get_resource_path('')}",
+        f"{_get_kconfig().syms['BUILD__DIRS__SOURCE'].str_value}",
+        f"{build_dir}",
+    ]
+    typer.echo(" ".join(shlex.quote(a) for a in command))
+    result = subprocess.run(command, cwd=directory, check=True)
     sys.exit(result.returncode)
 
 
@@ -503,25 +508,29 @@ def pdf_live(
     _set_env()
     _load_config()
 
-    _check_plantuml()
-
-    build_dir = Path(_kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
-    build_dir.mkdir(parents=True, exist_ok=True)
-    executable = os.path.join(_tool_path, "sphinx-autobuild")
-    command = f"""
-        {executable}
-        -b latex
-        -j 10
-        -W
-        -c {str(CFG_CONFIG_DIR)}
-        {_kconfig.syms["BUILD__DIRS__SOURCE"].str_value}
-        {build_dir}
-        --watch {str(CFG_CONFIG_DIR)}
-        --re-ignore '_tags/.*'
-    """
-    typer.echo(command)
-    result = subprocess.run(command.split(), cwd=directory)
+    kconfig = _get_kconfig()
+    build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
+    executable = _resolve_tool("sphinx-autobuild")
+    command = [
+        f"{executable}",
+        "-b",
+        "latex",
+        "-j",
+        "10",
+        "-W",
+        "-c",
+        f"{_get_resource_path('')}",
+        f"{kconfig.syms['BUILD__DIRS__SOURCE'].str_value}",
+        f"{build_dir}",
+        "--watch",
+        f"{kconfig.syms['BUILD__DIRS__CONFIG'].str_value}",
+        "--re-ignore",
+        "_tags/.*",
+    ]
+    typer.echo(" ".join(shlex.quote(a) for a in command))
+    result = subprocess.run(command, cwd=directory, check=True)
     sys.exit(result.returncode)
+
 
 
 @app.command()
