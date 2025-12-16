@@ -675,8 +675,8 @@ append_existing_files(bibtex_bibfiles, bibtex_bibfiles_candidates)
 #
 # This section defines a custom style from references
 #
-# For techreports, online, and misc references the 
-# KeyLabelStyle allows to define a custom label using the 
+# For techreports, online, and misc references the
+# KeyLabelStyle allows to define a custom label using the
 # 'key' field or the 'number' field
 #
 from pybtex.style.formatting.unsrt import Style as UnsrtStyle
@@ -705,7 +705,7 @@ bibtex_default_style = "customkey"  # unsorted or pick "ieee"/"plain"/"alpha", e
 ### Make use of Inkscape for PDF output work  #################################
 # @see https://pypi.org/project/sphinxcontrib-svg2pdfconverter/
 
-if False:
+if builder == 'latex':
     extensions.append("sphinxcontrib.inkscapeconverter")
 
 
