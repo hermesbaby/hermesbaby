@@ -316,47 +316,7 @@ if os.path.exists(web_root_dir):
 
 latex_elements = {
     "papersize": "a4paper",
-    "pointsize": "12pt",
-    "preamble": r"""
-\setlength{\headheight}{15pt}
-\addtolength{\topmargin}{-3pt}
-\usepackage[utf8]{inputenc}
-
-%% --------------------------------------------------
-%% |:sec:| add list of figures, list of tables, list of code blocks to TOC
-%% --------------------------------------------------
-\makeatletter
-\renewcommand{\sphinxtableofcontents}{%
-    %
-    % before resetting page counter, let's do the right thing.
-    \if@openright\cleardoublepage\else\clearpage\fi
-    \pagenumbering{roman}%
-    \begingroup
-        \parskip \z@skip
-        \tableofcontents
-    \endgroup
-    %
-    %% addtional lists
-    \if@openright\cleardoublepage\else\clearpage\fi
-    \addcontentsline{toc}{chapter}{Abbildungsverzeichnis}%
-    \listoffigures
-    %
-    \if@openright\cleardoublepage\else\clearpage\fi
-    \addcontentsline{toc}{chapter}{Tabellenverzeichnis}%
-    \listoftables
-    %
-    \if@openright\cleardoublepage\else\clearpage\fi
-    \if@openright\cleardoublepage\else\clearpage\fi
-    \addcontentsline{toc}{chapter}{Verzeichnis der Quellcodes}%
-    \listof{literalblock}{Verzeichnis der Quellcodes}%
-    %
-    \if@openright\cleardoublepage\else\clearpage\fi
-    \pagenumbering{arabic}%
-}
-\makeatother
-
-
-""",
+    "pointsize": "12pt"
 }
 
 
