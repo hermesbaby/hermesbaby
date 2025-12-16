@@ -166,8 +166,9 @@ def _load_config():
         logger.info("There is no '{hermesbaby__config_file}'. Using default config.")
 
 
-def _set_env():
+def _set_env(ctx):
     os.environ["HERMESBABY_CWD"] = os.getcwd()
+    os.environ["HERMESBABY_COMMAND"] = ctx.info_name
 
 
 def _tools_load_external_tools() -> dict:
@@ -316,7 +317,7 @@ def new(
 ):
     """Create a new project"""
 
-    _set_env()
+    _set_env(ctx)
     _load_config()
 
     templates_root_path = _get_template_dir()
@@ -393,7 +394,7 @@ def html(
 ):
     """Build to format HTML"""
 
-    _set_env()
+    _set_env(ctx)
     _load_config()
 
     build_dir = (
@@ -429,7 +430,7 @@ def pdf(
 ):
     """Build to format PDF. Requires Valid LaTeX installation."""
 
-    _set_env()
+    _set_env(ctx)
     _load_config()
 
     build_dir = (
@@ -465,7 +466,7 @@ def html_live(
 ):
     """Build to format HTML with live reload"""
 
-    _set_env()
+    _set_env(ctx)
     _load_config()
 
     kconfig = _get_kconfig()
@@ -505,11 +506,12 @@ def pdf_live(
 ):
     """Build to format PDF with live reload"""
 
-    _set_env()
+    _set_env(ctx)
     _load_config()
 
     kconfig = _get_kconfig()
     build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
+
     executable = _resolve_tool("sphinx-autobuild")
     command = [
         f"{executable}",
@@ -526,6 +528,9 @@ def pdf_live(
         f"{kconfig.syms['BUILD__DIRS__CONFIG'].str_value}",
         "--re-ignore",
         "_tags/.*",
+        "--port",
+        f"{int(kconfig.syms['BUILD__PORTS__PDF__LIVE'].str_value)}",
+        "--open-browser",
     ]
     typer.echo(" ".join(shlex.quote(a) for a in command))
     result = subprocess.run(command, cwd=directory, check=True)
@@ -543,7 +548,7 @@ def configure(
 ):
     """Configure the project"""
 
-    _set_env()
+    _set_env(ctx)
     _load_config()
 
     # Set environment variable KCONFIG_CONFIG to the value of CFG_CONFIG_CUSTOM_FILE
@@ -574,7 +579,7 @@ def clean(
 ):
     """Clean the build directory"""
 
-    _set_env()
+    _set_env(ctx)
     _load_config()
 
     folder_to_remove = (
@@ -599,7 +604,7 @@ def venv(
         typer.echo(ctx.get_help())
         raise typer.Exit()
 
-    _set_env()
+    _set_env(ctx)
     _load_config()
 
     _flag_install = True
@@ -743,7 +748,7 @@ def update(
         typer.echo(ctx.get_help())
         raise typer.Exit()
 
-    _set_env()
+    _set_env(ctx)
     _load_config()
 
     from hermesbaby.web_access_ctrl import create_htaccess_entries
@@ -785,7 +790,7 @@ def publish(
     Publish the build output to the configured server using SSH
     """
 
-    _set_env()
+    _set_env(ctx)
     _load_config()
 
     kconfig = _get_kconfig()

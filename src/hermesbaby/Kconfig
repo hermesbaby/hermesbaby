@@ -172,8 +172,8 @@ config BUILD__PORTS__HTML__LIVE
     int "Port for live preview of HTML build"
     default 1976
 
-config BUILD__PORTS__PRESENTATION__LIVE
-    int "Port for live preview of presentation build"
+config BUILD__PORTS__PDF__LIVE
+    int "Port for live preview of pdf build"
     default 1973
 
 endmenu

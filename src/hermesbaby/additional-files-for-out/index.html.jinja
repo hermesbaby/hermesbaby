@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+        iframe {
+            width: 100%;
+            height: 100vh;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <iframe id="pdf-viewer" title="{{ title }}"></iframe>
+
+    <script>
+        const PDF_FILE = '{{ basename }}.pdf';
+        const VIEWER_URL = 'web/viewer.html';
+        const STORAGE_KEY = 'pdf-viewer-hash';
+        const CHECK_INTERVAL = 1000;
+
+        let lastModified = null;
+        let checkTimer = null;
+
+        function loadPDF() {
+            // Get saved state from localStorage
+            const savedState = localStorage.getItem(STORAGE_KEY + '-state');
+            let hashParams = '';
+
+            if (savedState) {
+                try {
+                    const state = JSON.parse(savedState);
+                    console.log('Will restore saved state:', state);
+                    // Build hash parameters for initial page/zoom
+                    if (state.page) {
+                        hashParams = `#page=${state.page}`;
+                        if (state.zoom) {
+                            hashParams += `&zoom=${Math.round(state.zoom * 100)}`;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error parsing saved state:', e);
+                }
+            }
+
+            // Build the viewer URL with the PDF file reference
+            // Use absolute path from root so viewer can find it
+            const pdfUrl = encodeURIComponent('../' + PDF_FILE);
+            const viewerUrl = `${VIEWER_URL}?file=${pdfUrl}`;
+
+            console.log('Loading PDF viewer:', viewerUrl, 'with hash:', hashParams || '<none>');
+
+            // Set the iframe src with the hash appended
+            const iframe = document.getElementById('pdf-viewer');
+            iframe.src = viewerUrl + hashParams;
+
+            startChecking();
+        }
+
+        // Try to save the viewer state from the iframe
+        function saveCurrentState() {
+            try {
+                const iframe = document.getElementById('pdf-viewer');
+                const iframeWindow = iframe.contentWindow;
+
+                // Since the viewer is same-origin, we can access its location
+                if (iframeWindow && iframeWindow.location.hash) {
+                    const hash = iframeWindow.location.hash;
+                    localStorage.setItem(STORAGE_KEY, hash);
+                    console.log('Saved viewer state:', hash);
+                    return hash;
+                }
+            } catch (e) {
+                console.log('Could not access iframe:', e);
+            }
+            return null;
+        }
+
+        // Monitor the iframe for hash changes
+        function monitorIframeHash() {
+            const iframe = document.getElementById('pdf-viewer');
+            let lastHash = '';
+            let isFirstCheck = true;
+
+            const checkHash = () => {
+                try {
+                    const iframeWindow = iframe.contentWindow;
+
+                    // Check the URL hash first
+                    if (iframeWindow && iframeWindow.location.hash) {
+                        const currentHash = iframeWindow.location.hash;
+                        if (currentHash !== lastHash) {
+                            lastHash = currentHash;
+                            localStorage.setItem(STORAGE_KEY, currentHash);
+                            console.log('Hash changed to:', currentHash);
+                        }
+                    }
+
+                    // Also try to access PDF.js viewer application directly
+                    if (iframeWindow && iframeWindow.PDFViewerApplication) {
+                        const app = iframeWindow.PDFViewerApplication;
+                        if (app.pdfViewer && app.page) {
+                            const state = {
+                                page: app.page,
+                                zoom: app.pdfViewer.currentScale,
+                                scrollTop: app.pdfViewer.container.scrollTop,
+                                scrollLeft: app.pdfViewer.container.scrollLeft
+                            };
+                            const stateStr = JSON.stringify(state);
+                            const oldState = localStorage.getItem(STORAGE_KEY + '-state');
+
+                            // Don't save on first check to avoid overwriting with page 1
+                            if (!isFirstCheck && stateStr !== oldState) {
+                                localStorage.setItem(STORAGE_KEY + '-state', stateStr);
+                                console.log('Saved PDF state:', state);
+                            }
+                            isFirstCheck = false;
+                        }
+                    }
+                } catch (e) {
+                    // Ignore errors
+                }
+            };
+
+            // Check every 500ms
+            setInterval(checkHash, 500);
+        }
+
+        // Wait for iframe to load then start monitoring
+        document.getElementById('pdf-viewer').addEventListener('load', () => {
+            console.log('PDF viewer iframe loaded');
+
+            // Wait a bit for PDF.js to initialize and restore state
+            setTimeout(() => {
+                const savedState = localStorage.getItem(STORAGE_KEY + '-state');
+                if (savedState) {
+                    try {
+                        const state = JSON.parse(savedState);
+                        console.log('Attempting to restore state:', state);
+
+                        const iframe = document.getElementById('pdf-viewer');
+                        const iframeWindow = iframe.contentWindow;
+
+                        if (iframeWindow && iframeWindow.PDFViewerApplication) {
+                            const app = iframeWindow.PDFViewerApplication;
+
+                            // Wait for PDF to be loaded
+                            if (app.pdfDocument) {
+                                restoreViewerState(app, state);
+                            } else {
+                                app.eventBus.on('documentloaded', () => {
+                                    restoreViewerState(app, state);
+                                });
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error restoring state:', e);
+                    }
+                }
+
+                // Start monitoring after a longer delay to let restoration complete
+                setTimeout(monitorIframeHash, 3000);
+            }, 1500);
+        });
+
+        function restoreViewerState(app, state) {
+            setTimeout(() => {
+                try {
+                    console.log('Restoring to page:', state.page, 'zoom:', state.zoom);
+
+                    // Set the page first
+                    if (state.page && state.page <= app.pagesCount) {
+                        app.page = state.page;
+                    }
+
+                    // Then set zoom
+                    if (state.zoom) {
+                        app.pdfViewer.currentScale = state.zoom;
+                    }
+
+                    // Finally restore scroll position (after a delay to let rendering happen)
+                    setTimeout(() => {
+                        if (state.scrollTop !== undefined) {
+                            app.pdfViewer.container.scrollTop = state.scrollTop;
+                        }
+                        if (state.scrollLeft !== undefined) {
+                            app.pdfViewer.container.scrollLeft = state.scrollLeft;
+                        }
+                        console.log('State restored successfully');
+                    }, 300);
+                } catch (e) {
+                    console.error('Error applying state:', e);
+                }
+            }, 100);
+        }
+
+        // Save state before page unload
+        window.addEventListener('beforeunload', saveCurrentState);
+
+        // Check for PDF file updates
+        async function checkForUpdates() {
+            try {
+                const response = await fetch(PDF_FILE + '?check=' + Date.now(), { method: 'HEAD' });
+                const modified = response.headers.get('Last-Modified');
+                const size = response.headers.get('Content-Length');
+                const etag = response.headers.get('ETag');
+
+                const signature = `${modified}-${size}-${etag}`;
+
+                if (lastModified && lastModified !== signature) {
+                    console.log('PDF updated, reloading...');
+                    saveCurrentState();
+                    // Wait a bit to ensure file write is complete
+                    setTimeout(() => loadPDF(), 500);
+                }
+
+                lastModified = signature;
+            } catch (e) {
+                console.error('Error checking for updates:', e);
+            }
+        }
+
+        function startChecking() {
+            if (checkTimer) clearInterval(checkTimer);
+            checkTimer = setInterval(checkForUpdates, CHECK_INTERVAL);
+        }
+
+        // Initial load
+        loadPDF();
+
+        // Initial load
+        loadPDF();
+    </script>
+</body>
+</html>

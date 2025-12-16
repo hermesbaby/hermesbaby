@@ -27,6 +27,7 @@ import sys
 
 import kconfiglib
 import requests
+import shutil
 import urllib3
 import yaml
 from docutils import nodes
@@ -374,6 +375,49 @@ extensions = []
 
 # List of functions to be called by Sphinx's setup(app) function
 app_setups = []
+
+
+### Add additional files to output folder #####################################
+
+# Here we can detect whether the build runs under sphinx-build or under sphinx-autobuild.
+# This can be recognised by the presence of the environment variable "SPHINX_AUTOBUILD".
+
+def _add_files_to_output_folder(app):
+    additional_files_dir = os.path.join(_conf_realpath, "additional-files-for-out")
+
+    # Set live to true in case value of environment variable "HERMESBABY_COMMAND" contains "live":
+    live =  "live" in os.environ.get("HERMESBABY_COMMAND", "")
+
+    # Copy favicon.ico
+    src_file = os.path.join(additional_files_dir, "favicon.ico")
+    dst_file = os.path.join(app.builder.outdir, "favicon.ico")
+    shutil.copy2(src_file, dst_file)
+
+    if live:
+        if app.builder.name == 'latex':
+            # Run index.html.jinja through jinja2 to create index.html
+            src_file = os.path.join(additional_files_dir, "index.html.jinja")
+            dst_file = os.path.join(app.builder.outdir, "index.html")
+            import jinja2
+            template_loader = jinja2.FileSystemLoader(searchpath=additional_files_dir)
+            template_env = jinja2.Environment(loader=template_loader)
+            template = template_env.get_template("index.html.jinja")
+            rendered_content = template.render(
+                title=kconfig.syms["DOC__TITLE"].str_value,
+                basename=_pdf_basename
+            )
+            with open(dst_file, "w", encoding="utf-8") as f_dst:
+                f_dst.write(rendered_content)
+
+            # Extract the pdfjs.zip to the output folder
+            pdfjs_zip_file = os.path.join(additional_files_dir, "pdfjs.zip")
+            shutil.unpack_archive(pdfjs_zip_file, app.builder.outdir)
+
+
+def setup_app__add_files_to_output_folder(app):
+    app.connect("builder-inited", _add_files_to_output_folder)
+
+app_setups.append(setup_app__add_files_to_output_folder)
 
 
 ### Create redirects for moved pages ##########################################
