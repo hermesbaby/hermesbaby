@@ -1284,7 +1284,8 @@ pre_post_build_programs = {
         {
             "name": "Create PDF from Latex code",
             "builder": "latex",
-            "program": "make",
+            "program": "latexmk",
+            "args": ['-pdf', '-interaction=nonstopmode', '-halt-on-error', '-file-line-error', '-f', f"{_pdf_basename}.tex"],
             "cwd": "$outputdir",
             "severity": "info",
         }
