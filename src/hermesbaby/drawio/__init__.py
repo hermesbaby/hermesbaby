@@ -155,7 +155,11 @@ class DrawIOConverter(ImageConverter):
 
     def guess_mimetypes(self, node: nodes.image) -> List[str]:
         if "drawio" in node["classes"]:
-            node_format = is_valid_format(node.get("format"), self.app.builder)
+            # Override format for latex builder - remove user-defined format
+            if self.app.builder.name == "latex":
+                node_format = None
+            else:
+                node_format = is_valid_format(node.get("format"), self.app.builder)
             format = node_format or self._default_export_format
             extra = f"-{format}" if format else ""
             return ["application/x-drawio" + extra]
