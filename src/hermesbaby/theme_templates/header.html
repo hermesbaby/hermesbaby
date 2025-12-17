@@ -27,6 +27,16 @@
         <label class="md-icon md-icon--search md-header-nav__button" for="__search"></label>
         {% include "searchbox.html" %}
       </div>
+
+        <div class="md-flex__cell md-flex__cell--shrink" id="pdf-link-container">
+        <a href="{{ _pdf_basename }}.pdf"
+            class="md-header-nav__button"
+            title="PDF"
+            target="_blank">
+            PDF
+        </a>
+        </div>
+
       {% if theme_repo_url %}
         <div class="md-flex__cell md-flex__cell--shrink">
           <div class="md-header-nav__source">
@@ -37,4 +47,22 @@
       {% include "version_dropdown.html" %}
     </div>
   </nav>
+  <script>
+    // Check if index.pdf exists and hide the PDF link if it doesn't
+    (function() {
+      var pdfContainer = document.getElementById('pdf-link-container');
+      if (pdfContainer) {
+        var pdfUrl = '{{ _pdf_basename }}.pdf';
+        fetch(pdfUrl, { method: 'HEAD' })
+          .then(function(response) {
+            if (!response.ok) {
+              pdfContainer.style.display = 'none';
+            }
+          })
+          .catch(function() {
+            pdfContainer.style.display = 'none';
+          });
+      }
+    })();
+  </script>
 </header>

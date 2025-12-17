@@ -216,6 +216,8 @@ templates_path = [
     "theme_templates"
 ]
 
+html_context = {}
+
 source_suffix = [".rst", ".md", ".ipynb"]
 
 exclude_patterns = [
@@ -354,6 +356,9 @@ def sanitize_filename(internal_string):
 
 _pdf_basename = sanitize_filename(kconfig.syms["DOC__TITLE"].str_value)
 
+# Make _pdf_basename available in html templates
+html_context["_pdf_basename"] = _pdf_basename
+
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto, manual, or own class]).
 latex_documents = [
@@ -365,7 +370,6 @@ latex_documents = [
         "manual",
     )
 ]
-
 
 ###############################################################################
 ### EXTENSIONS AND THEIR SETTINGS #############################################
@@ -1333,7 +1337,7 @@ pre_post_build_programs = {
             "program": "latexmk",
             "args": ['-pdf', '-interaction=nonstopmode', '-halt-on-error', '-file-line-error', '-f', f"{_pdf_basename}.tex"],
             "cwd": "$outputdir",
-            "severity": "error",
+            "severity": "info",
         }
     ]
 }
