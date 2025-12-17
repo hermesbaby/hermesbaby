@@ -391,6 +391,13 @@ def html(
         ".",
         help="Directory where to execute the command. ",
     ),
+    verbose: int = typer.Option(
+        0,
+        "--verbose",
+        "-v",
+        count=True,
+        help="Increase verbosity (can be repeated)",
+    ),
 ):
     """Build to format HTML"""
 
@@ -415,6 +422,11 @@ def html(
         f"{_get_kconfig().syms['BUILD__DIRS__SOURCE'].str_value}",
         f"{build_dir}",
     ]
+
+    # Add verbose flags if specified
+    for _ in range(verbose):
+        command.insert(1, "-v")
+
     typer.echo(" ".join(shlex.quote(a) for a in command))
     result = subprocess.run(command, cwd=directory, check=True)
     sys.exit(result.returncode)
@@ -426,6 +438,13 @@ def pdf(
     directory: str = typer.Argument(
         ".",
         help="Directory where to execute the command. ",
+    ),
+    verbose: int = typer.Option(
+        0,
+        "--verbose",
+        "-v",
+        count=True,
+        help="Increase verbosity (can be repeated)",
     ),
 ):
     """Build to format PDF. Requires Valid LaTeX installation."""
@@ -451,6 +470,11 @@ def pdf(
         f"{_get_kconfig().syms['BUILD__DIRS__SOURCE'].str_value}",
         f"{build_dir}",
     ]
+
+    # Add verbose flags if specified
+    for _ in range(verbose):
+        command.insert(1, "-v")
+
     typer.echo(" ".join(shlex.quote(a) for a in command))
     result = subprocess.run(command, cwd=directory, check=True)
     sys.exit(result.returncode)
@@ -462,6 +486,13 @@ def html_live(
     directory: str = typer.Argument(
         ".",
         help="Directory where to execute the command. ",
+    ),
+    verbose: int = typer.Option(
+        0,
+        "--verbose",
+        "-v",
+        count=True,
+        help="Increase verbosity (can be repeated)",
     ),
 ):
     """Build to format HTML with live reload"""
@@ -491,6 +522,11 @@ def html_live(
         f"{int(kconfig.syms['BUILD__PORTS__HTML__LIVE'].str_value)}",
         "--open-browser",
     ]
+
+    # Add verbose flags if specified
+    for _ in range(verbose):
+        command.insert(1, "-v")
+
     typer.echo(" ".join(shlex.quote(a) for a in command))
     result = subprocess.run(command, cwd=directory, check=True)
     sys.exit(result.returncode)
@@ -502,6 +538,13 @@ def pdf_live(
     directory: str = typer.Argument(
         ".",
         help="Directory where to execute the command. ",
+    ),
+    verbose: int = typer.Option(
+        0,
+        "--verbose",
+        "-v",
+        count=True,
+        help="Increase verbosity (can be repeated)",
     ),
 ):
     """Build to format PDF with live reload"""
@@ -532,6 +575,11 @@ def pdf_live(
         f"{int(kconfig.syms['BUILD__PORTS__PDF__LIVE'].str_value)}",
         "--open-browser",
     ]
+
+    # Add verbose flags if specified
+    for _ in range(verbose):
+        command.insert(1, "-v")
+
     typer.echo(" ".join(shlex.quote(a) for a in command))
     result = subprocess.run(command, cwd=directory, check=True)
     sys.exit(result.returncode)
