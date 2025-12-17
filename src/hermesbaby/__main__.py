@@ -545,11 +545,27 @@ def configure(
         ".",
         help="Directory where to execute the command. ",
     ),
+    update: bool = typer.Option(
+        False,
+        "--update",
+        help="Update .hermesbaby file with current Kconfig values without interactive prompts",
+    ),
 ):
     """Configure the project"""
 
     _set_env(ctx)
     _load_config()
+
+    # If --update is specified, silently update the config file
+    if update:
+        kconfig = _get_kconfig()
+        config_file_path = Path(directory) / CFG_CONFIG_CUSTOM_FILE
+
+        # Write all current configuration values to .hermesbaby
+        kconfig.write_config(str(config_file_path))
+
+        typer.echo(f"Updated {config_file_path} with current Kconfig values")
+        return
 
     # Set environment variable KCONFIG_CONFIG to the value of CFG_CONFIG_CUSTOM_FILE
     os.environ["KCONFIG_CONFIG"] = CFG_CONFIG_CUSTOM_FILE
