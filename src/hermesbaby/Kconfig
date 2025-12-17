@@ -232,6 +232,12 @@ endmenu
 
 menu "Publish"
 
+config PUBLISH__CREATE_AND_EMBED_PDF
+    bool "Build PDF and embed it to the html based site"
+    default n
+    help
+        Whether to add the generated PDF to the publish process.
+
 config PUBLISH__HOST
     string "Host (with port if necessary)"
     default "docs.some-host.com"
