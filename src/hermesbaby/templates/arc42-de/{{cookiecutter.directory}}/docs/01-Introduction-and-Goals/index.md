@@ -60,12 +60,14 @@ Tabellarische Darstellung der Qualitätsziele mit möglichst konkreten Szenarien
 ```{drawio-figure} _figures/quality_goals_iso_25010_2023_de.drawio
 :scale: 75%
 
-Qualitätsmerkmale nach {cite:p}`ISO_25010`
+Qualitätsmerkmale der ISO/IEC 25010:2023
 ```
 
 ```{todo}
 Heraussuchen der {ref}`sec_quality_goals` und diese begründen, siehe [arc42-guideline](https://docs.arc42.org/section-1/)
 ```
+
+{numref}`fig_iso_25010_de` zeigt die Qualitätsmerkmale nach {cite:p}`ISO_25010`.
 
 Aus den neun in {numref}`fig_iso_25010_de` dargestellten wurden folgende fünf für das System herausragene Qualitätszielen identifiziert:
 
