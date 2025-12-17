@@ -4139,21 +4139,6 @@ standalone = ["Sphinx (>=5)"]
 test = ["pytest"]
 
 [[package]]
-name = "sphinxcontrib-drawio"
-version = "0.0.17"
-description = "Sphinx Extension to include draw.io files"
-optional = false
-python-versions = ">=3.6"
-groups = ["main"]
-files = [
-    {file = "sphinxcontrib-drawio-0.0.17.tar.gz", hash = "sha256:1a3f82efd1ab4b41d1ee8dd27c296bae0944a10faca3568c462dc6b9a77748f5"},
-    {file = "sphinxcontrib_drawio-0.0.17-py3-none-any.whl", hash = "sha256:c42e3fee5398da52836e8ee5c61c2f19bce947abb2d17b857057fb32137c1096"},
-]
-
-[package.dependencies]
-sphinx = ">=2"
-
-[[package]]
 name = "sphinxcontrib-htmlhelp"
 version = "2.1.0"
 description = "sphinxcontrib-htmlhelp is a sphinx extension which renders HTML help files"
@@ -5093,4 +5078,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "6b022e1ee7a3bb1dd7ef83941cb3fca74147833c27fdf3f8d89ac52e377d2df7"
+content-hash = "af91c075140f393ac34e02326003a2cc7654726210329460daa9be5e74749e61"

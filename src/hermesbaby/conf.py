@@ -467,7 +467,9 @@ use_dirhtml = False
 ### Draw diagrams with "draw.io" ##############################################
 # @see https://pypi.org/project/sphinxcontrib-drawio/
 
-extensions.append("sphinxcontrib.drawio")
+# Do use the local copy we made from sphinxcontrib-drawio version 0.0.17
+#extensions.append("sphinxcontrib.drawio")
+extensions.append("hermesbaby.drawio")
 
 ## Settings regarding run in headless mode
 
