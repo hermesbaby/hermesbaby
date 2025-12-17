@@ -336,6 +336,44 @@ latex_elements = {
 % Fix fancyhdr warning about headheight being too small
 \setlength{\headheight}{14.5pt}
 \addtolength{\topmargin}{-2.5pt}
+
+% Support deeper nesting in itemize and enumerate lists (up to 10 levels)
+\usepackage{enumitem}
+\setlistdepth{10}
+
+% Define new list counters for levels 5-10
+\newcounter{enumv}
+\newcounter{enumvi}
+\newcounter{enumvii}
+\newcounter{enumviii}
+\newcounter{enumix}
+\newcounter{enumx}
+
+% Renew itemize with 10 levels
+\renewlist{itemize}{itemize}{10}
+\setlist[itemize,1]{label=\textbullet}
+\setlist[itemize,2]{label=--}
+\setlist[itemize,3]{label=*}
+\setlist[itemize,4]{label=\textgreater}
+\setlist[itemize,5]{label=-}
+\setlist[itemize,6]{label=\textasteriskcentered}
+\setlist[itemize,7]{label=\textopenbullet}
+\setlist[itemize,8]{label=\textperiodcentered}
+\setlist[itemize,9]{label=\textendash}
+\setlist[itemize,10]{label=\triangleright}
+
+% Renew enumerate with 10 levels
+\renewlist{enumerate}{enumerate}{10}
+\setlist[enumerate,1]{label=\arabic*.}
+\setlist[enumerate,2]{label=\alph*.}
+\setlist[enumerate,3]{label=\roman*.}
+\setlist[enumerate,4]{label=\Alph*.}
+\setlist[enumerate,5]{label=\Roman*.}
+\setlist[enumerate,6]{label=\arabic*.}
+\setlist[enumerate,7]{label=\alph*.}
+\setlist[enumerate,8]{label=\roman*.}
+\setlist[enumerate,9]{label=\Alph*.}
+\setlist[enumerate,10]{label=\Roman*.}
 """,
 }
 
