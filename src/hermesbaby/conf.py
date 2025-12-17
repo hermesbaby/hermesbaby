@@ -338,7 +338,6 @@ latex_elements = {
 \addtolength{\topmargin}{-2.5pt}
 
 % Support deeper nesting in itemize and enumerate lists (up to 10 levels)
-\usepackage{enumitem}
 \setlistdepth{10}
 
 % Define new list counters for levels 5-10
@@ -375,6 +374,7 @@ latex_elements = {
 \setlist[enumerate,9]{label=\Alph*.}
 \setlist[enumerate,10]{label=\Roman*.}
 """,
+    "extrapackages": r"\usepackage{enumitem}",
 }
 
 
