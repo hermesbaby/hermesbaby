@@ -332,6 +332,11 @@ if builder == "latex":
 latex_elements = {
     "papersize": "a4paper",
     "pointsize": "12pt",
+    "preamble": r"""
+% Fix fancyhdr warning about headheight being too small
+\setlength{\headheight}{14.5pt}
+\addtolength{\topmargin}{-2.5pt}
+""",
 }
 
 
