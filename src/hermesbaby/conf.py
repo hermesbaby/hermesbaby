@@ -1331,7 +1331,7 @@ pre_post_build_programs = {
             "program": "latexmk",
             "args": ['-pdf', '-interaction=nonstopmode', '-halt-on-error', '-file-line-error', '-f', f"{_pdf_basename}.tex"],
             "cwd": "$outputdir",
-            "severity": "info",
+            "severity": "error",
         }
     ]
 }
