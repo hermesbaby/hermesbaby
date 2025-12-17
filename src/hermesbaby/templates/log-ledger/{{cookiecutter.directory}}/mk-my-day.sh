@@ -183,9 +183,7 @@ create_day () {
 - [ ] TODO_i
 - [ ] TODO_n
 
-
 ## TOP-1
-
 
 EOF
 
@@ -327,8 +325,12 @@ vs_code_today_file_path=$file_day_relpath
 
 file_with_cursor_pos=$vs_code_today_file_path:$(echo $(cat $vs_code_today_file_path | wc -l))
 
-echo "info: Opening vscode and setting cursor to end of file $vs_code_today_file_path"
-code . --goto $file_with_cursor_pos
-
+# In case option "--skip-open-vscode" is given, skip opening VS code
+if [[ " $* " == *" --skip-open-vscode "* ]]; then
+    echo "info: Skipping opening VS code due to --skip-open-vscode option."
+else
+    echo "info: Opening vscode and setting cursor to end of file $vs_code_today_file_path"
+    code . --goto $file_with_cursor_pos
+fi
 
 ### EOF #######################################################################
