@@ -373,8 +373,18 @@ latex_elements = {
 \setlist[enumerate,8]{label=\roman*.}
 \setlist[enumerate,9]{label=\Alph*.}
 \setlist[enumerate,10]{label=\Roman*.}
+
+% Auto-scale tables to fit page width
+% Hook into tabulary environment
+\AtBeginEnvironment{tabulary}{\begin{adjustbox}{max width=\textwidth}}
+\AtEndEnvironment{tabulary}{\end{adjustbox}}
+
+% Hook into tabular environment (but not if already in adjustbox)
+\newif\ifintable
+\AtBeginEnvironment{tabular}{\ifintable\else\intabletrue\begin{adjustbox}{max width=\textwidth}\fi}
+\AtEndEnvironment{tabular}{\ifintable\end{adjustbox}\intablefalse\fi}
 """,
-    "extrapackages": r"\usepackage{enumitem}",
+    "extrapackages": r"\usepackage{enumitem}\usepackage{adjustbox}\usepackage{etoolbox}",
 }
 
 
