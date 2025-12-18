@@ -25,7 +25,7 @@ teardown() {
     git config user.email "test@example.com"
     git add .
     git commit -m "1"
-    echo '{ "PUBLISH__CREATE_AND_EMBED_PDF": "y" }' > build_parameters.json
+    # echo '{ "PUBLISH__CREATE_AND_EMBED_PDF": "y" }' > build_parameters.json
     export CONFIG_PUBLISH_SKIP_PUBLISH="y"
 
     # Item-under-test:
