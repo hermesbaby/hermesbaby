@@ -1,50 +1,43 @@
-#!/bin/env bash
+#!/usr/bin/env bats
 
-### EXECUTION CONTROL #########################################################
+setup() {
+    # Get the project root (assuming this script is in tests/e2e/)
+    PROJECT_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." >/dev/null 2>&1 && pwd)"
+    export PROJECT_ROOT
 
-# Enable strict error handling and debugging
-set -euxo pipefail
+    # Create a temporary directory for the test
+    TEST_DIR="$(mktemp -d)"
+    export TEST_DIR
+    cd "$TEST_DIR"
+}
 
-# In case CTLR-C the entire script is aborted
-trap "exit" INT
+teardown() {
+    rm -rf "$TEST_DIR"
+}
 
-# Log all output to a temporary log file
-log_file=$(mktemp /tmp/$(basename "$0")-XXXXXX.log)
-exec > >(tee -a "$log_file") 2>&1
-echo "Logging to file: $log_file"
+@test "CI can create and embed PDF into HTML package" {
+    # Activate virtualenv
+    # Use the absolute path from the original script as a fallback if PROJECT_ROOT is tricky,
+    # but PROJECT_ROOT should work.
+    source "$PROJECT_ROOT/.venv/Scripts/activate"
 
+    # Create test data
+    run python -m hermesbaby new --template hello .
+    [ "$status" -eq 0 ]
 
-### PREAMBLE ##################################################################
+    git init .
+    git add .
+    git commit -m "1"
+    echo '{ "PUBLISH__CREATE_AND_EMBED_PDF": "y" }' > build_parameters.json
 
-purspose="Test that CI can create and embed PDF into HTML package"
-echo "Starting test: $purspose"
+    # Item-under-test:
+    run "$PROJECT_ROOT/src/hermesbaby/ci/run.sh"
+    [ "$status" -eq 0 ]
 
+    # Evaluate
+    [ -f "./out/docs/html.tar.gz" ]
 
-### Execute ###################################################################
-
-source /d/github/hermesbaby/hermesbaby/.venv/Scripts/activate
-
-# Create test data
-cd $(mktemp -d)
-python -m hermesbaby new --template hello .
-git init .
-git add .
-git commit -m "1"
-echo '{ "PUBLISH__CREATE_AND_EMBED_PDF": "y" }' | tee build_parameters.json
-
-# Item-under-test:
-/d/github/hermesbaby/hermesbaby/src/hermesbaby/ci/run.sh
-
-
-### Evaluate ##################################################################
-
-ls ./out/docs/html.tar.gz && echo "PASS: HTML generated" || echo "FAIL: HTML missing"
-tar -tzf ./out/docs/html.tar.gz | grep the_default_title.pdf && echo "PASS: PDF present in package" || echo "FAIL: PDF missing in package"
-
-
-### Summary ###################################################################
-
-echo "Test complete: $purspose"
-exit 0
-
-### EOF #######################################################################
+    run tar -tzf ./out/docs/html.tar.gz
+    [ "$status" -eq 0 ]
+    echo "$output" | grep "the_default_title.pdf"
+}
