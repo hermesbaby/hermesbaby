@@ -61,7 +61,8 @@ RUN apt-get update --fix-missing && \
 
 RUN pipx install hermesbaby && \
     pipx ensurepath && \
-    hb tools install
+    hb ci install-tools
+
 
 ### Copy and setup run script #################################################
 

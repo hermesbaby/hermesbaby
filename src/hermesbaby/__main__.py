@@ -964,6 +964,15 @@ def publish(
 
 
 @app_tools.command()
+def install():
+    """
+    Install the external tools necessary for documentation build on ci system.
+    (Deprecated: use 'hb ci install-tools')
+    """
+    ci_install_tools()
+
+
+@app_tools.command()
 def check_scoop(
     install: bool = typer.Option(
         False, "--install", help="Automatically install scoop if missing"
@@ -994,7 +1003,7 @@ def check_scoop(
 @app_tools.command()
 def check(
     install: bool = typer.Option(
-        False, "--install", help="Automatically install missing tools"
+        False, "--install", help="Automatically install missing tools via scoop"
     ),
     tag: str = typer.Option(None, "--tag", help="Filter tag"),
 ):
@@ -1384,9 +1393,9 @@ def vscode_uninstall():
         _vscode_display_table(recommendations, installed_extensions)
 
 
-@app_tools.command()
-def install():
-    """Install the external tools necessary for documentation build"""
+@app_ci.command(name="install-tools")
+def ci_install_tools():
+    """Install the external tools necessary for documentation build on CI/CD"""
 
     typer.echo("Installing tools for CI/CD pipeline")
 
