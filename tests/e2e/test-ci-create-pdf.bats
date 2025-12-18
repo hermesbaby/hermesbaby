@@ -27,7 +27,7 @@ teardown() {
     git config user.email "test@example.com"
     git add .
     git commit -m "1"
-    # echo '{ "PUBLISH__CREATE_AND_EMBED_PDF": "y" }' > build_parameters.json
+    echo '{ "PUBLISH__CREATE_AND_EMBED_PDF": "y" }' > build_parameters.json
     export CONFIG_PUBLISH_SKIP_PUBLISH="y"
 
     # Item-under-test:
@@ -37,6 +37,6 @@ teardown() {
     # Evaluate
     [ -f "./out/docs/html.tar.gz" ]
 
-    # run tar -tzf ./out/docs/html.tar.gz  | grep "the_default_title.pdf"
-    # [ "$status" -eq 0 ]
+    run tar -tzf ./out/docs/html.tar.gz  | grep "the_default_title.pdf"
+    [ "$status" -eq 0 ]
 }
