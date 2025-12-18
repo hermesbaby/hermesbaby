@@ -2,7 +2,7 @@
 
 #############################################################################
 #                                                                           #
-#   This file is part of hermesbaby - the software engineers' typewriter    #
+#   This le is part of hermesbaby - the software engineers' typewriter    #
 #                                                                           #
 #   Copyright (c) 2024 Alexander Mann-Wahrenberg (basejumpa)                #
 #                                                                           #
@@ -109,18 +109,16 @@ fi
 
 ### Install latex #############################################################
 
-if which pdflatex; then
-    echo "LaTeX is already installed"
-else
-    $SUDO apt-get install -y \
-        texlive-latex-base \
-        texlive-latex-recommended \
-        texlive-latex-extra \
-        texlive-fonts-recommended \
-        texlive-fonts-extra \
-        latexmk \
-        ghostscript
-fi
+$SUDO apt-get install -y \
+    texlive-latex-base \
+    texlive-latex-recommended \
+    texlive-latex-extra \
+    texlive-font-utils \
+    texlive-fonts-recommended \
+    texlive-fonts-extra \
+    latexmk \
+    ghostscript
+
 
 
 ### Reload environment ########################################################
