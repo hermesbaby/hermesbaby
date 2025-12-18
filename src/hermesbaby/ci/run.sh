@@ -82,7 +82,7 @@ hb html
 # The switch CONFIG_PUBLISH__CREATE_AND_EMBED_PDF may come from
 # - the .hermesbaby file
 # - the build_parameters.json file
-if [ "${CONFIG_PUBLISH__CREATE_AND_EMBED_PDF:-}" == "y" ]; then
+if [ "${CONFIG_PUBLISH__CREATE_AND_EMBED_PDF:-n}" == "y" ]; then
     hb pdf
     pdf_file=$(basename $(ls "$CONFIG_BUILD__DIRS__BUILD"/pdf/*.tex) .tex).pdf
     cp "$CONFIG_BUILD__DIRS__BUILD"/pdf/$pdf_file "$CONFIG_BUILD__DIRS__BUILD"/html
@@ -108,7 +108,15 @@ tar -czf \
     -C $CONFIG_BUILD__DIRS__BUILD/html \
     .
 
+
 # PUBLISH
+
+# Check if publishing should be skipped
+if [ "${CONFIG_PUBLISH_SKIP_PUBLISH:-n}" == "y" ]; then
+    echo "Publishing is skipped due to CONFIG_PUBLISH_SKIP_PUBLISH being set to 'y'."
+    exit 0
+fi
+
 
 curl -k \
     -X PUT \
