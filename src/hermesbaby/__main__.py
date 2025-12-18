@@ -1452,8 +1452,8 @@ def ci_config_to_env(
         typer.echo(f"Error: '{file_path}' is not a valid JSON file. {e}", err=True)
         raise typer.Exit(code=1)
     except (FileNotFoundError, ValueError) as e:
-        typer.echo(f"Error: {e}", err=True)
-        raise typer.Exit(code=1)
+        typer.echo(f"Info: {e}", err=True)
+        raise typer.Exit(code=0)
     except Exception as e:
         typer.echo(f"Error reading file '{file_path}': {e}", err=True)
         raise typer.Exit(code=1)
