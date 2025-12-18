@@ -1,3 +1,21 @@
+<!---
+################################################################
+#                                                              #
+#  This file is part of HermesBaby                             #
+#                       the software engineer's typewriter     #
+#                                                              #
+#      https://github.com/hermesbaby                           #
+#                                                              #
+#  Copyright (c) 2024 Alexander Mann-Wahrenberg (basejumpa)    #
+#                                                              #
+#  License(s)                                                  #
+#                                                              #
+#  - MIT for contents used as software                         #
+#  - CC BY-SA-4.0 for contents used as method or otherwise     #
+#                                                              #
+################################################################
+-->
+
 # CI Build Agent Documentation (Ubuntu 24.04)
 
 Docker image for building and publishing documentation using the docs-as-code toolchain with hermesbaby.
