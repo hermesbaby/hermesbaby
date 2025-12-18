@@ -35,8 +35,8 @@ build_template() {
     run python -m hermesbaby html
     [ "$status" -eq 0 ]
 
-    # run python -m hermesbaby pdf
-    # [ "$status" -eq 0 ]
+    run python -m hermesbaby pdf
+    [ "$status" -eq 0 ]
 }
 
 @test "Template: zero" {

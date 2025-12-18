@@ -30,7 +30,7 @@ jobs:
 
     - name: Install external tools
       run: |
-        sudo ./src/hermesbaby/setup.sh
+        sudo ./src/hermesbaby/ci/setup.sh
 
     - name: Run unit tests
       run: |

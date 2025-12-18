@@ -1426,7 +1426,7 @@ def ci_install_tools():
 
     path = Path(__file__).parent
 
-    command = f"{path}/setup.sh"
+    command = f"{path}/ci/setup.sh"
     typer.echo(command)
     result = subprocess.run(command.split(), cwd=path)
 
