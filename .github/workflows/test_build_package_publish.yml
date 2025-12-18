@@ -29,7 +29,7 @@ jobs:
       run: |
         sudo ./src/hermesbaby/setup.sh
 
-    - name: Run tests
+    - name: Run unit tests
       run: |
         poetry run pytest
 

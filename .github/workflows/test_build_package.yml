@@ -32,7 +32,7 @@ jobs:
       run: |
         sudo ./src/hermesbaby/setup.sh
 
-    - name: Run tests
+    - name: Run unit tests
       run: |
         poetry run pytest
 
@@ -43,3 +43,10 @@ jobs:
     - name: Build package
       run: |
         poetry build
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: hermesbaby-dist
+        path: dist/
+        retention-days: ${{ github.ref_name == 'main' && 90 || 7 }}
