@@ -26,6 +26,7 @@ build_template() {
 
     # Special case for log-ledger
     if [ "$template" = "log-ledger" ]; then
+        chmod +x ./mk-my-day.sh
         run ./mk-my-day.sh --skip-open-vscode
         [ "$status" -eq 0 ]
     fi
