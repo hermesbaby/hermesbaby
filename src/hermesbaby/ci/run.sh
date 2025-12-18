@@ -35,9 +35,30 @@ fi
 # Fail and exist immediately on unset environment variables and/or broken pipes
 set -euo pipefail
 
-### Process userBuildConfig.json ##############################################
 
-source <(python3 "$(dirname "$0")/userBuildConfig.py")
+### Inject hermesbaby project configuration into environment ##################
+
+# Make sure that there is a .hermesbaby file even the project doesn't have one
+# Also make sure that the .hermesbaby file contains most recent parameters
+hb configure --update
+
+# Strip possible trailing \r from each line
+sed -i 's/\r$//' .hermesbaby
+
+# Inject into environment
+source .hermesbaby
+
+
+### Inject CI options into environment ########################################
+# The build may have injected a file with build parameteres.
+# Those parameters may even override the project configuration parameters.
+# Note here: the parameters in the json-file are prefixed with CONFIG_
+# as they begin win the .hermesbaby file. So do not use 'CONFIG_' in the
+# json file.
+# This prefixing has security aspects as well. By this there is no chance to
+# override the environment variables used in the publish step
+
+eval $(hb ci config-to-env build_parameters.json)
 
 
 ### DELETE publication when branch is deleted and exit  #######################
@@ -68,15 +89,6 @@ hb html
 # export branch
 # export componentName
 # export gitProject
-
-
-if [ -f .hermesbaby ]; then
-    # In-place: strip trailing \r from each line
-    sed -i 's/\r$//' .hermesbaby
-fi
-
-# Get CONFIG_BUILD__DIRS__BUILD
-[ -f .hermesbaby ] && source .hermesbaby || CONFIG_BUILD__DIRS__BUILD=out/docs
 
 # PACKAGE
 

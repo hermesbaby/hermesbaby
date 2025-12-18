@@ -269,6 +269,12 @@ app = typer.Typer(
     cls=SortedGroup,
 )
 
+app_ci = typer.Typer(
+    help="CI/CD utilities",
+    no_args_is_help=True,
+)
+app.add_typer(app_ci, name="ci")
+
 app_htaccess = typer.Typer(
     help="Manage access of published document",
     no_args_is_help=True,
@@ -1416,6 +1422,41 @@ def install():
     result = subprocess.run(command.split(), cwd=path)
 
     sys.exit(result.returncode)
+
+
+@app_ci.command(name="config-to-env")
+def ci_config_to_env(
+    file_path: str = typer.Argument(
+        ...,
+        help="Path to JSON configuration file to parse",
+    ),
+):
+    """
+    Parse a JSON config file and output shell export commands.
+
+    Adds prefix HERMESBABY_CI__' to each variable.
+
+    You update your shell environment by running:
+
+    eval $(hb ci config-to-env path/to/config.json)
+
+    """
+    from hermesbaby.ci.parse_config import get_env_vars_from_json, format_as_export_commands
+
+    try:
+        env_vars = get_env_vars_from_json(file_path)
+        commands = format_as_export_commands(env_vars)
+        for cmd in commands:
+            typer.echo(cmd)
+    except json.JSONDecodeError as e:
+        typer.echo(f"Error: '{file_path}' is not a valid JSON file. {e}", err=True)
+        raise typer.Exit(code=1)
+    except (FileNotFoundError, ValueError) as e:
+        typer.echo(f"Error: {e}", err=True)
+        raise typer.Exit(code=1)
+    except Exception as e:
+        typer.echo(f"Error reading file '{file_path}': {e}", err=True)
+        raise typer.Exit(code=1)
 
 
 if __name__ == "__main__":
