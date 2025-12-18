@@ -67,7 +67,7 @@ if [[ "${trigger:-}" == "REF DELETED" ]]; then
     echo "Detected REF DELETED trigger; skipping build/package/publish steps."
     curl -k \
         -X DELETE \
-        -H "Authorization: Bearer $SECRET_HERMES_API_TOKEN" \
+        -H "Authorization: Bearer $HERMES_API_TOKEN" \
         https://docs.your-company.com/projects/$gitProject/$componentName/$branch
     exit 0
 fi
@@ -94,12 +94,12 @@ fi
 # This section relies on the injection of the following environment variables:
 #
 # -- From Jenkins vault --
-# export SECRET_HERMES_API_TOKEN
+# export HERMES_API_TOKEN
 #
 # -- From job configuration --
-# export branch
-# export componentName
-# export gitProject
+# export HERMES_PUBLISH_BRANCH
+# export HERMES_PUBLISH_REPO
+# export HERMES_PUBLISH_PROJECT
 
 # PACKAGE
 
@@ -117,12 +117,12 @@ if [ "${CONFIG_PUBLISH_SKIP_PUBLISH:-n}" == "y" ]; then
     exit 0
 fi
 
-
+# Publish to hermes ( @see https://github.com/hermesbaby/hermes )
 curl -k \
     -X PUT \
-    -H "Authorization: Bearer $SECRET_HERMES_API_TOKEN" \
+    -H "Authorization: Bearer $HERMES_API_TOKEN" \
     -F "file=@$CONFIG_BUILD__DIRS__BUILD/html.tar.gz" \
-    https://docs.your-company.com/projects/$gitProject/$componentName/$branch
+    $HERMES_BASE_URL/$HERMES_PUBLISH_PROJECT/$HERMES_PUBLISH_REPO/$HERMES_PUBLISH_BRANCH
 
 
 ### END OF WORKFLOW ###########################################################
