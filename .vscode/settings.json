@@ -48,6 +48,10 @@
 
     "indentRainbow.excludedLanguages": ["yaml"],
 
+    "files.associations": {
+        "*.bats": "shellscript"
+    },
+
 
     // Extension: solomonkinard.git-blame
     "git-blame.config.ignoreWhitespace": true,
