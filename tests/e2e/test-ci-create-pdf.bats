@@ -16,11 +16,6 @@ teardown() {
 }
 
 @test "CI can create and embed PDF into HTML package" {
-    # Activate virtualenv
-    # Use the absolute path from the original script as a fallback if PROJECT_ROOT is tricky,
-    # but PROJECT_ROOT should work.
-    source "$PROJECT_ROOT/.venv/Scripts/activate"
-
     # Create test data
     run python -m hermesbaby new --template hello .
     [ "$status" -eq 0 ]

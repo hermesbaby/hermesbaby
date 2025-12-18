@@ -35,7 +35,7 @@ jobs:
 
     - name: Run e2e tests (BATS)
       run: |
-        tests/e2e/bats/bin/bats tests/e2e/
+        poetry run tests/e2e/bats/bin/bats tests/e2e/
 
     - name: Build package
       run: |

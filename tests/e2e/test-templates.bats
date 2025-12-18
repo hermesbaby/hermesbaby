@@ -11,9 +11,6 @@ setup() {
     TEST_DIR="$(mktemp -d)"
     export TEST_DIR
     cd "$TEST_DIR"
-
-    # Ensure we are using the project's hermesbaby
-    source "$PROJECT_ROOT/.venv/Scripts/activate"
 }
 
 teardown() {
