@@ -75,7 +75,18 @@ fi
 
 ### BUILD #####################################################################
 
+# Build always HTML
 hb html
+
+# Build optionally PDF and embed into HTML
+# The switch CONFIG_PUBLISH__CREATE_AND_EMBED_PDF may come from
+# - the .hermesbaby file
+# - the build_parameters.json file
+if [ "${CONFIG_PUBLISH__CREATE_AND_EMBED_PDF:-}" == "y" ]; then
+    hb pdf
+    pdf_file=$(basename $(ls "$CONFIG_BUILD__DIRS__BUILD"/pdf/*.tex) .tex).pdf
+    cp "$CONFIG_BUILD__DIRS__BUILD"/pdf/$pdf_file "$CONFIG_BUILD__DIRS__BUILD"/html
+fi
 
 
 ### PACKAGE and PUBLISH #######################################################
