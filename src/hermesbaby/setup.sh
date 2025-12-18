@@ -30,10 +30,12 @@ fi
 
 
 ### Configure apt for non-interactive, headless installation ##################
+
 export DEBIAN_FRONTEND=noninteractive
 
 
-### Update local apt index ####################################################
+### Update local apt index #####################################################
+
 $SUDO apt-get update -y
 
 
@@ -82,9 +84,43 @@ fi
 if which java; then
     echo "Java is already installed"
 else
-    $SUDO apt-get install -y openjdk-11-jre
+    $SUDO apt-get install -y openjdk-8-jdk
 fi
 java --version
+
+
+### Install inkscape ##########################################################
+
+if which inkscape; then
+    echo "Inkscape is already installed"
+else
+    $SUDO apt-get install -y inkscape
+fi
+
+
+### Install imagemagick #######################################################
+
+if which convert; then
+    echo "ImageMagick is already installed"
+else
+    $SUDO apt-get install -y imagemagick
+fi
+
+
+### Install latex #############################################################
+
+if which pdflatex; then
+    echo "LaTeX is already installed"
+else
+    $SUDO apt-get install -y \
+        texlive-latex-base \
+        texlive-latex-recommended \
+        texlive-latex-extra \
+        texlive-fonts-recommended \
+        texlive-fonts-extra \
+        latexmk \
+        ghostscript
+fi
 
 
 ### Reload environment ########################################################
