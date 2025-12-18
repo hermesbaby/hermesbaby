@@ -4,19 +4,6 @@ setup_file() {
     # Get the project root
     PROJECT_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." >/dev/null 2>&1 && pwd)"
     export PROJECT_ROOT
-    echo "PROJECT_ROOT: $PROJECT_ROOT" >&3
-
-    # Activate virtualenv and get templates
-    source "$PROJECT_ROOT/.venv/Scripts/activate"
-
-    TEMPLATES_PRIORITY="zero hello log-ledger"
-    ALL_TEMPLATES=$(python -m hermesbaby new --list-templates | grep -E ' - ' | sed 's/ *- //g')
-    echo "ALL_TEMPLATES: $ALL_TEMPLATES" >&3
-
-    # Ensure priority templates are first and unique
-    TEMPLATES=$(echo "$TEMPLATES_PRIORITY $ALL_TEMPLATES" | tr ' ' '\n' | awk '!seen[$0]++' | tr '\n' ' ')
-    export TEMPLATES
-    export COMMANDS="html pdf"
 }
 
 setup() {
@@ -33,32 +20,43 @@ teardown() {
     rm -rf "$TEST_DIR"
 }
 
-@test "All templates can be initialized and built" {
-    for template in $TEMPLATES; do
-        echo "Testing template: $template" >&3
+build_template() {
+    local template="$1"
 
-        # Create a new project directory for this template
-        template_dir="$TEST_DIR/$template"
-        mkdir -p "$template_dir"
+    # Create a new project directory for this template
+    run python -m hermesbaby new --template "$template" .
+    [ "$status" -eq 0 ]
 
-        run python -m hermesbaby new --template "$template" "$template_dir"
+    # Special case for log-ledger
+    if [ "$template" = "log-ledger" ]; then
+        run ./mk-my-day.sh --skip-open-vscode
         [ "$status" -eq 0 ]
+    fi
 
-        cd "$template_dir"
+    # Run build commands
+    run python -m hermesbaby html
+    [ "$status" -eq 0 ]
 
-        # Special case for log-ledger
-        if [ "$template" = "log-ledger" ]; then
-            run ./mk-my-day.sh --skip-open-vscode
-            [ "$status" -eq 0 ]
-        fi
+    run python -m hermesbaby pdf
+    [ "$status" -eq 0 ]
+}
 
-        # Run build commands
-        for command in $COMMANDS; do
-            echo "  Building command: $command" >&3
-            run python -m hermesbaby "$command"
-            [ "$status" -eq 0 ]
-        done
+@test "Template: zero" {
+    build_template "zero"
+}
 
-        cd "$TEST_DIR"
-    done
+@test "Template: hello" {
+    build_template "hello"
+}
+
+@test "Template: log-ledger" {
+    build_template "log-ledger"
+}
+
+@test "Template: arc42-de" {
+    build_template "arc42-de"
+}
+
+@test "Template: arc42-en" {
+    build_template "arc42-en"
 }
