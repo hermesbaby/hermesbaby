@@ -21,7 +21,7 @@ build_template() {
     local template="$1"
 
     # Create a new project directory for this template
-    run python -m hermesbaby new --template "$template" .
+    run python3 -m hermesbaby new --template "$template" .
     [ "$status" -eq 0 ]
 
     # Special case for log-ledger
