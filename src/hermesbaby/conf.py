@@ -46,6 +46,11 @@ _tools_realpath = os.path.realpath(os.path.join(_conf_realpath, "tools"))
 # @see https://github.com/sphinx-doc/sphinx/pull/12203
 suppress_warnings = ["config.cache"]
 
+### Collected app-setups #####################################################
+
+# List of functions to be called by Sphinx's setup(app) function
+app_setups = []
+
 
 ### Import project configuration ##############################################
 # @see https://www.kernel.org/doc/html/next/kbuild/kconfig-language.html
@@ -329,54 +334,52 @@ if os.path.exists(web_root_dir):
 if builder == "latex":
     today = _metadata
 
+# Split tables across pages when needed
+latex_table_style = ["longtable"]
+
 latex_elements = {
     "papersize": "a4paper",
     "pointsize": "12pt",
+    "maxlistdepth": "10",
     "preamble": r"""
+% Don't complain about included PDF version being newer
+\pdfinclusionerrorlevel=0
+
 % Fix fancyhdr warning about headheight being too small
 \setlength{\headheight}{14.5pt}
 \addtolength{\topmargin}{-2.5pt}
-
-% Support deeper nesting in itemize and enumerate lists (up to 10 levels)
-\setlistdepth{10}
-
-% Define new list counters for levels 5-10
-\newcounter{enumv}
-\newcounter{enumvi}
-\newcounter{enumvii}
-\newcounter{enumviii}
-\newcounter{enumix}
-\newcounter{enumx}
-
-% Renew itemize with 10 levels
-\renewlist{itemize}{itemize}{10}
-\setlist[itemize,1]{label=\textbullet}
-\setlist[itemize,2]{label=--}
-\setlist[itemize,3]{label=*}
-\setlist[itemize,4]{label=\textgreater}
-\setlist[itemize,5]{label=-}
-\setlist[itemize,6]{label=\textasteriskcentered}
-\setlist[itemize,7]{label=\textopenbullet}
-\setlist[itemize,8]{label=\textperiodcentered}
-\setlist[itemize,9]{label=\textendash}
-\setlist[itemize,10]{label=\triangleright}
-
-% Renew enumerate with 10 levels
-\renewlist{enumerate}{enumerate}{10}
-\setlist[enumerate,1]{label=\arabic*.}
-\setlist[enumerate,2]{label=\alph*.}
-\setlist[enumerate,3]{label=\roman*.}
-\setlist[enumerate,4]{label=\Alph*.}
-\setlist[enumerate,5]{label=\Roman*.}
-\setlist[enumerate,6]{label=\arabic*.}
-\setlist[enumerate,7]{label=\alph*.}
-\setlist[enumerate,8]{label=\roman*.}
-\setlist[enumerate,9]{label=\Alph*.}
-\setlist[enumerate,10]{label=\Roman*.}
-
 """,
-    "extrapackages": r"\usepackage{enumitem}",
 }
+
+
+def _latex_force_all_non_nested_tables_longtable(app, doctree, docname):
+    """
+    Mark only *non-nested* tables as longtable:
+
+    - skip tables that are nested inside another table
+    - skip tables that contain other tables
+    """
+    for table in doctree.traverse(nodes.table):
+        # 1) Skip tables that are nested *inside* another table
+        if isinstance(table.parent, nodes.table):
+            continue
+
+        # 2) Skip tables that *contain* other tables
+        #    traverse() normally includes the node itself, so we disable that
+        nested_tables = list(table.traverse(nodes.table, include_self=False))
+        if nested_tables:
+            continue
+
+        # 3) Safe candidate: mark as longtable
+        classes = table.setdefault("classes", [])
+        if "longtable" not in classes:
+            classes.append("longtable")
+
+
+def setup_app__latex_force_all_non_nested_tables_longtable(app):
+    app.connect("doctree-resolved", _latex_force_all_non_nested_tables_longtable)
+
+app_setups.append(setup_app__latex_force_all_non_nested_tables_longtable)
 
 
 # @see https://chatgpt.com/share/1ed3fcdf-0405-45a3-9fd6-fcb97d7e793c
@@ -418,14 +421,9 @@ latex_documents = [
 ###############################################################################
 ### EXTENSIONS AND THEIR SETTINGS #############################################
 ###############################################################################
-
 # Ordered list. Order: Most general first, then for more and more special usescases
 # Just initialize as a list here. To be filled from extensions below
 extensions = []
-
-# List of functions to be called by Sphinx's setup(app) function
-app_setups = []
-
 
 ### Add additional files to output folder #####################################
 
