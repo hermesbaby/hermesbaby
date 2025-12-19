@@ -97,7 +97,7 @@ def get_latest_version_from_pypi(package_name, timeout=5):
 
 def compare_versions(version1, version2):
     """
-    Compare two version strings.
+    Compare two version strings using PEP 440 version parsing.
     
     Args:
         version1: First version string (e.g., "1.2.3")
@@ -109,22 +109,17 @@ def compare_versions(version1, version2):
          1 if version1 > version2
     """
     try:
-        # Split versions and convert to integers for comparison
-        parts1 = [int(x) for x in version1.split(".")]
-        parts2 = [int(x) for x in version2.split(".")]
+        from packaging import version
+        v1 = version.parse(version1)
+        v2 = version.parse(version2)
         
-        # Pad shorter version with zeros
-        max_len = max(len(parts1), len(parts2))
-        parts1.extend([0] * (max_len - len(parts1)))
-        parts2.extend([0] * (max_len - len(parts2)))
-        
-        if parts1 < parts2:
+        if v1 < v2:
             return -1
-        elif parts1 > parts2:
+        elif v1 > v2:
             return 1
         else:
             return 0
-    except (ValueError, AttributeError):
+    except Exception:
         # If comparison fails, assume versions are equal
         return 0
 
