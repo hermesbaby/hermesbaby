@@ -363,14 +363,23 @@ latex_elements = {
 \setmainfont{Segoe UI Symbol}
 
 
-% Auto-scale images so they never exceed the text area
-% \usepackage{graphicx}
-% \usepackage{calc}
-% \makeatletter
-% \def\maxwidth{\ifdim\Gin@nat@width>\linewidth \linewidth \else \Gin@nat@width\fi}
-% \def\maxheight{\ifdim\Gin@nat@height>0.9\textheight 0.9\textheight \else \Gin@nat@height\fi}
-% \makeatother
-% \setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Use adjustbox package for intelligent image scaling
+% Configuration: adjust these values to control image sizing
+\usepackage{graphicx}
+\usepackage{adjustbox}
+\makeatletter
+% Set screws for image sizing (tweak these as needed):
+\def\HBMaxImageWidth{\linewidth}        % Maximum width (default: full text width)
+\def\HBMaxImageHeight{0.90\textheight}  % Maximum height (0.65 = 65% of text height)
+                                         % Decrease for more caption space, increase for larger images
+\let\original@includegraphics\includegraphics
+\renewcommand{\includegraphics}[2][]{%
+  % adjustbox with max size: scales only if needed, preserves aspect ratio
+  \begin{adjustbox}{max width=\HBMaxImageWidth,max height=\HBMaxImageHeight}%
+    \original@includegraphics[#1]{#2}%
+  \end{adjustbox}%
+}
+\makeatother
 
 
 % Make tabulary columns not ridiculously narrow
