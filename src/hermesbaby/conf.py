@@ -364,13 +364,13 @@ latex_elements = {
 
 
 % Auto-scale images so they never exceed the text area
-\usepackage{graphicx}
-\usepackage{calc}
-\makeatletter
-\def\maxwidth{\ifdim\Gin@nat@width>\linewidth \linewidth \else \Gin@nat@width\fi}
-\def\maxheight{\ifdim\Gin@nat@height>0.9\textheight 0.9\textheight \else \Gin@nat@height\fi}
-\makeatother
-\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% \usepackage{graphicx}
+% \usepackage{calc}
+% \makeatletter
+% \def\maxwidth{\ifdim\Gin@nat@width>\linewidth \linewidth \else \Gin@nat@width\fi}
+% \def\maxheight{\ifdim\Gin@nat@height>0.9\textheight 0.9\textheight \else \Gin@nat@height\fi}
+% \makeatother
+% \setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
 
 
 % Make tabulary columns not ridiculously narrow
