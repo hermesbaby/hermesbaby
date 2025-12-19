@@ -1561,7 +1561,6 @@ pre_post_build_programs = {
                 "-latexoption=-interaction=nonstopmode",
                 "-latexoption=-halt-on-error",
                 "-latexoption=-file-line-error",
-                "-f",
                 f"{_pdf_basename}.tex",
             ],
             "cwd": "$outputdir",
