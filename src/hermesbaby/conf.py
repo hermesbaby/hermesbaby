@@ -31,6 +31,7 @@ import shutil
 import urllib3
 import yaml
 from docutils import nodes
+from sphinx.addnodes import tabular_col_spec
 from docutils.parsers.rst import roles
 from sphinx.util import logging
 
@@ -364,9 +365,54 @@ latex_elements = {
 % Fix fancyhdr warning about headheight being too small
 \setlength{\headheight}{14.5pt}
 \addtolength{\topmargin}{-2.5pt}
+
+% Be generous with line breaking to avoid overfull boxes
+\emergencystretch=3em
+\sloppy
 """,
 }
 
+
+def _latex_add_global_colspec(app, doctree, docname):
+    """
+    For every table, add a tabular_col_spec that:
+    - uses p{...} paragraph columns (wrap text)
+    - shares ~95% of \\linewidth between all columns
+    So tables may become tall, but not wider than the text block.
+    """
+    for table in doctree.traverse(nodes.table):
+        parent = table.parent
+
+        # Skip if there is already a colspec for this table
+        existing = [
+            n for n in parent.children
+            if isinstance(n, tabular_col_spec)
+        ]
+        if existing:
+            continue
+
+        # Determine number of columns from the first row
+        first_row = table.next_node(nodes.row)
+        if first_row is None:
+            continue
+        ncols = sum(
+            1 for child in first_row.children
+            if isinstance(child, nodes.entry)
+        )
+        if ncols == 0:
+            continue
+
+        # Distribute 95% of \linewidth across all columns
+        width = 0.95 / ncols  # fraction of \linewidth
+        spec = "|" + "|".join(
+            f"p{{{width:.3f}\\linewidth}}"
+            for _ in range(ncols)
+        ) + "|"
+
+        colspec = tabular_col_spec()
+        colspec["spec"] = spec
+        idx = parent.index(table)
+        parent.insert(idx, colspec)
 
 def _is_nested(table: nodes.table) -> bool:
     if isinstance(table.parent, nodes.table):
@@ -398,12 +444,11 @@ def _latex_force_all_non_nested_tables_longtable(app, doctree, docname):
         if "longtable" not in classes:
             classes.append("longtable")
 
-def setup_app__latex_force_all_non_nested_tables_longtable(app):
+def setup_app__latex_improve_tables(app):
+    app.connect("doctree-resolved", _latex_add_global_colspec)
     app.connect("doctree-resolved", _latex_force_all_non_nested_tables_longtable)
 
-app_setups.append(setup_app__latex_force_all_non_nested_tables_longtable)
-
-
+app_setups.append(setup_app__latex_improve_tables)
 
 
 # @see https://chatgpt.com/share/1ed3fcdf-0405-45a3-9fd6-fcb97d7e793c
