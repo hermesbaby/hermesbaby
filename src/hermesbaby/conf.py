@@ -431,8 +431,14 @@ def _latex_add_global_colspec(app, doctree, docname):
         parent.insert(idx, colspec)
 
 def _is_nested(table: nodes.table) -> bool:
-    if isinstance(table.parent, nodes.table):
-        return True
+    # Check if this table has any ancestor table (walking up the tree)
+    parent = table.parent
+    while parent is not None:
+        if isinstance(parent, nodes.table):
+            return True
+        parent = getattr(parent, 'parent', None)
+
+    # Check if this table contains any child tables
     return bool(list(table.traverse(nodes.table, include_self=False)))
 
 def _table_dimensions(table: nodes.table) -> tuple[int, int]:
