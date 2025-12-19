@@ -1447,6 +1447,7 @@ pre_post_build_programs = {
         {
             "name": "Create PDF from Latex code",
             "builder": "latex",
+            "condition": "on_success",
             "program": "latexmk",
             "args": [
                 "-pdf",

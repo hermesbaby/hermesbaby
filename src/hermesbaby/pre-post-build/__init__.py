@@ -121,7 +121,24 @@ def call_pre_build_programs(app: Sphinx):
     call_programs(app, 'pre')
 
 def call_post_build_programs(app: Sphinx, exception):
-    call_programs(app, 'post')
+    logger = logging.getLogger(__name__)
+
+    # Get the post-build programs configuration
+    programs = app.config.pre_post_build_programs.get('post', [])
+
+    for config in programs:
+        condition = config.get('condition', 'always')  # Default to 'always'
+
+        # Determine if the program should run based on the condition
+        if condition == 'on_success' and exception is not None:
+            logger.info(f"Skipping post-build program '{config.get('name')}' due to build failure.")
+            continue
+        elif condition == 'on_failure' and exception is None:
+            logger.info(f"Skipping post-build program '{config.get('name')}' because the build succeeded.")
+            continue
+
+        # Call the program if the condition is met
+        call_programs(app, 'post')
 
 class SphinxError(Exception):
     """Custom exception to indicate Sphinx build failure due to pre or post build errors."""
