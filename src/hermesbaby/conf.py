@@ -460,11 +460,75 @@ def _latex_force_all_non_nested_tables_longtable(app, doctree, docname):
         if "longtable" not in classes:
             classes.append("longtable")
 
+
+# Patch tables with no body rows (e.g., Markdown tables with only a header)
+def _latex_patch_empty_body_tables(app, doctree):
+    """
+    For tables with a header but no body rows, forcibly append an empty row with the correct number of columns.
+    Always creates a tbody if missing. Always adds at least one cell. Adds debug logging for diagnosis.
+
+    Note: This handler is connected to 'doctree-read' event which only passes (app, doctree).
+    """
+    for table in doctree.traverse(nodes.table):
+        tgroup = next((c for c in table.children if getattr(c, 'tagname', None) == 'tgroup'), None)
+        if not tgroup:
+            continue
+        thead = next((c for c in tgroup.children if getattr(c, 'tagname', None) == 'thead'), None)
+        tbody = next((c for c in tgroup.children if getattr(c, 'tagname', None) == 'tbody'), None)
+
+        # Determine number of columns from thead or first row in tgroup
+        n_cols = 0
+        first_row = None
+        if thead and thead.children:
+            first_row = next((r for r in thead.children if isinstance(r, nodes.row)), None)
+        if not first_row and tgroup.children:
+            first_row = next((r for r in tgroup.children if isinstance(r, nodes.row)), None)
+        if first_row:
+            n_cols = sum(1 for e in first_row.children if isinstance(e, nodes.entry))
+        # Fallback: try tgroup's 'cols' attribute (docutils convention)
+        if n_cols == 0 and hasattr(tgroup, 'attributes') and 'cols' in tgroup.attributes:
+            try:
+                n_cols = int(tgroup.attributes['cols'])
+            except Exception:
+                pass
+        # Fallback: try to count colspec children
+        if n_cols == 0:
+            n_cols = sum(1 for c in tgroup.children if getattr(c, 'tagname', None) == 'colspec')
+        # Fallback: if all else fails, use 1
+        if n_cols == 0:
+            n_cols = 1
+        # If tbody exists and has at least one row, skip (table already has a body)
+        if tbody and any(isinstance(child, nodes.row) for child in tbody.children):
+            continue
+
+        # Always ensure a tbody exists
+        if not tbody:
+            tbody = nodes.tbody()
+            # Insert tbody after thead if present, else at end
+            if thead:
+                idx = tgroup.children.index(thead) + 1
+                tgroup.children.insert(idx, tbody)
+            else:
+                tgroup += tbody
+        # Remove any non-row children from tbody (shouldn't be any, but just in case)
+        tbody.children = [c for c in tbody.children if isinstance(c, nodes.row)]
+        # Only add the empty row if tbody is empty
+        if not tbody.children:
+            empty_row = nodes.row()
+            for _ in range(n_cols):
+                empty_entry = nodes.entry()
+                empty_entry += nodes.paragraph(text="")
+                empty_row += empty_entry
+            tbody += empty_row
+            logger.info(f"[hermesbaby] Patched empty table: added row with {n_cols} columns.")
+
 def setup_app__latex_improve_tables(app):
     app.connect("doctree-resolved", _latex_add_global_colspec)
+    app.connect("doctree-read", _latex_patch_empty_body_tables)
     app.connect("doctree-resolved", _latex_force_all_non_nested_tables_longtable)
 
-app_setups.append(setup_app__latex_improve_tables)
+if builder == "latex":
+    app_setups.append(setup_app__latex_improve_tables)
 
 
 # @see https://chatgpt.com/share/1ed3fcdf-0405-45a3-9fd6-fcb97d7e793c
