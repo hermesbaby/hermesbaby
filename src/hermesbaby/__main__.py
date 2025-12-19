@@ -413,10 +413,6 @@ def html(
     build_dir = (
         Path(_get_kconfig().syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
     )
-
-    build_dir = (
-        Path(_get_kconfig().syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
-    )
     executable = _resolve_tool("sphinx-build")
     command = [
         f"{executable}",
@@ -429,13 +425,15 @@ def html(
         f"{build_dir}",
     ]
 
-    # Add verbose flags if specified
     for _ in range(verbose):
         command.insert(1, "-v")
 
     typer.echo(" ".join(shlex.quote(a) for a in command))
-    result = subprocess.run(command, cwd=directory, check=True)
-    sys.exit(result.returncode)
+    try:
+        subprocess.run(command, cwd=directory, check=True)
+    except subprocess.CalledProcessError as e:
+        typer.secho(f"Error: Command failed with code {e.returncode}.", fg=typer.colors.RED)
+        raise typer.Exit(code=e.returncode)
 
 
 @app.command()
@@ -461,10 +459,6 @@ def pdf(
     build_dir = (
         Path(_get_kconfig().syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
     )
-
-    build_dir = (
-        Path(_get_kconfig().syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
-    )
     executable = _resolve_tool("sphinx-build")
     command = [
         f"{executable}",
@@ -477,13 +471,15 @@ def pdf(
         f"{build_dir}",
     ]
 
-    # Add verbose flags if specified
     for _ in range(verbose):
         command.insert(1, "-v")
 
     typer.echo(" ".join(shlex.quote(a) for a in command))
-    result = subprocess.run(command, cwd=directory, check=True)
-    sys.exit(result.returncode)
+    try:
+        subprocess.run(command, cwd=directory, check=True)
+    except subprocess.CalledProcessError as e:
+        typer.secho(f"Error: Command failed with code {e.returncode}.", fg=typer.colors.RED)
+        raise typer.Exit(code=e.returncode)
 
 
 @app.command()
@@ -529,13 +525,15 @@ def html_live(
         "--open-browser",
     ]
 
-    # Add verbose flags if specified
     for _ in range(verbose):
         command.insert(1, "-v")
 
     typer.echo(" ".join(shlex.quote(a) for a in command))
-    result = subprocess.run(command, cwd=directory, check=True)
-    sys.exit(result.returncode)
+    try:
+        subprocess.run(command, cwd=directory, check=True)
+    except subprocess.CalledProcessError as e:
+        typer.secho(f"Error: Command failed with code {e.returncode}.", fg=typer.colors.RED)
+        raise typer.Exit(code=e.returncode)
 
 
 @app.command()
@@ -560,7 +558,6 @@ def pdf_live(
 
     kconfig = _get_kconfig()
     build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
-
     executable = _resolve_tool("sphinx-autobuild")
     command = [
         f"{executable}",
@@ -582,14 +579,15 @@ def pdf_live(
         "--open-browser",
     ]
 
-    # Add verbose flags if specified
     for _ in range(verbose):
         command.insert(1, "-v")
 
     typer.echo(" ".join(shlex.quote(a) for a in command))
-    result = subprocess.run(command, cwd=directory, check=True)
-    sys.exit(result.returncode)
-
+    try:
+        subprocess.run(command, cwd=directory, check=True)
+    except subprocess.CalledProcessError as e:
+        typer.secho(f"Error: Command failed with code {e.returncode}.", fg=typer.colors.RED)
+        raise typer.Exit(code=e.returncode)
 
 
 @app.command()
@@ -1399,8 +1397,6 @@ def ci_install_tools():
 
     typer.echo("Installing tools for CI/CD pipeline")
 
-    # Check if running on Ubuntu Linux
-    # Check if running on Linux
     system = platform.system()
     if system != "Linux":
         typer.echo(
@@ -1408,7 +1404,6 @@ def ci_install_tools():
         )
         raise typer.Exit(code=1)
 
-    # Check if it's a Debian-based distribution
     is_debian_based = False
     try:
         with open("/etc/os-release", "r") as f:
@@ -1428,9 +1423,11 @@ def ci_install_tools():
 
     command = f"{path}/ci/setup.sh"
     typer.echo(command)
-    result = subprocess.run(command.split(), cwd=path)
-
-    sys.exit(result.returncode)
+    try:
+        subprocess.run(command.split(), cwd=path, check=True)
+    except subprocess.CalledProcessError as e:
+        typer.secho(f"Error: Command failed with code {e.returncode}.", fg=typer.colors.RED)
+        raise typer.Exit(code=e.returncode)
 
 
 @app_ci.command(name="config-to-env")
