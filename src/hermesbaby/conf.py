@@ -331,6 +331,13 @@ if os.path.exists(web_root_dir):
 # @see https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-latex-output
 # @see more settings at https://www.sphinx-doc.org/en/master/latex.html#the-latex-elements-configuration-setting
 
+# Handle unicode characters properly
+latex_engine = "lualatex"
+
+# Miktex doesn't work with Xindy, :-(
+latex_use_xindy = False
+
+
 # Place metadata (build information) on the title page instead of the date.
 if builder == "latex":
     today = _metadata
@@ -345,6 +352,15 @@ latex_elements = {
     "preamble": r"""
 % Don't complain about included PDF version being newer
 \pdfinclusionerrorlevel=0
+
+
+% --- Unicode support for symbols like 🢂👍😎😁👏❌👎⚕️ ---
+
+% With lualatex/xelatex we use fontspec instead of inputenc/fontenc
+\usepackage{fontspec}
+
+% Main text font (adapt as you like)
+\setmainfont{Segoe UI Symbol}
 
 
 % Auto-scale images so they never exceed the text area
@@ -1451,6 +1467,7 @@ pre_post_build_programs = {
             "program": "latexmk",
             "args": [
                 "-pdf",
+                "-pdflatex=lualatex",
                 "-halt-on-error",
                 "-file-line-error",
                 "-interaction=nonstopmode",
