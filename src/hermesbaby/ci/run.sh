@@ -35,6 +35,24 @@ fi
 # Fail and exist immediately on unset environment variables and/or broken pipes
 set -euo pipefail
 
+### NECESSARY ENVIRONMENT VARIABLES ###########################################
+
+# This script relies on the injection of the following environment variables:
+#
+# -- From Jenkins vault --
+# export HERMES_API_TOKEN
+#
+#
+# From SCM trigger
+# export HERMES_SCM_TRIGGER
+#
+# -- From job configuration --
+# export HERMESBABY_CI_OPTIONS_JSON_PATH
+# export HERMES_BASE_URL
+# export HERMES_PUBLISH_PROJECT
+# export HERMES_PUBLISH_REPO
+# export HERMES_PUBLISH_BRANCH
+
 
 ### Inject hermesbaby project configuration into environment ##################
 
@@ -58,17 +76,17 @@ source .hermesbaby
 # This prefixing has security aspects as well. By this there is no chance to
 # override the environment variables used in the publish step
 
-eval $(hb ci config-to-env build_parameters.json)
+eval $(hb ci config-to-env "$HERMESBABY_CI_OPTIONS_JSON_PATH")
 
 
 ### DELETE publication when branch is deleted and exit  #######################
 
-if [[ "${trigger:-}" == "REF DELETED" ]]; then
+if [[ "${HERMES_SCM_TRIGGER:-}" == "REF DELETED" ]]; then
     echo "Detected REF DELETED trigger; skipping build/package/publish steps."
     curl -k \
         -X DELETE \
         -H "Authorization: Bearer $HERMES_API_TOKEN" \
-        https://docs.your-company.com/projects/$gitProject/$componentName/$branch
+        $HERMES_BASE_URL/$HERMES_PUBLISH_PROJECT/$HERMES_PUBLISH_REPO/$HERMES_PUBLISH_BRANCH
     exit 0
 fi
 
@@ -90,16 +108,6 @@ fi
 
 
 ### PACKAGE and PUBLISH #######################################################
-
-# This section relies on the injection of the following environment variables:
-#
-# -- From Jenkins vault --
-# export HERMES_API_TOKEN
-#
-# -- From job configuration --
-# export HERMES_PUBLISH_BRANCH
-# export HERMES_PUBLISH_REPO
-# export HERMES_PUBLISH_PROJECT
 
 # PACKAGE
 
