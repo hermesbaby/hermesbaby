@@ -345,6 +345,17 @@ latex_elements = {
 % Don't complain about included PDF version being newer
 \pdfinclusionerrorlevel=0
 
+
+% Auto-scale images so they never exceed the text area
+\usepackage{graphicx}
+\usepackage{calc}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth \linewidth \else \Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>0.9\textheight 0.9\textheight \else \Gin@nat@height\fi}
+\makeatother
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+
+
 % Fix fancyhdr warning about headheight being too small
 \setlength{\headheight}{14.5pt}
 \addtolength{\topmargin}{-2.5pt}
