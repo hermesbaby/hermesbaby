@@ -522,10 +522,33 @@ def _latex_patch_empty_body_tables(app, doctree):
             tbody += empty_row
             logger.info(f"[hermesbaby] Patched empty table: added row with {n_cols} columns.")
 
+def _latex_protect_citations_in_captions(app, docname, source):
+    """
+    Convert citations inside captions to plain text to avoid LaTeX hyperlink issues.
+    Transforms {cite:p}`ISO_25010` into [ISO_25010]
+
+    This runs at source-read stage before MyST parsing, only for LaTeX builds.
+    """
+    if app.builder.format != 'latex':
+        return
+
+    import re
+
+    # Pattern to match citations in various forms
+    citation_pattern = re.compile(r'\{cite:[pts]+\}`([^`]+)`')
+
+    def replace_citation(match):
+        cite_key = match.group(1)
+        return f'[{cite_key}]'
+
+    # Modify the source in-place
+    source[0] = citation_pattern.sub(replace_citation, source[0])
+
 def setup_app__latex_improve_tables(app):
     app.connect("doctree-resolved", _latex_add_global_colspec)
     app.connect("doctree-read", _latex_patch_empty_body_tables)
     app.connect("doctree-resolved", _latex_force_all_non_nested_tables_longtable)
+    app.connect("source-read", _latex_protect_citations_in_captions)
 
 if builder == "latex":
     app_setups.append(setup_app__latex_improve_tables)
