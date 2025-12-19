@@ -356,6 +356,11 @@ latex_elements = {
 \setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
 
 
+% Make tabulary columns not ridiculously narrow
+% (Sphinx manual recommends overriding \tymin)
+\setlength{\tymin}{1.5cm} % tweak: 1cm, 1.2cm, 2cm, ...
+
+
 % Fix fancyhdr warning about headheight being too small
 \setlength{\headheight}{14.5pt}
 \addtolength{\topmargin}{-2.5pt}
@@ -363,48 +368,41 @@ latex_elements = {
 }
 
 
-def _is_inside_table(node: nodes.Node) -> bool:
-    """Return True if this node has any table as an ancestor."""
-    parent = node.parent
-    while parent is not None:
-        if isinstance(parent, nodes.table):
-            return True
-        parent = parent.parent
-    return False
+def _is_nested(table: nodes.table) -> bool:
+    if isinstance(table.parent, nodes.table):
+        return True
+    return bool(list(table.traverse(nodes.table, include_self=False)))
 
+def _table_dimensions(table: nodes.table) -> tuple[int, int]:
+    rows = [row for row in table.traverse(nodes.row)]
+    n_rows = len(rows)
+    max_cols = 0
+    for row in rows:
+        cols = [e for e in row.children if isinstance(e, nodes.entry)]
+        max_cols = max(max_cols, len(cols))
+    return n_rows, max_cols
 
 def _latex_force_all_non_nested_tables_longtable(app, doctree, docname):
-    """
-    Mark only *non-nested* tables as longtable:
-
-    - skip tables that are nested anywhere inside another table
-    - skip tables that contain other tables
-    """
-    # Only touch LaTeX builds
-    if app.builder.name != "latex":
-        return
-
     for table in doctree.traverse(nodes.table):
-        # 1) Skip tables that are inside another table (at any depth)
-        if _is_inside_table(table):
+        if _is_nested(table):
             continue
 
-        # 2) Skip tables that *contain* other tables
-        nested_tables = list(table.traverse(nodes.table, include_self=False))
-        if nested_tables:
+        n_rows, n_cols = _table_dimensions(table)
+
+        # Heuristic: keep small 1–2 column tables as *normal* tables
+        # so Sphinx can use tabulary and wrap nicely.
+        if n_cols <= 2 and n_rows <= 6:
             continue
 
-        # 3) Safe candidate: mark as longtable
         classes = table.setdefault("classes", [])
         if "longtable" not in classes:
             classes.append("longtable")
 
-
 def setup_app__latex_force_all_non_nested_tables_longtable(app):
     app.connect("doctree-resolved", _latex_force_all_non_nested_tables_longtable)
 
-
 app_setups.append(setup_app__latex_force_all_non_nested_tables_longtable)
+
 
 
 
