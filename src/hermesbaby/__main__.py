@@ -300,8 +300,8 @@ def version(
     """CLI Tool hb"""
     # Check for updates (once per day)
     try:
-        from hermesbaby.update_checker import check_for_updates
-        latest_version = check_for_updates(__version__)
+        from . import update_checker
+        latest_version = update_checker.check_for_updates(__version__)
         if latest_version:
             typer.echo(
                 f"\n[Update Available] A newer version of hermesbaby is available: {latest_version}\n"
