@@ -352,20 +352,33 @@ latex_elements = {
 }
 
 
+def _is_inside_table(node: nodes.Node) -> bool:
+    """Return True if this node has any table as an ancestor."""
+    parent = node.parent
+    while parent is not None:
+        if isinstance(parent, nodes.table):
+            return True
+        parent = parent.parent
+    return False
+
+
 def _latex_force_all_non_nested_tables_longtable(app, doctree, docname):
     """
     Mark only *non-nested* tables as longtable:
 
-    - skip tables that are nested inside another table
+    - skip tables that are nested anywhere inside another table
     - skip tables that contain other tables
     """
+    # Only touch LaTeX builds
+    if app.builder.name != "latex":
+        return
+
     for table in doctree.traverse(nodes.table):
-        # 1) Skip tables that are nested *inside* another table
-        if isinstance(table.parent, nodes.table):
+        # 1) Skip tables that are inside another table (at any depth)
+        if _is_inside_table(table):
             continue
 
         # 2) Skip tables that *contain* other tables
-        #    traverse() normally includes the node itself, so we disable that
         nested_tables = list(table.traverse(nodes.table, include_self=False))
         if nested_tables:
             continue
@@ -379,7 +392,9 @@ def _latex_force_all_non_nested_tables_longtable(app, doctree, docname):
 def setup_app__latex_force_all_non_nested_tables_longtable(app):
     app.connect("doctree-resolved", _latex_force_all_non_nested_tables_longtable)
 
+
 app_setups.append(setup_app__latex_force_all_non_nested_tables_longtable)
+
 
 
 # @see https://chatgpt.com/share/1ed3fcdf-0405-45a3-9fd6-fcb97d7e793c
