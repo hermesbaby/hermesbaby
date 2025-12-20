@@ -21,13 +21,15 @@ teardown() {
     run python3 -m hermesbaby new --template hello .
     [ "$status" -eq 0 ]
 
+    export HERMESBABY_CI_OPTIONS_JSON_PATH=build_parameters.json
+
     git config --global init.defaultBranch main
     git init .
     git config user.name "Test User"
     git config user.email "test@example.com"
     git add .
     git commit -m "1"
-    echo '{ "PUBLISH__CREATE_AND_EMBED_PDF": "y" }' > build_parameters.json
+    echo '{ "PUBLISH__CREATE_AND_EMBED_PDF": "y" }' > $HERMESBABY_CI_OPTIONS_JSON_PATH
     export CONFIG_PUBLISH_SKIP_PUBLISH="y"
 
     # Item-under-test:
