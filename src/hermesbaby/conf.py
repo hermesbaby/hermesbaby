@@ -444,9 +444,15 @@ def _latex_add_global_colspec(app, doctree, docname):
             # Analyze content to estimate relative column widths
             column_weights = _estimate_column_widths(table, ncols)
 
-            # Distribute 95% of linewidth based on weights
+            # Distribute available width based on weights
+            # Use less than full linewidth to account for:
+            # - column separators (|)
+            # - padding (\tabcolsep on each side of each column)
+            # - slight margin for safety
+            # Empirically, 0.88 works well for tables with 5 columns
+            available_width = 0.88
             total_weight = sum(column_weights)
-            widths = [0.95 * (w / total_weight) for w in column_weights]
+            widths = [available_width * (w / total_weight) for w in column_weights]
 
             spec = "|" + "|".join(
                 f"p{{{width:.3f}\\linewidth}}"
