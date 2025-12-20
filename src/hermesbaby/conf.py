@@ -1573,6 +1573,7 @@ pre_post_build_programs = {
                 "-halt-on-error",
                 "-file-line-error",
                 "-interaction=nonstopmode",
+                "-quiet",
                 "-latexoption=-interaction=nonstopmode",
                 "-latexoption=-halt-on-error",
                 "-latexoption=-file-line-error",
