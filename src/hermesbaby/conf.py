@@ -410,9 +410,9 @@ latex_elements = {
 def _latex_add_global_colspec(app, doctree, docname):
     """
     For every table, add a tabular_col_spec that:
-    - uses p{...} paragraph columns (wrap text)
-    - shares ~95% of \\linewidth between all columns
-    So tables may become tall, but not wider than the text block.
+    - For longtables: uses p{} columns with intelligent width distribution
+      (narrower columns for short content, wider for longer content)
+    - For regular tables: uses tabulary 'L' columns for automatic width
     """
     for table in doctree.traverse(nodes.table):
         parent = table.parent
@@ -436,17 +436,72 @@ def _latex_add_global_colspec(app, doctree, docname):
         if ncols == 0:
             continue
 
-        # Distribute 95% of \linewidth across all columns
-        width = 0.95 / ncols  # fraction of \linewidth
-        spec = "|" + "|".join(
-            f"p{{{width:.3f}\\linewidth}}"
-            for _ in range(ncols)
-        ) + "|"
+        # Check if this table will be rendered as longtable
+        is_longtable = "longtable" in table.get("classes", [])
+
+        if is_longtable:
+            # For longtable, we need to use p{} columns with intelligent widths
+            # Analyze content to estimate relative column widths
+            column_weights = _estimate_column_widths(table, ncols)
+
+            # Distribute 95% of linewidth based on weights
+            total_weight = sum(column_weights)
+            widths = [0.95 * (w / total_weight) for w in column_weights]
+
+            spec = "|" + "|".join(
+                f"p{{{width:.3f}\\linewidth}}"
+                for width in widths
+            ) + "|"
+        else:
+            # For regular tables, use tabulary 'L' columns
+            spec = "|" + "|".join("L" for _ in range(ncols)) + "|"
 
         colspec = tabular_col_spec()
         colspec["spec"] = spec
         idx = parent.index(table)
         parent.insert(idx, colspec)
+
+
+def _estimate_column_widths(table: nodes.table, ncols: int) -> list:
+    """
+    Estimate relative widths for table columns based on content length.
+    Returns a list of weights (relative widths) for each column.
+    """
+    # Collect text content from all cells in each column
+    column_texts = [[] for _ in range(ncols)]
+
+    for row in table.traverse(nodes.row):
+        col_idx = 0
+        for entry in row.traverse(nodes.entry):
+            if col_idx < ncols:
+                # Get all text content from this cell
+                text = entry.astext()
+                column_texts[col_idx].append(text)
+                col_idx += 1
+
+    # Calculate weight for each column based on average text length
+    # and maximum text length (to handle both typical and extreme cases)
+    weights = []
+    for col_texts in column_texts:
+        if not col_texts:
+            weights.append(1.0)  # Default weight
+            continue
+
+        # Calculate average and max text length
+        text_lengths = [len(text) for text in col_texts]
+        avg_length = sum(text_lengths) / len(text_lengths) if text_lengths else 0
+        max_length = max(text_lengths) if text_lengths else 0
+
+        # Weight is a combination of average (70%) and max (30%)
+        # This gives preference to typical content while respecting outliers
+        weight = 0.7 * avg_length + 0.3 * max_length
+
+        # Minimum weight to avoid extremely narrow columns
+        weight = max(weight, 20)
+
+        weights.append(weight)
+
+    return weights
 
 def _is_nested(table: nodes.table) -> bool:
     # Check if this table has any ancestor table (walking up the tree)
@@ -569,10 +624,12 @@ def _latex_protect_citations_in_captions(app, docname, source):
     source[0] = citation_pattern.sub(replace_citation, source[0])
 
 def setup_app__latex_improve_tables(app):
-    app.connect("doctree-resolved", _latex_add_global_colspec)
     app.connect("doctree-read", _latex_patch_empty_body_tables)
-    app.connect("doctree-resolved", _latex_force_all_non_nested_tables_longtable)
     app.connect("source-read", _latex_protect_citations_in_captions)
+    # Important: _latex_force_all_non_nested_tables_longtable must run BEFORE _latex_add_global_colspec
+    # so that the longtable class is set before we generate the column spec
+    app.connect("doctree-resolved", _latex_force_all_non_nested_tables_longtable)
+    app.connect("doctree-resolved", _latex_add_global_colspec)
 
 if builder == "latex":
     app_setups.append(setup_app__latex_improve_tables)
