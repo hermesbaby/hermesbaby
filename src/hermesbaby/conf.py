@@ -459,8 +459,17 @@ def _latex_add_global_colspec(app, doctree, docname):
                 for width in widths
             ) + "|"
         else:
-            # For regular tables, use tabulary 'L' columns
-            spec = "|" + "|".join("L" for _ in range(ncols)) + "|"
+            # For regular tables, analyze content and use p{} columns too
+            # This is more reliable than tabulary in all contexts
+            column_weights = _estimate_column_widths(table, ncols)
+            available_width = 0.88
+            total_weight = sum(column_weights)
+            widths = [available_width * (w / total_weight) for w in column_weights]
+
+            spec = "|" + "|".join(
+                f"p{{{width:.3f}\\linewidth}}"
+                for width in widths
+            ) + "|"
 
         colspec = tabular_col_spec()
         colspec["spec"] = spec
