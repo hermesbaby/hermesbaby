@@ -359,14 +359,23 @@ latex_elements = {
 % With lualatex/xelatex we use fontspec instead of inputenc/fontenc
 \usepackage{fontspec}
 
+% Suppress font not found errors and use fallback glyphs
+\tracinglostchars=1
+\suppressfontnotfounderror=1
+
 % Main text font (adapt as you like)
-\setmainfont{Segoe UI Symbol}
+% Use AutoFakeBold/AutoFakeSlant to generate missing font variants
+\setmainfont{Segoe UI Symbol}[
+  AutoFakeBold=1.5,
+  AutoFakeSlant=0.2
+]
 
 
 % Use adjustbox package for intelligent image scaling
 % Configuration: adjust these values to control image sizing
 \usepackage{graphicx}
 \usepackage{adjustbox}
+
 \makeatletter
 % Set screws for image sizing (tweak these as needed):
 \def\HBMaxImageWidth{\linewidth}        % Maximum width (default: full text width)
