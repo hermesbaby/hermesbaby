@@ -19,6 +19,17 @@ from sphinx.application import Sphinx
 import logging
 import os
 import sys
+import re
+
+def sanitize_name(name: str) -> str:
+    """Sanitize a name to be used as a filename."""
+    # Replace spaces and special characters with underscores
+    sanitized = re.sub(r'[^a-zA-Z0-9_-]', '_', name)
+    # Remove consecutive underscores
+    sanitized = re.sub(r'_+', '_', sanitized)
+    # Remove leading/trailing underscores
+    sanitized = sanitized.strip('_')
+    return sanitized.lower()
 
 def setup(app: Sphinx):
     app.add_config_value('pre_post_build_programs', {'pre': [], 'post': []}, 'env')
@@ -67,6 +78,7 @@ def call_programs(app: Sphinx, phase: str):
             severity = config.get('severity', 'warning')
             env_vars = replace_placeholders(config.get('environment', []), output_dir, source_dir, config_dir)
             cwd = replace_placeholders(config.get('cwd', None), output_dir, source_dir, config_dir)
+            output_mode = config.get('output', 'live')  # 'live' | 'silent' | 'on_error' | 'summary'
 
             if not external_program:
                 logger.warning(f"No external program configured for builder '{builder}' in phase '{phase}'")
@@ -78,26 +90,135 @@ def call_programs(app: Sphinx, phase: str):
                 env[var['name']] = var['value']
 
             # Call the external program
-            print(f"{[external_program] + args}", file=sys.stderr)
+            import time
+            start_time = time.time()
+
+            # Show summary for non-live modes
+            if output_mode in ['silent', 'on_error', 'summary']:
+                print(f"[{name}] Starting: {external_program}", file=sys.stderr)
+            else:
+                print(f"{[external_program] + args}", file=sys.stderr)
+
+            # Prepare log file paths
+            sanitized_name = sanitize_name(name)
+            log_dir = cwd if cwd else output_dir
+            stdout_log_path = os.path.join(log_dir, f"{sanitized_name}_stdout.log")
+            stderr_log_path = os.path.join(log_dir, f"{sanitized_name}_stderr.log")
+            console_log_path = os.path.join(log_dir, f"{sanitized_name}_console.log")
+
             try:
                 process = subprocess.Popen(
                     [external_program] + args,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     text=True,
+                    encoding='utf-8',
+                    errors='replace',
                     env=env,
                     cwd=cwd
                 )
 
-                # Read and print stdout and stderr in real-time
-                for stdout_line in iter(process.stdout.readline, ""):
-                    print(stdout_line, end='')
-                for stderr_line in iter(process.stderr.readline, ""):
-                    print(stderr_line, end='', file=sys.stderr)
+                # Open log files
+                with open(stdout_log_path, 'w', encoding='utf-8') as stdout_log, \
+                     open(stderr_log_path, 'w', encoding='utf-8') as stderr_log, \
+                     open(console_log_path, 'w', encoding='utf-8') as console_log:
+
+                    import threading
+                    import queue
+
+                    # Create queues for each stream
+                    stdout_queue = queue.Queue()
+                    stderr_queue = queue.Queue()
+
+                    def read_stream(stream, stream_queue, stream_name):
+                        """Read from stream and put into queue."""
+                        for line in iter(stream.readline, ""):
+                            stream_queue.put((stream_name, line))
+                        stream_queue.put((stream_name, None))  # Signal end of stream
+
+                    # Start threads to read stdout and stderr
+                    stdout_thread = threading.Thread(target=read_stream, args=(process.stdout, stdout_queue, 'stdout'))
+                    stderr_thread = threading.Thread(target=read_stream, args=(process.stderr, stderr_queue, 'stderr'))
+                    stdout_thread.daemon = True
+                    stderr_thread.daemon = True
+                    stdout_thread.start()
+                    stderr_thread.start()
+
+                    # Process output from both streams
+                    streams_active = {'stdout': True, 'stderr': True}
+                    show_console = (output_mode == 'live')
+
+                    while streams_active['stdout'] or streams_active['stderr']:
+                        # Check stdout queue
+                        try:
+                            stream_name, line = stdout_queue.get(timeout=0.01)
+                            if line is None:
+                                streams_active['stdout'] = False
+                            else:
+                                # Write to stdout log and console log
+                                stdout_log.write(line)
+                                stdout_log.flush()
+                                console_log.write(line)
+                                console_log.flush()
+                                # Print to console only if in live mode
+                                if show_console:
+                                    print(line, end='')
+                        except queue.Empty:
+                            pass
+
+                        # Check stderr queue
+                        try:
+                            stream_name, line = stderr_queue.get(timeout=0.01)
+                            if line is None:
+                                streams_active['stderr'] = False
+                            else:
+                                # Write to stderr log and console log
+                                stderr_log.write(line)
+                                stderr_log.flush()
+                                console_log.write(line)
+                                console_log.flush()
+                                # Print to console stderr only if in live mode
+                                if show_console:
+                                    print(line, end='', file=sys.stderr)
+                        except queue.Empty:
+                            pass
+
+                    # Wait for threads to finish
+                    stdout_thread.join()
+                    stderr_thread.join()
 
                 process.stdout.close()
                 process.stderr.close()
                 process.wait()
+
+                elapsed_time = time.time() - start_time
+
+                # Show summary for non-live modes
+                if output_mode in ['silent', 'on_error', 'summary']:
+                    if process.returncode == 0:
+                        print(f"[{name}] Completed successfully in {elapsed_time:.2f}s", file=sys.stderr)
+                    else:
+                        print(f"[{name}] Failed with exit code {process.returncode} after {elapsed_time:.2f}s", file=sys.stderr)
+
+                # Dump console log on error if in on_error mode
+                if process.returncode != 0 and output_mode == 'on_error':
+                    print(f"\n{'='*80}", file=sys.stderr)
+                    print(f"ERROR OUTPUT FROM: {name}", file=sys.stderr)
+                    print(f"{'='*80}", file=sys.stderr)
+                    try:
+                        with open(console_log_path, 'r', encoding='utf-8') as log_file:
+                            log_lines = log_file.readlines()
+                            # Show last 100 lines or full log if shorter
+                            lines_to_show = log_lines[-100:] if len(log_lines) > 100 else log_lines
+                            if len(log_lines) > 100:
+                                print(f"[... showing last 100 of {len(log_lines)} lines ...]\n", file=sys.stderr)
+                            for line in lines_to_show:
+                                print(line, end='', file=sys.stderr)
+                        print(f"\n{'='*80}", file=sys.stderr)
+                        print(f"Full log: {console_log_path}", file=sys.stderr)
+                        print(f"{'='*80}\n", file=sys.stderr)
+                    except Exception as e:
+                        print(f"Could not read console log: {e}", file=sys.stderr)
 
                 if process.returncode != 0:
                     message = f"Error calling external program '{name}' during phase '{phase}'"

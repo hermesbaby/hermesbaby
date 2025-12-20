@@ -1653,6 +1653,7 @@ pre_post_build_programs = {
             ],
             "cwd": "$outputdir",
             "severity": "error",
+            "output": "on_error",
         }
     ]
 }
