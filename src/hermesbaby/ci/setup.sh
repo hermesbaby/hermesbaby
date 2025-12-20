@@ -117,6 +117,8 @@ $SUDO apt-get install -y \
     texlive-font-utils \
     texlive-fonts-recommended \
     texlive-fonts-extra \
+    fonts-dejavu \
+    fonts-dejavu-extra \
     latexmk \
     ghostscript
 

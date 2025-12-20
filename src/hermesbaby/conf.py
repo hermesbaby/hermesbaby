@@ -365,7 +365,13 @@ latex_elements = {
 
 % Main text font (adapt as you like)
 % Use AutoFakeBold/AutoFakeSlant to generate missing font variants
-\setmainfont{Segoe UI Symbol}[
+% DejaVu Sans is widely available on Linux and provides good Unicode coverage
+\setmainfont{DejaVu Sans}[
+  Extension=.ttf,
+  UprightFont=*,
+  BoldFont=*-Bold,
+  ItalicFont=*-Oblique,
+  BoldItalicFont=*-BoldOblique,
   AutoFakeBold=1.5,
   AutoFakeSlant=0.2
 ]
