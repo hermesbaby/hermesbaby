@@ -669,6 +669,109 @@ def _latex_protect_citations_in_captions(app, docname, source):
     # Modify the source in-place
     source[0] = citation_pattern.sub(replace_citation, source[0])
 
+
+def _latex_download_and_convert_remote_images(app, doctree, docname):
+    """
+    Download remote images and convert unsupported formats (like .webp, .apng) to .png for LaTeX builds.
+    """
+    if app.builder.format != 'latex':
+        return
+
+    import hashlib
+    from PIL import Image
+    from io import BytesIO
+
+    # Create a directory for converted images
+    convert_dir = os.path.join(app.builder.outdir, '_converted_images')
+    os.makedirs(convert_dir, exist_ok=True)
+
+    for image_node in doctree.traverse(nodes.image):
+        uri = image_node.get('uri', '')
+
+        is_remote = uri.startswith('http://') or uri.startswith('https://')
+        is_unsupported = uri.lower().endswith(('.apng', '.webp'))
+
+        # Only process remote images or local unsupported formats
+        if not (is_remote or is_unsupported):
+            continue
+
+        try:
+            if is_remote:
+                # Generate a unique filename based on URL hash
+                url_hash = hashlib.md5(uri.encode()).hexdigest()
+                local_filename = f"remote_{url_hash}.png"
+                local_path = os.path.join(convert_dir, local_filename)
+
+                # Download if not already cached
+                if not os.path.exists(local_path):
+                    logger.info(f"[hermesbaby] Downloading remote image: {uri}")
+                    response = requests.get(uri, timeout=30, verify=False)
+                    response.raise_for_status()
+
+                    # Convert to PNG
+                    img = Image.open(BytesIO(response.content))
+
+                    # Convert RGBA to RGB if necessary
+                    if img.mode in ('RGBA', 'LA', 'P'):
+                        background = Image.new('RGB', img.size, (255, 255, 255))
+                        if img.mode == 'P':
+                            img = img.convert('RGBA')
+                        background.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+                        img = background
+
+                    # Save as PNG
+                    img.save(local_path, 'PNG', optimize=True)
+                    logger.info(f"[hermesbaby] Saved converted image to: {local_path}")
+
+                # Convert to relative path for LaTeX (relative to output dir)
+                # Use forward slashes for LaTeX compatibility on Windows
+                rel_path = os.path.relpath(local_path, app.builder.outdir)
+                image_node['uri'] = rel_path.replace('\\', '/')
+
+            elif is_unsupported:
+                # Handle local unsupported formats (.apng, .webp, etc.)
+                # Resolve the path relative to source directory
+                source_path = uri
+                if not os.path.isabs(source_path):
+                    source_path = os.path.join(app.srcdir, uri)
+
+                if not os.path.exists(source_path):
+                    logger.warning(f"[hermesbaby] Source image not found: {source_path}")
+                    continue
+
+                # Generate output filename
+                base_name = os.path.splitext(os.path.basename(uri))[0]
+                path_hash = hashlib.md5(uri.encode()).hexdigest()[:8]
+                local_filename = f"{base_name}_{path_hash}.png"
+                local_path = os.path.join(convert_dir, local_filename)
+
+                # Convert if not already cached
+                if not os.path.exists(local_path):
+                    logger.info(f"[hermesbaby] Converting unsupported format: {uri}")
+                    img = Image.open(source_path)
+
+                    # Convert RGBA to RGB if necessary
+                    if img.mode in ('RGBA', 'LA', 'P'):
+                        background = Image.new('RGB', img.size, (255, 255, 255))
+                        if img.mode == 'P':
+                            img = img.convert('RGBA')
+                        background.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+                        img = background
+
+                    # Save as PNG
+                    img.save(local_path, 'PNG', optimize=True)
+                    logger.info(f"[hermesbaby] Converted to: {local_path}")
+
+                # Convert to relative path for LaTeX (relative to output dir)
+                # Use forward slashes for LaTeX compatibility on Windows
+                rel_path = os.path.relpath(local_path, app.builder.outdir)
+                image_node['uri'] = rel_path.replace('\\', '/')
+
+        except Exception as e:
+            logger.warning(f"[hermesbaby] Failed to process image {uri}: {e}")
+            # Leave the original URI - it will fail but won't crash the build
+
+
 def setup_app__latex_improve_tables(app):
     app.connect("doctree-read", _latex_patch_empty_body_tables)
     app.connect("source-read", _latex_protect_citations_in_captions)
@@ -676,6 +779,7 @@ def setup_app__latex_improve_tables(app):
     # so that the longtable class is set before we generate the column spec
     app.connect("doctree-resolved", _latex_force_all_non_nested_tables_longtable)
     app.connect("doctree-resolved", _latex_add_global_colspec)
+    app.connect("doctree-resolved", _latex_download_and_convert_remote_images)
 
 if builder == "latex":
     app_setups.append(setup_app__latex_improve_tables)
