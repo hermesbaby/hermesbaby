@@ -340,7 +340,9 @@ latex_use_xindy = False
 
 # Place metadata (build information) on the title page instead of the date.
 if builder == "latex":
-    today = _metadata
+    _metadata_latex = _metadata.replace('\\', '\\textbackslash{}').replace('_', '\\_').replace('&', '\\&').replace('%', '\\%').replace('$', '\\$').replace('#', '\\#').replace('{', '\\{').replace('}', '\\}').replace('~', '\\textasciitilde{}').replace('^', '\\textasciicircum{}')
+
+    today = _metadata_latex
 
 # Split tables across pages when needed
 latex_table_style = ["longtable"]
