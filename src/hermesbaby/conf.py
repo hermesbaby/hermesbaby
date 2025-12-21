@@ -345,6 +345,29 @@ if builder == "latex":
 # Split tables across pages when needed
 latex_table_style = ["longtable"]
 
+# Platform-specific font selection for LaTeX/PDF builds
+# Use fonts that are natively available on each platform
+if platform.system() == "Windows":
+    _latex_main_font = "Segoe UI"
+    _latex_font_config = r"""
+\setmainfont{Segoe UI}[
+  AutoFakeBold=1.5,
+  AutoFakeSlant=0.2
+]"""
+else:
+    # Linux and other Unix-like systems
+    _latex_main_font = "DejaVu Sans"
+    _latex_font_config = r"""
+\setmainfont{DejaVu Sans}[
+  Extension=.ttf,
+  UprightFont=*,
+  BoldFont=*-Bold,
+  ItalicFont=*-Oblique,
+  BoldItalicFont=*-BoldOblique,
+  AutoFakeBold=1.5,
+  AutoFakeSlant=0.2
+]"""
+
 latex_elements = {
     "papersize": "a4paper",
     "pointsize": "12pt",
@@ -365,16 +388,7 @@ latex_elements = {
 
 % Main text font (adapt as you like)
 % Use AutoFakeBold/AutoFakeSlant to generate missing font variants
-% DejaVu Sans is widely available on Linux and provides good Unicode coverage
-\setmainfont{DejaVu Sans}[
-  Extension=.ttf,
-  UprightFont=*,
-  BoldFont=*-Bold,
-  ItalicFont=*-Oblique,
-  BoldItalicFont=*-BoldOblique,
-  AutoFakeBold=1.5,
-  AutoFakeSlant=0.2
-]
+""" + _latex_font_config + r"""
 
 
 % Use adjustbox package for intelligent image scaling
