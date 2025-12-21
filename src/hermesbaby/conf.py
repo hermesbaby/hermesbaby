@@ -551,14 +551,25 @@ def _latex_force_all_non_nested_tables_longtable(app, doctree, docname):
 
         n_rows, n_cols = _table_dimensions(table)
 
-        # Heuristic: keep small 1–2 column tables as *normal* tables
-        # so Sphinx can use tabulary and wrap nicely.
-        if n_cols <= 2 and n_rows <= 6:
-            continue
+        # Check if table contains complex content that tabulary can't handle
+        has_nested_table = bool(list(table.traverse(nodes.table, include_self=False)))
+        has_math = bool(list(table.traverse(nodes.math)))
 
-        classes = table.setdefault("classes", [])
-        if "longtable" not in classes:
-            classes.append("longtable")
+        # Force longtable if:
+        # - Table has nested tables (tabulary can't handle nesting)
+        # - Table has math content (tabulary has issues with math)
+        # - Table is larger than small thresholds
+        should_be_longtable = (
+            has_nested_table or
+            has_math or
+            n_cols > 2 or
+            n_rows > 6
+        )
+
+        if should_be_longtable:
+            classes = table.setdefault("classes", [])
+            if "longtable" not in classes:
+                classes.append("longtable")
 
 
 # Patch tables with no body rows (e.g., Markdown tables with only a header)
