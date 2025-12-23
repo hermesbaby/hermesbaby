@@ -1,0 +1,45 @@
+//################################################################
+//#                                                              #
+//#  This file is part of HermesBaby                             #
+//#                       the software engineer's typewriter     #
+//#                                                              #
+//#      https://github.com/hermesbaby                           #
+//#                                                              #
+//#  Copyright (c) 2024 Alexander Mann-Wahrenberg (basejumpa)    #
+//#                                                              #
+//#  License(s)                                                  #
+//#                                                              #
+//#  - MIT for contents used as software                         #
+//#  - CC BY-SA-4.0 for contents used as method or otherwise     #
+//#                                                              #
+//################################################################
+
+[
+    {
+        "key": "shift+win+f",
+        "command": "extension.pasteImage",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "alt+q",
+        "command": "extension.openFileFromPath",
+        "when": "!terminalFocus"
+    },
+    {
+        "key": "alt+d",
+        "command": "seito-openfile.openFileFromText",
+        "when": "editorTextFocus"
+    },
+
+
+    {
+        "key": "ctrl+alt+f",
+        "command": "search-in-current-file.searchInCurrentFile",
+        "when": "editorFocus"
+    },
+    {
+        "key": "ctrl+alt+f",
+        "command": "search-in-current-file.searchInCurrentFile",
+        "when": "editorFocus && findInputFocussed"
+    }
+]

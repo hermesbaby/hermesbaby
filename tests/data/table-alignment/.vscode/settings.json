@@ -1,0 +1,36 @@
+//################################################################
+//#                                                              #
+//#  This file is part of HermesBaby                             #
+//#                       the software engineer's typewriter     #
+//#                                                              #
+//#      https://github.com/hermesbaby                           #
+//#                                                              #
+//#  Copyright (c) 2024 Alexander Mann-Wahrenberg (basejumpa)    #
+//#                                                              #
+//#  License(s)                                                  #
+//#                                                              #
+//#  - MIT for contents used as software                         #
+//#  - CC BY-SA-4.0 for contents used as method or otherwise     #
+//#                                                              #
+//################################################################
+
+{
+    // *** DOCUMENTING ( including general file, scm, text handling *******
+
+    "search.useIgnoreFiles": true,
+
+    "path-autocomplete.triggerOutsideStrings": true,
+
+    "pasteImage.defaultName": "Y_MM_DD_HH_mm_ss",
+    "pasteImage.encodePath": "none",
+    "pasteImage.path": "${currentFileDir}/_figures",
+
+    //"pasteImage.insertPattern": "```{figure} ${imageFilePath}\n```\n\n",
+
+    "pasteImage.insertPattern": "(fig_${imageFileNameWithoutExt})=\n\n```{figure} ${imageFilePath}\n${imageFileNameWithoutExt}\n```\n\n",
+
+    // *** OTHER PURPOSES *************************************************
+
+    // *** Testing ********************************************************
+
+}
