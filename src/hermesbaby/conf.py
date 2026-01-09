@@ -1479,6 +1479,12 @@ if _user_conf_path:
 
 extensions.append("hermesbaby.semcrossrefs")
 
+# Activate the substitution in case the command line option --extract is used.
+# This is indicated that environment variable HERMESBABY_EXTRACT_DIR is set
+
+if os.getenv("HERMESBABY_EXTRACT_DIR"):
+    semcrossrefs_substitute_undefined_labels = True
+
 
 ###############################################################################
 ### Call all the above collected app setups functions #########################
