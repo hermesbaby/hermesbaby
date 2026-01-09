@@ -166,9 +166,10 @@ def _load_config():
         logger.info("There is no '{hermesbaby__config_file}'. Using default config.")
 
 
-def _set_env():
+def _set_env(extract_dir: str = None):
     os.environ["HERMESBABY_CWD"] = os.getcwd()
-
+    if extract_dir:
+        os.environ["HERMESBABY_EXTRACT_DIR"] = extract_dir
 
 def _tools_load_external_tools() -> dict:
     file_path = _get_resource_path("external_tools.json")
@@ -426,14 +427,33 @@ def html_live(
         ".",
         help="Directory where to execute the command. ",
     ),
+    extract: str = typer.Option(
+        None,
+        "--extract",
+        help="Relative directory below source dir to the chapter to be built as an extract.",
+    ),
 ):
     """Build to format HTML with live reload"""
 
-    _set_env()
+    # Check if extract refers to a valid directory
+    if extract:
+        source_dir = Path(_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value)
+        extract_path = source_dir / Path(extract)
+        if not extract_path.exists() or not extract_path.is_dir():
+            typer.echo(
+                f"Error: Extract path '{extract_path}' does not exist or is not a directory.",
+                err=True,
+            )
+            raise typer.Abort()
+
+    _set_env(extract_dir=extract)
     _load_config()
 
     kconfig = _get_kconfig()
     build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
+    source_dir = Path(kconfig.syms["BUILD__DIRS__SOURCE"].str_value)
+    if extract:
+        source_dir = source_dir / Path(extract)
     executable = _resolve_tool("sphinx-autobuild")
     command = [
         f"{executable}",
@@ -444,7 +464,7 @@ def html_live(
         "-W",
         "-c",
         f"{_get_resource_path('')}",
-        f"{kconfig.syms['BUILD__DIRS__SOURCE'].str_value}",
+        f"{source_dir}",
         f"{build_dir}",
         "--watch",
         f"{kconfig.syms['BUILD__DIRS__CONFIG'].str_value}",
