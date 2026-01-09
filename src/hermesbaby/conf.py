@@ -682,8 +682,8 @@ append_existing_files(bibtex_bibfiles, bibtex_bibfiles_candidates)
 #
 # This section defines a custom style from references
 #
-# For techreports, online, and misc references the 
-# KeyLabelStyle allows to define a custom label using the 
+# For techreports, online, and misc references the
+# KeyLabelStyle allows to define a custom label using the
 # 'key' field or the 'number' field
 #
 from pybtex.style.formatting.unsrt import Style as UnsrtStyle
@@ -1472,6 +1472,12 @@ if _user_conf_path:
     for ext in _mock_extentions:
         if ext not in extensions:
             extensions.append(ext)
+
+
+### Semantic cross-references #################################################
+# @see src/hermesbaby/semcrossrefs/README.md
+
+extensions.append("hermesbaby.semcrossrefs")
 
 
 ###############################################################################
