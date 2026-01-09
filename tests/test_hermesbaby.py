@@ -127,6 +127,7 @@ def test_task_config_file(cli_runner, project_dir):
     assert index_html.exists(), f"Build output does not exist: {index_html}"
 
 
+@pytest.mark.skipif(sys.platform != "linux", reason="Install test only runs on Linux")
 def test_task_install(cli_runner):
 
     from src.hermesbaby.__main__ import app_tools
