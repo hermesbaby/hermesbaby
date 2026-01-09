@@ -166,10 +166,82 @@ def _load_config():
         logger.info("There is no '{hermesbaby__config_file}'. Using default config.")
 
 
+def _validate_extract_path(extract: str, source_dir: Path) -> None:
+    """Validate that the extract path exists and is a directory."""
+    if extract:
+        extract_path = source_dir / Path(extract)
+        if not extract_path.exists() or not extract_path.is_dir():
+            typer.echo(
+                f"Error: Extract path '{extract_path}' does not exist or is not a directory.",
+                err=True,
+            )
+            raise typer.Abort()
+
+
+def _get_source_dir_with_extract(extract: str) -> Path:
+    """Get the source directory, adjusting for extract path if provided."""
+    source_dir = Path(_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value)
+    if extract:
+        source_dir = source_dir / Path(extract)
+    return source_dir
+
+
 def _set_env(extract_dir: str = None):
     os.environ["HERMESBABY_CWD"] = os.getcwd()
     if extract_dir:
         os.environ["HERMESBABY_EXTRACT_DIR"] = extract_dir
+
+
+def _build_html_common(
+    ctx: typer.Context,
+    directory: str,
+    extract: str,
+    tool_name: str,
+    extra_args: list = None,
+) -> int:
+    """Common logic for HTML build commands.
+
+    Args:
+        ctx: Typer context
+        directory: Directory where to execute the command
+        extract: Extract path (optional)
+        tool_name: Name of the sphinx tool to use (e.g., 'sphinx-build', 'sphinx-autobuild')
+        extra_args: Additional command-line arguments to append (optional)
+
+    Returns:
+        Exit code from the subprocess
+    """
+    # Check if extract refers to a valid directory
+    if extract:
+        source_dir = Path(_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value)
+        _validate_extract_path(extract, source_dir)
+
+    _set_env(extract_dir=extract)
+    _load_config()
+
+    kconfig = _get_kconfig()
+    build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
+    source_dir = _get_source_dir_with_extract(extract)
+    executable = _resolve_tool(tool_name)
+
+    command = [
+        f"{executable}",
+        "-b",
+        "html",
+        "-W",
+        "-c",
+        f"{_get_resource_path('')}",
+        f"{source_dir}",
+        f"{build_dir}",
+    ]
+
+    # Add extra arguments if provided
+    if extra_args:
+        command.extend(extra_args)
+
+    typer.echo(" ".join(shlex.quote(a) for a in command))
+    result = subprocess.run(command, cwd=directory, check=True)
+    return result.returncode
 
 def _tools_load_external_tools() -> dict:
     file_path = _get_resource_path("external_tools.json")
@@ -391,33 +463,15 @@ def html(
         ".",
         help="Directory where to execute the command. ",
     ),
+    extract: str = typer.Option(
+        None,
+        "--extract",
+        help="Relative directory below source dir to the chapter to be built as an extract.",
+    ),
 ):
     """Build to format HTML"""
-
-    _set_env()
-    _load_config()
-
-    build_dir = (
-        Path(_get_kconfig().syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
-    )
-
-    build_dir = (
-        Path(_get_kconfig().syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
-    )
-    executable = _resolve_tool("sphinx-build")
-    command = [
-        f"{executable}",
-        "-b",
-        "html",
-        "-W",
-        "-c",
-        f"{_get_resource_path('')}",
-        f"{_get_kconfig().syms['BUILD__DIRS__SOURCE'].str_value}",
-        f"{build_dir}",
-    ]
-    typer.echo(" ".join(shlex.quote(a) for a in command))
-    result = subprocess.run(command, cwd=directory, check=True)
-    sys.exit(result.returncode)
+    returncode = _build_html_common(ctx, directory, extract, "sphinx-build")
+    sys.exit(returncode)
 
 
 @app.command()
@@ -434,38 +488,10 @@ def html_live(
     ),
 ):
     """Build to format HTML with live reload"""
-
-    # Check if extract refers to a valid directory
-    if extract:
-        source_dir = Path(_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value)
-        extract_path = source_dir / Path(extract)
-        if not extract_path.exists() or not extract_path.is_dir():
-            typer.echo(
-                f"Error: Extract path '{extract_path}' does not exist or is not a directory.",
-                err=True,
-            )
-            raise typer.Abort()
-
-    _set_env(extract_dir=extract)
-    _load_config()
-
     kconfig = _get_kconfig()
-    build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
-    source_dir = Path(kconfig.syms["BUILD__DIRS__SOURCE"].str_value)
-    if extract:
-        source_dir = source_dir / Path(extract)
-    executable = _resolve_tool("sphinx-autobuild")
-    command = [
-        f"{executable}",
-        "-b",
-        "html",
+    extra_args = [
         "-j",
         "10",
-        "-W",
-        "-c",
-        f"{_get_resource_path('')}",
-        f"{source_dir}",
-        f"{build_dir}",
         "--watch",
         f"{kconfig.syms['BUILD__DIRS__CONFIG'].str_value}",
         "--re-ignore",
@@ -474,9 +500,8 @@ def html_live(
         f"{int(kconfig.syms['BUILD__PORTS__HTML__LIVE'].str_value)}",
         "--open-browser",
     ]
-    typer.echo(" ".join(shlex.quote(a) for a in command))
-    result = subprocess.run(command, cwd=directory, check=True)
-    sys.exit(result.returncode)
+    returncode = _build_html_common(ctx, directory, extract, "sphinx-autobuild", extra_args)
+    sys.exit(returncode)
 
 
 @app.command()
