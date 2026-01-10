@@ -14,11 +14,9 @@
 #                                                              #
 ################################################################
 
-"""Semantic cross-references extension for Sphinx.
+"""Partly extension for Sphinx.
 
-This extension:
-1. Detects and reports undefined cross-reference labels
-2. Optionally creates dummy labels for undefined references to allow builds to complete
+This extension allows building parts of the document.
 """
 
 from sphinx.util import logging
@@ -31,8 +29,6 @@ undefined_refs = []
 
 def setup(app):
     """Setup the Sphinx extension."""
-    app.add_config_value('semcrossrefs_substitute_undefined_labels', False, 'env')
-
     # Connect to events
     app.connect('missing-reference', on_missing_reference)
     app.connect('build-finished', on_build_finished)
@@ -79,37 +75,32 @@ def on_missing_reference(app, env, node, contnode):
         'source': refdoc
     })
 
-    # If dummy label creation is enabled, create the label now
-    if app.config.semcrossrefs_substitute_undefined_labels:
-        # Register the dummy label in the environment
-        dummy_docname = '_dummy_labels'
+    # Create dummy label to allow the build to continue
+    # Register the dummy label in the environment
+    dummy_docname = '_dummy_labels'
 
-        # Register in standard domain labels
-        env.domaindata['std']['labels'][reftarget] = (
-            dummy_docname,
-            reftarget,
-            f'Dummy: {reftarget}'
-        )
-        env.domaindata['std']['anonlabels'][reftarget] = (dummy_docname, reftarget)
-        logger.debug(f"Created dummy label: {reftarget}")
+    # Register in standard domain labels
+    env.domaindata['std']['labels'][reftarget] = (
+        dummy_docname,
+        reftarget,
+        f'Dummy: {reftarget}'
+    )
+    env.domaindata['std']['anonlabels'][reftarget] = (dummy_docname, reftarget)
+    logger.debug(f"Created dummy label: {reftarget}")
 
-        # Return a text node to replace the broken reference
-        from docutils import nodes
-        return nodes.inline('', f'[{reftarget}]', classes=['dummy-ref'])
-
-    return None
+    # Return a text node to replace the broken reference
+    from docutils import nodes
+    return nodes.inline('', f'[{reftarget}]', classes=['dummy-ref'])
 
 
 def on_build_finished(app, exception):
     """Report undefined references at the end of the build."""
-
-    if app.config.semcrossrefs_substitute_undefined_labels:
-        if undefined_refs:
-            # Get unique labels
-            unique_labels = sorted(set(ref['target'] for ref in undefined_refs))
-            logger.info("The build contains the following unresolved cross-reference(s):")
-            for label in unique_labels:
-                logger.info(f"  - {label}")
+    if undefined_refs:
+        # Get unique labels
+        unique_labels = sorted(set(ref['target'] for ref in undefined_refs))
+        logger.info("The build contains the following unresolved cross-reference(s):")
+        for label in unique_labels:
+            logger.info(f"  - {label}")
 
     # Clear for next build
     undefined_refs.clear()

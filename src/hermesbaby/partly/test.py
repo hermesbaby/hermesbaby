@@ -14,7 +14,7 @@
 #                                                              #
 ################################################################
 
-"""Unit tests for the semcrossrefs extension."""
+"""Unit tests for the partly extension."""
 
 import pytest
 from pathlib import Path
@@ -56,7 +56,7 @@ def sphinx_builder(temp_sphinx_dirs):
             doc_path.write_text(content, encoding='utf-8')
 
         # Write conf.py
-        full_conf = f"extensions = ['hermesbaby.semcrossrefs']\n{conf_content}"
+        full_conf = f"extensions = ['hermesbaby.partly']\n{conf_content}"
         (srcdir / 'conf.py').write_text(full_conf, encoding='utf-8')
 
         # Create and return Sphinx app
@@ -109,10 +109,11 @@ Another reference to :ref:`undefined_label_2`.
     app = sphinx_builder(docs)
     app.build()
 
-    warnings = app._warning.getvalue()
-    # Should report both undefined labels
-    assert 'undefined_label_1' in warnings
-    assert 'undefined_label_2' in warnings
+    info = app._status.getvalue()
+    # Should report both undefined labels in the info log
+    assert 'The build contains the following unresolved cross-reference(s):' in info
+    assert 'undefined_label_1' in info
+    assert 'undefined_label_2' in info
 
 
 def test_ignore_defined_labels_in_same_doc(sphinx_builder):
@@ -132,18 +133,31 @@ Reference to :ref:`undefined_label`.
 '''
     }
 
-    conf = 'semcrossrefs_create_dummy_labels = True'
-    app = sphinx_builder(docs, conf)
+    app = sphinx_builder(docs)
     app.build()
 
-    warnings = app._warning.getvalue()
-    # defined_label should resolve fine (no warning)
-    assert 'defined_label' not in warnings or 'undefined label: \'defined_label\'' not in warnings
-    # undefined_label should be handled by dummy
+    info = app._status.getvalue()
+    # Only undefined_label should be reported, not defined_label
+    if 'The build contains the following unresolved cross-reference(s):' in info:
+        assert 'undefined_label' in info
+        # Extract just the list of unresolved references
+        lines = [l.strip() for l in info.split('\n')]
+        unresolved_idx = -1
+        for i, line in enumerate(lines):
+            if 'The build contains the following unresolved cross-reference(s):' in line:
+                unresolved_idx = i
+                break
+        if unresolved_idx >= 0:
+            # Check lines after the header that start with '-'
+            for line in lines[unresolved_idx+1:]:
+                if line.startswith('- defined_label'):
+                    pytest.fail('defined_label should not be in unresolved references')
+                elif not line.startswith('-'):
+                    break  # End of the list
 
 
-def test_create_dummy_labels_when_enabled(sphinx_builder):
-    """Test: Create dummy labels when config is enabled."""
+def test_create_dummy_labels(sphinx_builder):
+    """Test: Create dummy labels for undefined references."""
     docs = {
         'index.rst': '''
 Test Document
@@ -153,8 +167,7 @@ Reference to :ref:`undefined_label`.
 '''
     }
 
-    conf = 'semcrossrefs_substitute_undefined_labels = True'
-    app = sphinx_builder(docs, conf)
+    app = sphinx_builder(docs)
     app.build()
 
     # Build should succeed without undefined reference error
@@ -163,25 +176,6 @@ Reference to :ref:`undefined_label`.
     # The reference should be handled by the dummy, so no "undefined label" warning
     assert 'undefined label: \'undefined_label\'' not in output
 
-
-def test_no_dummy_labels_when_disabled(sphinx_builder):
-    """Test: Don't create dummy labels when config is disabled."""
-    docs = {
-        'index.rst': '''
-Test Document
-=============
-
-Reference to :ref:`undefined_label`.
-'''
-    }
-
-    conf = 'semcrossrefs_substitute_undefined_labels = False'
-    app = sphinx_builder(docs, conf)
-    app.build()
-
-    warnings = app._warning.getvalue()
-    # Should still report undefined reference
-    assert 'undefined_label' in warnings
 
 
 def test_multiple_docs_with_cross_references(sphinx_builder):
@@ -218,13 +212,13 @@ Reference back to main: :ref:`main_label`.
     app = sphinx_builder(docs)
     app.build()
 
-    # Both cross-doc references should resolve fine
-    warnings = app._warning.getvalue()
-    assert 'undefined label' not in warnings.lower()
+    # Both cross-doc references should resolve fine, no unresolved references
+    info = app._status.getvalue()
+    assert 'The build contains the following unresolved cross-reference(s):' not in info
 
 
 def test_reporting_groups_by_document(sphinx_builder):
-    """Test: Undefined references are reported grouped by source document."""
+    """Test: Undefined references are reported in info log."""
     docs = {
         'index.rst': '''
 Test Document
@@ -243,9 +237,11 @@ Reference to :ref:`undefined_2`.
     app = sphinx_builder(docs)
     app.build()
 
-    # The extension should report both undefined references
-    # grouped by their source documents
-    # (Actual validation would check the log output structure)
+    # The extension should report both undefined references in info log
+    info = app._status.getvalue()
+    assert 'The build contains the following unresolved cross-reference(s):' in info
+    assert 'undefined_1' in info
+    assert 'undefined_2' in info
 
 
 def test_forward_reference_before_target(sphinx_builder):
@@ -271,10 +267,9 @@ This label is defined after the reference.
     app = sphinx_builder(docs)
     app.build()
 
-    # Should build successfully - forward references should work
-    warnings = app._warning.getvalue()
-    assert 'undefined label' not in warnings.lower()
-    assert 'later_label' not in warnings
+    # Should build successfully - forward references should work, no unresolved refs
+    info = app._status.getvalue()
+    assert 'The build contains the following unresolved cross-reference(s):' not in info
 
 
 def test_no_dummy_for_forward_reference_when_enabled(sphinx_builder):
@@ -297,8 +292,7 @@ This label is defined after the reference.
 '''
     }
 
-    conf = 'semcrossrefs_substitute_undefined_labels = True'
-    app = sphinx_builder(docs, conf)
+    app = sphinx_builder(docs)
     app.build()
 
     # Get the build output/warnings

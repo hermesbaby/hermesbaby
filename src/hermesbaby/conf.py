@@ -1474,16 +1474,14 @@ if _user_conf_path:
             extensions.append(ext)
 
 
-### Semantic cross-references #################################################
-# @see src/hermesbaby/semcrossrefs/README.md
+### Support partly builds #####################################################
+# @see src/hermesbaby/partly/README.md
 
-extensions.append("hermesbaby.semcrossrefs")
+# Activate in case the command line option --extract is used.
+# This is indicated that environment variable HERMESBABY_PART_DIR is set
 
-# Activate the substitution in case the command line option --extract is used.
-# This is indicated that environment variable HERMESBABY_EXTRACT_DIR is set
-
-if os.getenv("HERMESBABY_EXTRACT_DIR"):
-    semcrossrefs_substitute_undefined_labels = True
+if os.getenv("HERMESBABY_PART_DIR"):
+    extensions.append("hermesbaby.partly")
 
 
 ###############################################################################

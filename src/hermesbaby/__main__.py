@@ -166,36 +166,36 @@ def _load_config():
         logger.info("There is no '{hermesbaby__config_file}'. Using default config.")
 
 
-def _validate_extract_path(extract: str, source_dir: Path) -> None:
-    """Validate that the extract path exists and is a directory."""
-    if extract:
-        extract_path = source_dir / Path(extract)
-        if not extract_path.exists() or not extract_path.is_dir():
+def _validate_part_path(part: str, source_dir: Path) -> None:
+    """Validate that the part path exists and is a directory."""
+    if part:
+        part_path = source_dir / Path(part)
+        if not part_path.exists() or not part_path.is_dir():
             typer.echo(
-                f"Error: Extract path '{extract_path}' does not exist or is not a directory.",
+                f"Error: Extract path '{part_path}' does not exist or is not a directory.",
                 err=True,
             )
             raise typer.Abort()
 
 
-def _get_source_dir_with_extract(extract: str) -> Path:
-    """Get the source directory, adjusting for extract path if provided."""
+def _get_source_dir_with_part(part: str) -> Path:
+    """Get the source directory, adjusting for part path if provided."""
     source_dir = Path(_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value)
-    if extract:
-        source_dir = source_dir / Path(extract)
+    if part:
+        source_dir = source_dir / Path(part)
     return source_dir
 
 
-def _set_env(extract_dir: str = None):
+def _set_env(part_dir: str = None):
     os.environ["HERMESBABY_CWD"] = os.getcwd()
-    if extract_dir:
-        os.environ["HERMESBABY_EXTRACT_DIR"] = extract_dir
+    if part_dir:
+        os.environ["HERMESBABY_PART_DIR"] = part_dir
 
 
 def _build_html_common(
     ctx: typer.Context,
     directory: str,
-    extract: str,
+    part: str,
     tool_name: str,
     extra_args: list = None,
 ) -> int:
@@ -204,24 +204,24 @@ def _build_html_common(
     Args:
         ctx: Typer context
         directory: Directory where to execute the command
-        extract: Extract path (optional)
+        part: Extract path (optional)
         tool_name: Name of the sphinx tool to use (e.g., 'sphinx-build', 'sphinx-autobuild')
         extra_args: Additional command-line arguments to append (optional)
 
     Returns:
         Exit code from the subprocess
     """
-    # Check if extract refers to a valid directory
-    if extract:
+    # Check if part refers to a valid directory
+    if part:
         source_dir = Path(_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value)
-        _validate_extract_path(extract, source_dir)
+        _validate_part_path(part, source_dir)
 
-    _set_env(extract_dir=extract)
+    _set_env(part_dir=part)
     _load_config()
 
     kconfig = _get_kconfig()
     build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
-    source_dir = _get_source_dir_with_extract(extract)
+    source_dir = _get_source_dir_with_part(part)
     executable = _resolve_tool(tool_name)
 
     command = [
@@ -463,14 +463,14 @@ def html(
         ".",
         help="Directory where to execute the command. ",
     ),
-    extract: str = typer.Option(
+    part: str = typer.Option(
         None,
-        "--extract",
-        help="Relative directory below source dir to the chapter to be built as an extract.",
+        "--partly",
+        help="Relative directory below source dir to the chapter to be built as an part.",
     ),
 ):
     """Build to format HTML"""
-    returncode = _build_html_common(ctx, directory, extract, "sphinx-build")
+    returncode = _build_html_common(ctx, directory, part, "sphinx-build")
     sys.exit(returncode)
 
 
@@ -481,10 +481,10 @@ def html_live(
         ".",
         help="Directory where to execute the command. ",
     ),
-    extract: str = typer.Option(
+    part: str = typer.Option(
         None,
-        "--extract",
-        help="Relative directory below source dir to the chapter to be built as an extract.",
+        "--partly",
+        help="Relative directory below source dir to the chapter to be built as an part.",
     ),
 ):
     """Build to format HTML with live reload"""
@@ -500,7 +500,7 @@ def html_live(
         f"{int(kconfig.syms['BUILD__PORTS__HTML__LIVE'].str_value)}",
         "--open-browser",
     ]
-    returncode = _build_html_common(ctx, directory, extract, "sphinx-autobuild", extra_args)
+    returncode = _build_html_common(ctx, directory, part, "sphinx-autobuild", extra_args)
     sys.exit(returncode)
 
 
