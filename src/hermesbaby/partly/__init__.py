@@ -180,21 +180,24 @@ def on_doctree_resolved(app, doctree, docname):
     # Sort by label for better visual grouping
     ref_occurrences_sorted = sorted(ref_occurrences, key=lambda r: r['target'])
 
+    # Group occurrences by label
+    from itertools import groupby
+    grouped_refs = {label: list(group) for label, group in groupby(ref_occurrences_sorted, key=lambda r: r['target'])}
+
     # Create a new section for outgoing cross-references
     # Use configurable title
     section_title = app.config.partly_undefined_refs_title
     section = nodes.section(ids=['outgoing-cross-references'])
     section += nodes.title('', section_title)
 
-    # Create a table with the undefined labels
+    # Create outer table with 2 columns: Label and Used In
     table = nodes.table()
-    tgroup = nodes.tgroup(cols=3)
+    tgroup = nodes.tgroup(cols=2)
     table += tgroup
 
     # Define column widths
     tgroup += nodes.colspec(colwidth=1)
-    tgroup += nodes.colspec(colwidth=1)
-    tgroup += nodes.colspec(colwidth=2)
+    tgroup += nodes.colspec(colwidth=3)
 
     # Table header
     thead = nodes.thead()
@@ -205,65 +208,89 @@ def on_doctree_resolved(app, doctree, docname):
     entry += nodes.paragraph('', 'Label')
     row += entry
     entry = nodes.entry()
-    entry += nodes.paragraph('', 'used in')
-    row += entry
-    entry = nodes.entry()
-    entry += nodes.paragraph('', 'source file')
+    entry += nodes.paragraph('', 'Used In')
     row += entry
 
-    # Table body - one row per reference occurrence
+    # Table body - one row per unique label
     tbody = nodes.tbody()
     tgroup += tbody
 
-    # Track which labels we've already created targets for
-    targets_created = set()
-
-    for ref in ref_occurrences_sorted:
-        label = ref['target']
-        source = ref['source']
-        section_id = ref.get('section_id')
-        section_title = ref.get('section_title', 'Top of document')
-
+    for label, occurrences in grouped_refs.items():
         row = nodes.row()
         tbody += row
 
         # Label column
         entry = nodes.entry()
-
-        # Create a target node for this label only once (first occurrence)
-        if label not in targets_created:
-            target = nodes.target('', '', ids=[label], names=[label])
-            entry += target
-            targets_created.add(label)
-
+        # Create a target node for this label
+        target = nodes.target('', '', ids=[label], names=[label])
+        entry += target
         # Add the label text in verbatim/code font
         para = nodes.paragraph()
         para += nodes.literal('', label)
         entry += para
         row += entry
 
-        # Section column (back-reference to where the reference is used)
+        # Used In column - contains nested table
         entry = nodes.entry()
-        para = nodes.paragraph()
-        if section_id:
-            # Create a reference to the section
-            refnode = nodes.reference('', '', internal=True)
-            refnode['refuri'] = f'#{section_id}'
-            refnode += nodes.Text(section_title)
-            para += refnode
-        else:
-            # No section ID, just show the title as text
-            para += nodes.Text(section_title)
-        entry += para
-        row += entry
 
-        # Document column (where this specific reference occurs) in verbatim/code font
-        entry = nodes.entry()
-        para = nodes.paragraph()
-        # Add file suffix to source file name
-        source_with_suffix = app.env.doc2path(source, base=False)
-        para += nodes.literal('', source_with_suffix)
-        entry += para
+        # Create nested table
+        nested_table = nodes.table()
+        nested_tgroup = nodes.tgroup(cols=2)
+        nested_table += nested_tgroup
+
+        # Nested table column widths
+        nested_tgroup += nodes.colspec(colwidth=2)
+        nested_tgroup += nodes.colspec(colwidth=1)
+
+        # Nested table header
+        nested_thead = nodes.thead()
+        nested_tgroup += nested_thead
+        nested_row = nodes.row()
+        nested_thead += nested_row
+        nested_entry = nodes.entry()
+        nested_entry += nodes.paragraph('', 'Chapter')
+        nested_row += nested_entry
+        nested_entry = nodes.entry()
+        nested_entry += nodes.paragraph('', 'Source File')
+        nested_row += nested_entry
+
+        # Nested table body - one row per occurrence
+        nested_tbody = nodes.tbody()
+        nested_tgroup += nested_tbody
+
+        for ref in occurrences:
+            source = ref['source']
+            section_id = ref.get('section_id')
+            section_title = ref.get('section_title', 'Top of document')
+
+            nested_row = nodes.row()
+            nested_tbody += nested_row
+
+            # Chapter column
+            nested_entry = nodes.entry()
+            nested_para = nodes.paragraph()
+            if section_id:
+                # Create a reference to the section
+                refnode = nodes.reference('', '', internal=True)
+                refnode['refuri'] = f'#{section_id}'
+                refnode += nodes.Text(section_title)
+                nested_para += refnode
+            else:
+                # No section ID, just show the title as text
+                nested_para += nodes.Text(section_title)
+            nested_entry += nested_para
+            nested_row += nested_entry
+
+            # Source File column
+            nested_entry = nodes.entry()
+            nested_para = nodes.paragraph()
+            # Add file suffix to source file name
+            source_with_suffix = app.env.doc2path(source, base=False)
+            nested_para += nodes.literal('', source_with_suffix)
+            nested_entry += nested_para
+            nested_row += nested_entry
+
+        entry += nested_table
         row += entry
 
     section += table

@@ -390,9 +390,11 @@ And one more to :ref:`third_undefined`.
     assert 'second_undefined' in html_content, "second_undefined not found"
     assert 'third_undefined' in html_content, "third_undefined not found"
 
-    # Verify table headers
+    # Verify table headers (outer and nested table headers)
     assert 'Label' in html_content, "Table header 'Label' not found"
-    assert 'source file' in html_content, "Table header 'source file' not found"
+    assert 'Used In' in html_content, "Table header 'Used In' not found"
+    assert 'Source File' in html_content, "Nested table header 'Source File' not found"
+    assert 'Chapter' in html_content, "Nested table header 'Chapter' not found"
 
 
 def test_labels_defined_as_targets_in_table(sphinx_builder):
@@ -549,11 +551,18 @@ And one to :ref:`another_label`.
     assert 'repeated_label' in html_content
     assert 'another_label' in html_content
 
-    # Check that we have 4 rows in the undefined references table
-    # (3 for repeated_label + 1 for another_label)
+    # The outer table should have 2 rows (one per unique label)
+    # Each row in the outer table contains a nested table showing occurrences
     import re
-    tbody_match = re.search(r'<tbody>(.*?)</tbody>', html_content, re.DOTALL)
-    assert tbody_match, "Should have tbody in table"
-    tbody_content = tbody_match.group(1)
-    rows = re.findall(r'<tr[^>]*>', tbody_content)
-    assert len(rows) == 4, f"Expected 4 rows (3 for repeated_label + 1 for another_label), got {len(rows)}"
+
+    # Check for the presence of nested tables
+    # We expect: 1 outer table + 2 nested tables (one for each label)
+    all_tables = re.findall(r'<table[^>]*class="[^"]*docutils[^"]*"', html_content)
+    assert len(all_tables) >= 3, f"Expected at least 3 tables (1 outer + 2 nested), got {len(all_tables)}"
+
+    # Verify both unique labels appear
+    assert 'repeated_label' in html_content
+    assert 'another_label' in html_content
+
+    # Verify "Chapter" header appears in nested tables
+    assert html_content.count('Chapter') >= 2, "Should have 'Chapter' header in nested tables"
