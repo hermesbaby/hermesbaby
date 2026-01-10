@@ -163,9 +163,9 @@ def on_source_read(app, docname, source):
 
     # Inject bibliography directive at the end of the source
     if is_markdown:
-        bibliography_directive = "\n\n# Injected Bibliography\n\n```{bibliography}\n```\n"
+        bibliography_directive = "\n\n```{bibliography}\n```\n"
     else:
-        bibliography_directive = "\n\nInjected Bibliography\n=====================\n\n.. bibliography::\n"
+        bibliography_directive = "\n\n.. bibliography::\n"
 
     # Modify the source in-memory (source is a list with one string element)
     source[0] = source[0] + bibliography_directive
@@ -616,31 +616,19 @@ def _has_citation_references(app):
 
 
 def _inject_bibliography_chapter(app, doctree):
-    """Inject a bibliography chapter at the top level of the document.
+    """Inject bibliography directive at the end of the document.
 
-    Appends a chapter with the bibliography directive if no bibliography exists.
+    Appends just the bibliography directive without any wrapper section.
     This allows partial documentation builds with citations to succeed.
     """
     from docutils import nodes as docnodes
-    from docutils.parsers.rst import Directive
 
-    # Create a top-level section for the bibliography
-    # Note: We add it as a chapter-level section (not a subsection)
-    section = docnodes.section(ids=['injected-bibliography'])
-    section += docnodes.title('', 'Injected Bibliography')
-
-    # Add a paragraph explaining this is injected
-    para = docnodes.paragraph()
-    para += docnodes.Text('The following bibliography entries are referenced in this document:')
-    section += para
-
-    # Create a directive node for the bibliography
+    # Create a directive node for the bibliography without any section wrapper
     # Using raw directive to ensure proper RST processing
     # The bibliography directive should be processed by sphinx-bibtex or similar extension
     directive_node = docnodes.raw('', '.. bibliography::', format='rst')
-    section += directive_node
 
-    logger.info("Injected bibliography chapter into document")
+    logger.info("Injected bibliography directive into document")
 
-    # Append the section to the document
-    doctree += section
+    # Append the directive directly to the document
+    doctree += directive_node
