@@ -37,6 +37,7 @@ Instead of failing the build when cross-references cannot be resolved, `partly` 
 The `partly` extension is specifically designed to work with `sphinx-build -W` (or `warningiserror = True` in config), which treats all warnings as errors. This is crucial for CI/CD pipelines and strict documentation builds.
 
 **Without `partly`:**
+
 ```bash
 $ sphinx-build -W docs build
 Warning, treated as error:
@@ -45,6 +46,7 @@ Sphinx exited with exit code: 2
 ```
 
 **With `partly`:**
+
 ```bash
 $ sphinx-build -W docs build
 The build contains the following unresolved cross-reference(s):
@@ -68,6 +70,7 @@ When a document contains references to undefined labels, `partly` automatically 
 #### Example Output
 
 If your document contains:
+
 ```rst
 See :ref:`missing_section` for details.
 Also check :ref:`missing_section` later.
@@ -76,7 +79,8 @@ And :ref:`another_missing` too.
 
 The table will show 3 rows:
 
-```
+```text
+
 Undefined References
 ====================
 
@@ -111,12 +115,14 @@ extensions = [
 ### What Counts as Undefined
 
 A reference is considered undefined when:
+
 - The target label doesn't exist anywhere in the documentation source
 - The reference uses the `:ref:` role with a label that hasn't been defined
 
 ### What Doesn't Trigger the Table
 
 The following scenarios do NOT create undefined reference entries:
+
 - **Forward references**: References to labels defined later in the same document
 - **Cross-document references**: References to labels in other documents (as long as they exist)
 - **Non-`std` domain references**: Only standard domain (`:ref:`) references are tracked
@@ -125,7 +131,7 @@ The following scenarios do NOT create undefined reference entries:
 
 At the end of each build, `partly` logs a summary of all undefined references:
 
-```
+```text
 The build contains the following unresolved cross-reference(s):
   - missing_section
   - undefined_api

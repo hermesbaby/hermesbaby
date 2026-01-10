@@ -117,7 +117,7 @@ def on_missing_reference(app, env, node, contnode):
     env.domaindata['std']['labels'][reftarget] = (
         refdoc,  # Point to the source document
         reftarget,  # The target id
-        f'Undefined reference: {reftarget}'
+        reftarget  # Just use the label name
     )
     env.domaindata['std']['anonlabels'][reftarget] = (refdoc, reftarget)
     logger.debug(f"Created dummy label for {reftarget} pointing to {refdoc}")
@@ -130,7 +130,7 @@ def on_missing_reference(app, env, node, contnode):
     # Create a reference node that points to the label we just registered
     refnode = nodes.reference('', '', internal=True)
     refnode['refuri'] = f'#{reftarget}'
-    refnode['reftitle'] = f'Undefined reference: {reftarget}'
+    refnode['reftitle'] = reftarget  # Just use the label name
     refnode += contnode
 
     return refnode
@@ -185,7 +185,7 @@ def on_doctree_resolved(app, doctree, docname):
     entry += nodes.paragraph('', 'Label')
     row += entry
     entry = nodes.entry()
-    entry += nodes.paragraph('', 'Document')
+    entry += nodes.paragraph('', 'source file')
     row += entry
 
     # Table body - one row per reference occurrence
@@ -211,13 +211,17 @@ def on_doctree_resolved(app, doctree, docname):
             entry += target
             targets_created.add(label)
 
-        # Add the label text
-        entry += nodes.paragraph('', label)
+        # Add the label text in verbatim/code font
+        para = nodes.paragraph()
+        para += nodes.literal('', label)
+        entry += para
         row += entry
 
-        # Document column (where this specific reference occurs)
+        # Document column (where this specific reference occurs) in verbatim/code font
         entry = nodes.entry()
-        entry += nodes.paragraph('', source)
+        para = nodes.paragraph()
+        para += nodes.literal('', source)
+        entry += para
         row += entry
 
     section += table
