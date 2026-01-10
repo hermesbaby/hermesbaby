@@ -59,11 +59,22 @@ The build succeeds, and undefined references are documented in the output with a
 When a document contains references to undefined labels, `partly` automatically appends a section at the end titled "Undefined References". This section contains:
 
 - **A descriptive paragraph** explaining that some cross-references couldn't be resolved
-- **A table with two columns**:
-  - **Label**: The undefined label name (with a target anchor defined)
-  - **Referenced From**: The document(s) where this label is referenced
+- **A table listing each reference occurrence**:
+  - **Label**: The undefined label name
+  - **Document**: The source document where this reference appears
+
+**Important**: Each row in the table represents a specific cross-reference occurrence, not just unique labels. If the same undefined label is referenced multiple times, there will be multiple rows (one for each reference).
 
 #### Example Output
+
+If your document contains:
+```rst
+See :ref:`missing_section` for details.
+Also check :ref:`missing_section` later.
+And :ref:`another_missing` too.
+```
+
+The table will show 3 rows:
 
 ```
 Undefined References
@@ -71,14 +82,18 @@ Undefined References
 
 The following cross-references could not be resolved:
 
-+-------------------+------------------+
-| Label             | Referenced From  |
-+===================+==================+
-| missing_section   | index            |
-+-------------------+------------------+
-| undefined_api     | api_docs         |
-+-------------------+------------------+
++-------------------+------------+
+| Label             | Document   |
++===================+============+
+| another_missing   | index      |
++-------------------+------------+
+| missing_section   | index      |
++-------------------+------------+
+| missing_section   | index      |
++-------------------+------------+
 ```
+
+Note that `missing_section` appears twice because it was referenced twice in the document.
 
 ## Usage
 
@@ -120,13 +135,15 @@ This appears in the build log/info output, making it easy to track what needs to
 
 ## Implementation Notes
 
-- The extension hooks into Sphinx's `missing-reference` event to track undefined references
+- The extension uses a custom Sphinx Transform (`CollectPendingXrefs`) that runs before cross-reference resolution to capture all `pending_xref` nodes
+- This allows tracking of every reference occurrence, not just unique labels (Sphinx caches resolution per unique label)
+- The extension hooks into Sphinx's `missing-reference` event to identify which references are undefined
 - Returns a reference node (instead of None) to prevent Sphinx from emitting warnings, allowing `-W` builds to succeed
 - Dummy labels are registered during cross-reference resolution pointing to the source document
 - The "Undefined References" section is appended in the `doctree-resolved` event after resolution
 - Target anchors are created with IDs matching the undefined label names
 - The reference nodes created include proper `refuri` attributes pointing to `#{label_name}`
-- The global reference list is cleared after each build to prevent accumulation
+- Global tracking lists are cleared after each build to prevent accumulation
 
 ## Version
 

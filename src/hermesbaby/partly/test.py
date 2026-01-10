@@ -392,7 +392,7 @@ And one more to :ref:`third_undefined`.
 
     # Verify table headers
     assert 'Label' in html_content, "Table header 'Label' not found"
-    assert 'Referenced From' in html_content, "Table header 'Referenced From' not found"
+    assert 'Document' in html_content, "Table header 'Document' not found"
 
 
 def test_labels_defined_as_targets_in_table(sphinx_builder):
@@ -519,3 +519,41 @@ Another reference to :ref:`ai_dialog_qr_scanning_frontend`.
     assert 'Undefined References' in html_content, "Section should be present"
     assert 'sec_2025cw15_3_wed_reply_to_mail_medic_bite_proband_data' in html_content
     assert 'ai_dialog_qr_scanning_frontend' in html_content
+
+def test_table_shows_each_reference_occurrence(sphinx_builder):
+    """Test: Each cross-reference occurrence gets its own row, even if same label."""
+    docs = {
+        'index.rst': '''
+Test Document
+=============
+
+First reference to :ref:`repeated_label`.
+
+Second reference to :ref:`repeated_label`.
+
+Third reference to :ref:`repeated_label`.
+
+And one to :ref:`another_label`.
+'''
+    }
+
+    app = sphinx_builder(docs)
+    app.build()
+
+    # Read the generated HTML
+    outdir = app.outdir
+    html_file = outdir / 'index.html'
+    html_content = html_file.read_text(encoding='utf-8')
+
+    # Verify both labels appear in the output
+    assert 'repeated_label' in html_content
+    assert 'another_label' in html_content
+
+    # Check that we have 4 rows in the undefined references table
+    # (3 for repeated_label + 1 for another_label)
+    import re
+    tbody_match = re.search(r'<tbody>(.*?)</tbody>', html_content, re.DOTALL)
+    assert tbody_match, "Should have tbody in table"
+    tbody_content = tbody_match.group(1)
+    rows = re.findall(r'<tr[^>]*>', tbody_content)
+    assert len(rows) == 4, f"Expected 4 rows (3 for repeated_label + 1 for another_label), got {len(rows)}"
