@@ -45,16 +45,35 @@ class CollectPendingXrefs(SphinxTransform):
 
     def apply(self):
         """Collect all pending_xref nodes in this document."""
+        from docutils import nodes
         for node in self.document.findall(addnodes.pending_xref):
             if node.get('refdomain') == 'std':
+                # Find the parent section of this reference
+                section_id = None
+                section_title = None
+                parent = node.parent
+                while parent:
+                    if isinstance(parent, nodes.section):
+                        # Get the section ID
+                        if parent.get('ids'):
+                            section_id = parent['ids'][0]
+                        # Get the section title
+                        title_nodes = [n for n in parent.children if isinstance(n, nodes.title)]
+                        if title_nodes:
+                            section_title = title_nodes[0].astext()
+                        break
+                    parent = parent.parent
+
                 pending_xrefs.append({
                     'target': node.get('reftarget', ''),
                     'type': node.get('reftype', ''),
                     'domain': node.get('refdomain', ''),
                     'source': self.env.docname,
-                    'line': node.line
+                    'line': node.line,
+                    'section_id': section_id,
+                    'section_title': section_title or 'Top of document'
                 })
-                logger.debug(f"Collected pending_xref: {node.get('reftarget')} at line {node.line}")
+                logger.debug(f"Collected pending_xref: {node.get('reftarget')} at line {node.line} in section {section_title}")
 
 
 def setup(app):
@@ -169,12 +188,13 @@ def on_doctree_resolved(app, doctree, docname):
 
     # Create a table with the undefined labels
     table = nodes.table()
-    tgroup = nodes.tgroup(cols=2)
+    tgroup = nodes.tgroup(cols=3)
     table += tgroup
 
     # Define column widths
     tgroup += nodes.colspec(colwidth=1)
     tgroup += nodes.colspec(colwidth=1)
+    tgroup += nodes.colspec(colwidth=2)
 
     # Table header
     thead = nodes.thead()
@@ -183,6 +203,9 @@ def on_doctree_resolved(app, doctree, docname):
     thead += row
     entry = nodes.entry()
     entry += nodes.paragraph('', 'Label')
+    row += entry
+    entry = nodes.entry()
+    entry += nodes.paragraph('', 'used in')
     row += entry
     entry = nodes.entry()
     entry += nodes.paragraph('', 'source file')
@@ -198,6 +221,8 @@ def on_doctree_resolved(app, doctree, docname):
     for ref in ref_occurrences_sorted:
         label = ref['target']
         source = ref['source']
+        section_id = ref.get('section_id')
+        section_title = ref.get('section_title', 'Top of document')
 
         row = nodes.row()
         tbody += row
@@ -217,10 +242,27 @@ def on_doctree_resolved(app, doctree, docname):
         entry += para
         row += entry
 
+        # Section column (back-reference to where the reference is used)
+        entry = nodes.entry()
+        para = nodes.paragraph()
+        if section_id:
+            # Create a reference to the section
+            refnode = nodes.reference('', '', internal=True)
+            refnode['refuri'] = f'#{section_id}'
+            refnode += nodes.Text(section_title)
+            para += refnode
+        else:
+            # No section ID, just show the title as text
+            para += nodes.Text(section_title)
+        entry += para
+        row += entry
+
         # Document column (where this specific reference occurs) in verbatim/code font
         entry = nodes.entry()
         para = nodes.paragraph()
-        para += nodes.literal('', source)
+        # Add file suffix to source file name
+        source_with_suffix = app.env.doc2path(source, base=False)
+        para += nodes.literal('', source_with_suffix)
         entry += para
         row += entry
 
