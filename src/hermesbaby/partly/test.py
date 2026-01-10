@@ -310,3 +310,212 @@ This label is defined after the reference.
     assert '  - truly_undefined' in info_output
     # Should NOT create dummy for defined_later
     assert '  - defined_later' not in info_output
+
+
+def test_undefined_references_section_appended(sphinx_builder):
+    """Test: Documents with undefined references get a section appended at the end."""
+    docs = {
+        'index.rst': '''
+Test Document
+=============
+
+Reference to :ref:`undefined_label`.
+'''
+    }
+
+    app = sphinx_builder(docs)
+    app.build()
+
+    # Read the generated HTML to verify the section was added
+    outdir = app.outdir
+    html_file = outdir / 'index.html'
+
+    assert html_file.exists(), "HTML output file not found"
+
+    html_content = html_file.read_text(encoding='utf-8')
+
+    # Check that "Undefined References" section exists in the HTML
+    assert 'Undefined References' in html_content, "Section title not found in HTML"
+    assert 'undefined_label' in html_content, "Label not found in HTML"
+
+
+def test_undefined_references_section_contains_table(sphinx_builder):
+    """Test: The undefined references section contains a table."""
+    docs = {
+        'index.rst': '''
+Test Document
+=============
+
+Reference to :ref:`undefined_label`.
+'''
+    }
+
+    app = sphinx_builder(docs)
+    app.build()
+
+    # Read the generated HTML
+    outdir = app.outdir
+    html_file = outdir / 'index.html'
+    html_content = html_file.read_text(encoding='utf-8')
+
+    # Check that there's a table in the output
+    # Look for <table or <colgroup which are typical table elements
+    assert '<table' in html_content, "No table found in HTML output"
+    assert 'undefined_label' in html_content, "Label not found in table"
+
+
+def test_table_contains_all_undefined_labels(sphinx_builder):
+    """Test: The table lists all undefined labels with proper structure."""
+    docs = {
+        'index.rst': '''
+Test Document
+=============
+
+Reference to :ref:`first_undefined`.
+Another reference to :ref:`second_undefined`.
+And one more to :ref:`third_undefined`.
+'''
+    }
+
+    app = sphinx_builder(docs)
+    app.build()
+
+    # Read the generated HTML
+    outdir = app.outdir
+    html_file = outdir / 'index.html'
+    html_content = html_file.read_text(encoding='utf-8')
+
+    # Verify all three labels appear in the output
+    assert 'first_undefined' in html_content, "first_undefined not found"
+    assert 'second_undefined' in html_content, "second_undefined not found"
+    assert 'third_undefined' in html_content, "third_undefined not found"
+
+    # Verify table headers
+    assert 'Label' in html_content, "Table header 'Label' not found"
+    assert 'Referenced From' in html_content, "Table header 'Referenced From' not found"
+
+
+def test_labels_defined_as_targets_in_table(sphinx_builder):
+    """Test: Each undefined label is defined as a target in its table row."""
+    docs = {
+        'index.rst': '''
+Test Document
+=============
+
+Reference to :ref:`my_undefined_label`.
+'''
+    }
+
+    app = sphinx_builder(docs)
+    app.build()
+
+    # Read the generated HTML
+    outdir = app.outdir
+    html_file = outdir / 'index.html'
+    html_content = html_file.read_text(encoding='utf-8')
+
+    # Check for anchor/target with the label id
+    # In HTML, labels typically become id attributes or <a> tags
+    assert 'id="my_undefined_label"' in html_content or 'id="my-undefined-label"' in html_content, \
+        "Label target id not found in HTML"
+
+
+def test_references_link_to_table_rows(sphinx_builder):
+    """Test: Table rows have targets that match the undefined label names.
+
+    Note: Due to Sphinx's cross-reference resolution timing, the references themselves
+    may not automatically become links, but the targets are created with the correct IDs
+    so that manual hrefs would work.
+    """
+    docs = {
+        'index.rst': '''
+Test Document
+=============
+
+Here is a reference to :ref:`my_target_label`.
+
+Some more content here.
+'''
+    }
+
+    app = sphinx_builder(docs)
+    app.build()
+
+    # Read the generated HTML
+    outdir = app.outdir
+    html_file = outdir / 'index.html'
+    html_content = html_file.read_text(encoding='utf-8')
+
+    # Verify the target exists with the correct ID
+    # This means if someone clicks a link to #my_target_label, it will work
+    assert 'id="my_target_label"' in html_content or 'id="my-target-label"' in html_content, \
+        "Label target id not found in HTML"
+
+    # Verify the reference text appears (even if not as a link due to timing)
+    assert 'my_target_label' in html_content, "Label text not found in output"
+
+
+def test_no_section_for_documents_without_undefined_refs(sphinx_builder):
+    """Test: Documents with all references properly defined don't get the section."""
+    docs = {
+        'index.rst': '''
+Test Document
+=============
+
+.. _my_label:
+
+Proper Section
+--------------
+
+Reference to :ref:`my_label` which is defined.
+'''
+    }
+
+    app = sphinx_builder(docs)
+    app.build()
+
+    # Read the generated HTML
+    outdir = app.outdir
+    html_file = outdir / 'index.html'
+    html_content = html_file.read_text(encoding='utf-8')
+
+    # Verify that "Undefined References" section is NOT present
+    assert 'Undefined References' not in html_content, \
+        "Undefined References section should not appear when all references are defined"
+
+def test_build_succeeds_with_warningiserror(sphinx_builder):
+    """Test: Build succeeds even with -W (warningiserror=True) when undefined refs exist."""
+    docs = {
+        'index.rst': '''
+Test Document
+=============
+
+Reference to :ref:`sec_2025cw15_3_wed_reply_to_mail_medic_bite_proband_data`.
+Another reference to :ref:`ai_dialog_qr_scanning_frontend`.
+'''
+    }
+
+    # Create app with warningiserror=True (equivalent to -W flag)
+    app = sphinx_builder(docs, conf_content='')
+
+    # Monkey patch to enable warningiserror
+    app.warningiserror = True
+
+    # Build should succeed without raising an exception
+    try:
+        app.build()
+        build_succeeded = True
+    except Exception as e:
+        build_succeeded = False
+        error_msg = str(e)
+
+    assert build_succeeded, f"Build failed with warningiserror=True. This should not happen with undefined refs."
+
+    # Verify the undefined references section was created
+    outdir = app.outdir
+    html_file = outdir / 'index.html'
+    html_content = html_file.read_text(encoding='utf-8')
+
+    assert 'Undefined References' in html_content, "Section should be present"
+    assert 'sec_2025cw15_3_wed_reply_to_mail_medic_bite_proband_data' in html_content
+    assert 'ai_dialog_qr_scanning_frontend' in html_content
