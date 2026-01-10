@@ -97,7 +97,7 @@ def test_task_new(cli_runner, project_dir, some_rel_path_as_str, option):
     [
         (".", ""),  # Default directory, no extract
         ("", ""),  # Empty directory (defaults to current), no extract
-        (".", "--extract some/extract/path"),  # Default directory with extract
+        (".", "--partly some/extract/path"),  # Default directory with extract
     ],
 )
 def test_task_html(cli_runner, project_dir, directory, extract_option):
