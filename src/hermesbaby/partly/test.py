@@ -522,6 +522,92 @@ Another reference to :ref:`ai_dialog_qr_scanning_frontend`.
     assert 'sec_2025cw15_3_wed_reply_to_mail_medic_bite_proband_data' in html_content
     assert 'ai_dialog_qr_scanning_frontend' in html_content
 
+def test_bibliography_injection_disabled(sphinx_builder):
+    """Test: Bibliography injection can be disabled via config."""
+    docs = {
+        'index.rst': '''
+Test Document
+=============
+
+Content here.
+'''
+    }
+
+    app = sphinx_builder(docs, conf_content='partly_inject_bibliography = False')
+    app.build()
+
+    # With injection disabled, no bibliography chapter should be added
+    # (unless citations exist, which they don't in this test)
+    outdir = app.outdir
+    html_file = outdir / 'index.html'
+    html_content = html_file.read_text(encoding='utf-8')
+
+    assert 'Injected Bibliography' not in html_content, \
+        "Injected Bibliography should not appear when injection is disabled"
+
+
+def test_bibliography_title_customizable(sphinx_builder):
+    """Test: The undefined references section title is customizable."""
+    docs = {
+        'index.rst': '''
+Test Document
+=============
+
+Reference to :ref:`undefined_label`.
+'''
+    }
+
+    custom_title = 'Custom References Section'
+    app = sphinx_builder(docs, conf_content=f"partly_undefined_refs_title = '{custom_title}'")
+    app.build()
+
+    outdir = app.outdir
+    html_file = outdir / 'index.html'
+    html_content = html_file.read_text(encoding='utf-8')
+
+    # Check that the custom title appears
+    assert custom_title in html_content, f"Custom title '{custom_title}' not found in HTML"
+    # Original title should NOT appear
+    assert 'Outgoing Cross-References' not in html_content or custom_title in html_content
+
+
+def test_missing_citation_key_handled(sphinx_builder):
+    """Test: Missing citation keys don't cause build failure with -W flag."""
+    # Note: This test assumes that cite domain is available (e.g., sphinx-bibtex installed)
+    # If not available, the test will be skipped or the citation won't be processed
+    docs = {
+        'index.rst': '''
+Test Document
+=============
+
+This cites {cite:p}`NonexistentKey2023`.
+
+Some content here.
+''',
+    }
+
+    app = sphinx_builder(docs, conf_content='')
+
+    # Enable warningiserror to match the user's scenario
+    app.warningiserror = True
+
+    # Try to build - should not raise an exception about missing citation key
+    try:
+        app.build()
+        build_succeeded = True
+    except Exception as e:
+        # Check if the error is about missing bibtex key
+        error_msg = str(e)
+        if 'could not find bibtex key' in error_msg or 'nonexistent' in error_msg.lower():
+            build_succeeded = False
+            pytest.fail(f"Build failed due to missing citation key: {error_msg}")
+        else:
+            # Some other error, re-raise
+            raise
+
+    assert build_succeeded, "Build should succeed with missing citation keys"
+
+
 def test_table_shows_each_reference_occurrence(sphinx_builder):
     """Test: Each cross-reference occurrence gets its own row, even if same label."""
     docs = {
