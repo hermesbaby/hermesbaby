@@ -334,8 +334,8 @@ Reference to :ref:`undefined_label`.
 
     html_content = html_file.read_text(encoding='utf-8')
 
-    # Check that "Undefined References" section exists in the HTML
-    assert 'Undefined References' in html_content, "Section title not found in HTML"
+    # Check that "Outgoing Cross-References" section exists in the HTML
+    assert 'Outgoing Cross-References' in html_content, "Section title not found in HTML"
     assert 'undefined_label' in html_content, "Label not found in HTML"
 
 
@@ -479,9 +479,9 @@ Reference to :ref:`my_label` which is defined.
     html_file = outdir / 'index.html'
     html_content = html_file.read_text(encoding='utf-8')
 
-    # Verify that "Undefined References" section is NOT present
-    assert 'Undefined References' not in html_content, \
-        "Undefined References section should not appear when all references are defined"
+    # Verify that "Outgoing Cross-References" section is NOT present
+    assert 'Outgoing Cross-References' not in html_content, \
+        "Outgoing Cross-References section should not appear when all references are defined"
 
 def test_build_succeeds_with_warningiserror(sphinx_builder):
     """Test: Build succeeds even with -W (warningiserror=True) when undefined refs exist."""
@@ -511,12 +511,12 @@ Another reference to :ref:`ai_dialog_qr_scanning_frontend`.
 
     assert build_succeeded, f"Build failed with warningiserror=True. This should not happen with undefined refs."
 
-    # Verify the undefined references section was created
+    # Verify the outgoing cross-references section was created
     outdir = app.outdir
     html_file = outdir / 'index.html'
     html_content = html_file.read_text(encoding='utf-8')
 
-    assert 'Undefined References' in html_content, "Section should be present"
+    assert 'Outgoing Cross-References' in html_content, "Section should be present"
     assert 'sec_2025cw15_3_wed_reply_to_mail_medic_bite_proband_data' in html_content
     assert 'ai_dialog_qr_scanning_frontend' in html_content
 

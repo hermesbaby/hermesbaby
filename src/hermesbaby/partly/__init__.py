@@ -78,6 +78,9 @@ class CollectPendingXrefs(SphinxTransform):
 
 def setup(app):
     """Setup the Sphinx extension."""
+    # Add configuration value for the section title
+    app.add_config_value('partly_undefined_refs_title', 'Outgoing Cross-References', 'env')
+
     # Register transform to collect pending xrefs before resolution
     app.add_transform(CollectPendingXrefs)
 
@@ -177,14 +180,11 @@ def on_doctree_resolved(app, doctree, docname):
     # Sort by label for better visual grouping
     ref_occurrences_sorted = sorted(ref_occurrences, key=lambda r: r['target'])
 
-    # Create a new section for undefined references
-    section = nodes.section(ids=['undefined-references'])
-    section += nodes.title('', 'Undefined References')
-
-    # Add a paragraph explaining what this section is
-    para = nodes.paragraph()
-    para += nodes.Text('The following cross-references could not be resolved:')
-    section += para
+    # Create a new section for outgoing cross-references
+    # Use configurable title
+    section_title = app.config.partly_undefined_refs_title
+    section = nodes.section(ids=['outgoing-cross-references'])
+    section += nodes.title('', section_title)
 
     # Create a table with the undefined labels
     table = nodes.table()
