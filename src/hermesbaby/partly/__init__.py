@@ -19,16 +19,49 @@
 This extension allows building parts of the document.
 """
 
+from docutils import nodes
+from docutils.transforms import Transform
+from sphinx import addnodes
 from sphinx.util import logging
+from sphinx.transforms import SphinxTransform
 
 logger = logging.getLogger(__name__)
 
 # Global storage for tracking undefined references during a build
 undefined_refs = []
+# Storage for tracking all pending_xref nodes before resolution
+pending_xrefs = []
+
+
+class CollectPendingXrefs(SphinxTransform):
+    """Transform to collect pending cross-references before resolution.
+
+    This runs early in the transform pipeline to capture all pending_xref nodes
+    before Sphinx resolves them. This allows us to count all reference occurrences,
+    not just unique targets.
+    """
+    # Run before ReferencesResolver (priority 10)
+    default_priority = 5
+
+    def apply(self):
+        """Collect all pending_xref nodes in this document."""
+        for node in self.document.findall(addnodes.pending_xref):
+            if node.get('refdomain') == 'std':
+                pending_xrefs.append({
+                    'target': node.get('reftarget', ''),
+                    'type': node.get('reftype', ''),
+                    'domain': node.get('refdomain', ''),
+                    'source': self.env.docname,
+                    'line': node.line
+                })
+                logger.debug(f"Collected pending_xref: {node.get('reftarget')} at line {node.line}")
 
 
 def setup(app):
     """Setup the Sphinx extension."""
+    # Register transform to collect pending xrefs before resolution
+    app.add_transform(CollectPendingXrefs)
+
     # Connect to events
     app.connect('missing-reference', on_missing_reference)
     app.connect('doctree-resolved', on_doctree_resolved)
@@ -110,15 +143,20 @@ def on_doctree_resolved(app, doctree, docname):
     """
     from docutils import nodes
 
-    # Find all undefined references in this document
-    doc_undefined_refs = [ref for ref in undefined_refs if ref['source'] == docname]
+    # Get the set of undefined labels (those that had on_missing_reference called)
+    undefined_label_set = {ref['target'] for ref in undefined_refs}
 
-    if not doc_undefined_refs:
-        # No undefined references in this document
+    # Filter pending_xrefs to find all occurrences in this document that are actually undefined
+    ref_occurrences = [
+        ref for ref in pending_xrefs
+        if ref['source'] == docname and ref['target'] in undefined_label_set
+    ]
+
+    if not ref_occurrences:
         return
 
-    # Get unique labels for this document
-    unique_labels = sorted(set(ref['target'] for ref in doc_undefined_refs))
+    # Sort by label for better visual grouping
+    ref_occurrences_sorted = sorted(ref_occurrences, key=lambda r: r['target'])
 
     # Create a new section for undefined references
     section = nodes.section(ids=['undefined-references'])
@@ -147,31 +185,39 @@ def on_doctree_resolved(app, doctree, docname):
     entry += nodes.paragraph('', 'Label')
     row += entry
     entry = nodes.entry()
-    entry += nodes.paragraph('', 'Referenced From')
+    entry += nodes.paragraph('', 'Document')
     row += entry
 
-    # Table body with labels
+    # Table body - one row per reference occurrence
     tbody = nodes.tbody()
     tgroup += tbody
-    for label in unique_labels:
+
+    # Track which labels we've already created targets for
+    targets_created = set()
+
+    for ref in ref_occurrences_sorted:
+        label = ref['target']
+        source = ref['source']
+
         row = nodes.row()
         tbody += row
 
-        # Label column - add a target here so references can point to it
+        # Label column
         entry = nodes.entry()
 
-        # Create a target node for this label
-        target = nodes.target('', '', ids=[label], names=[label])
-        entry += target
+        # Create a target node for this label only once (first occurrence)
+        if label not in targets_created:
+            target = nodes.target('', '', ids=[label], names=[label])
+            entry += target
+            targets_created.add(label)
 
         # Add the label text
         entry += nodes.paragraph('', label)
         row += entry
 
-        # Referenced from column
-        refs_from = sorted(set(ref['source'] for ref in doc_undefined_refs if ref['target'] == label))
+        # Document column (where this specific reference occurs)
         entry = nodes.entry()
-        entry += nodes.paragraph('', ', '.join(refs_from))
+        entry += nodes.paragraph('', source)
         row += entry
 
     section += table
@@ -190,3 +236,4 @@ def on_build_finished(app, exception):
 
     # Clear for next build
     undefined_refs.clear()
+    pending_xrefs.clear()
