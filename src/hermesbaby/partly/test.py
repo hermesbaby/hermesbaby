@@ -392,7 +392,7 @@ And one more to :ref:`third_undefined`.
 
     # Verify table headers
     assert 'Label' in html_content, "Table header 'Label' not found"
-    assert 'Document' in html_content, "Table header 'Document' not found"
+    assert 'source file' in html_content, "Table header 'source file' not found"
 
 
 def test_labels_defined_as_targets_in_table(sphinx_builder):
