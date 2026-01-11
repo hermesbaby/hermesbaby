@@ -95,6 +95,8 @@ file_extension='md'
 filename=$file_basename.$file_extension
 
 dir_root="docs/"
+file_root_relpath_wo_extension=$dir_root/$file_basename
+file_root_relpath=${file_root_relpath_wo_extension}.$file_extension
 
 dir_year_relpath=$dir_root$year
 file_year_relpath_wo_extension=$dir_year_relpath/$file_basename
@@ -183,9 +185,7 @@ create_day () {
 - [ ] TODO_i
 - [ ] TODO_n
 
-
 ## TOP-1
-
 
 EOF
 
@@ -265,6 +265,28 @@ toctree covers all months' $filename of this year."
     echo '```' >> $file_year_relpath
 }
 update_year
+
+
+update_root () {
+    echo "info: Rewriting year's $filename to make sure that \
+toctree covers all months' $filename of this year."
+
+    heading="Log Ledger"
+
+    mkdir -p $dir_root
+    echo "# $heading" > $file_root_relpath
+    (echo) >> $file_root_relpath
+    echo '```{toctree}' >> $file_root_relpath
+    echo ":maxdepth: 1" >> $file_root_relpath
+    (echo) >> $file_root_relpath
+
+    year_entries=$( cd $dir_root ; ls -w1 -d */ | sed 's/\/\//\//')
+    for year_entry in $year_entries ; do
+        echo "${year_entry}index" >> $file_root_relpath
+    done
+    echo '```' >> $file_root_relpath
+}
+update_root
 
 
 ### Clean up possible remainings of obsolete things ###########################
