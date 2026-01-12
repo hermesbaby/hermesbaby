@@ -334,8 +334,8 @@ Reference to :ref:`undefined_label`.
 
     html_content = html_file.read_text(encoding='utf-8')
 
-    # Check that "Outgoing Cross-References" section exists in the HTML
-    assert 'Outgoing Cross-References' in html_content, "Section title not found in HTML"
+    # Check that "Outgoing References" section exists in the HTML
+    assert 'Outgoing References' in html_content, "Section title not found in HTML"
     assert 'undefined_label' in html_content, "Label not found in HTML"
 
 
@@ -481,9 +481,9 @@ Reference to :ref:`my_label` which is defined.
     html_file = outdir / 'index.html'
     html_content = html_file.read_text(encoding='utf-8')
 
-    # Verify that "Outgoing Cross-References" section is NOT present
-    assert 'Outgoing Cross-References' not in html_content, \
-        "Outgoing Cross-References section should not appear when all references are defined"
+    # Verify that "Outgoing References" section is NOT present
+    assert 'Outgoing References' not in html_content, \
+        "Outgoing References section should not appear when all references are defined"
 
 def test_build_succeeds_with_warningiserror(sphinx_builder):
     """Test: Build succeeds even with -W (warningiserror=True) when undefined refs exist."""
@@ -518,7 +518,7 @@ Another reference to :ref:`ai_dialog_qr_scanning_frontend`.
     html_file = outdir / 'index.html'
     html_content = html_file.read_text(encoding='utf-8')
 
-    assert 'Outgoing Cross-References' in html_content, "Section should be present"
+    assert 'Outgoing References' in html_content, "Section should be present"
     assert 'sec_2025cw15_3_wed_reply_to_mail_medic_bite_proband_data' in html_content
     assert 'ai_dialog_qr_scanning_frontend' in html_content
 
@@ -568,7 +568,7 @@ Reference to :ref:`undefined_label`.
     # Check that the custom title appears
     assert custom_title in html_content, f"Custom title '{custom_title}' not found in HTML"
     # Original title should NOT appear
-    assert 'Outgoing Cross-References' not in html_content or custom_title in html_content
+    assert 'Outgoing References' not in html_content or custom_title in html_content
 
 
 def test_missing_citation_key_handled(sphinx_builder):
@@ -650,3 +650,73 @@ And one to :ref:`another_label`.
 
     # Verify "Chapter" header appears in nested tables
     assert html_content.count('Chapter') >= 2, "Should have 'Chapter' header in nested tables"
+
+
+def test_separate_tables_for_different_reftypes(sphinx_builder):
+    """Test: Different reference types get separate tables with type headers."""
+    docs = {
+        'index.rst': '''
+Test Document
+=============
+
+Reference to :ref:`undefined_ref_label`.
+Reference to :term:`undefined_term_label`.
+Reference to :doc:`undefined_doc_label`.
+Another reference to :ref:`another_ref_label`.
+'''
+    }
+
+    app = sphinx_builder(docs)
+    app.build()
+
+    # Read the generated HTML
+    outdir = app.outdir
+    html_file = outdir / 'index.html'
+    html_content = html_file.read_text(encoding='utf-8')
+
+    # Verify all labels appear in the output
+    assert 'undefined_ref_label' in html_content
+    assert 'undefined_term_label' in html_content
+    assert 'undefined_doc_label' in html_content
+    assert 'another_ref_label' in html_content
+
+    # Should have separate subsections/headings for each reftype
+    # Look for headings that specifically indicate reference types
+    # These should be subsections under "Outgoing References"
+    assert 'Cross-references (ref)' in html_content or 'Type: ref' in html_content, \
+        "Should have a section/heading specifically for 'ref' type"
+    assert 'Glossary terms (term)' in html_content or 'Type: term' in html_content, \
+        "Should have a section/heading specifically for 'term' type"
+    assert 'Documents (doc)' in html_content or 'Type: doc' in html_content, \
+        "Should have a section/heading specifically for 'doc' type"
+
+
+def test_reftype_tables_have_correct_structure(sphinx_builder):
+    """Test: Each reftype table has proper structure with type label."""
+    docs = {
+        'index.rst': '''
+Test Document
+=============
+
+Reference to :ref:`undefined_ref`.
+Reference to :term:`undefined_term`.
+'''
+    }
+
+    app = sphinx_builder(docs)
+    app.build()
+
+    # Read the generated HTML
+    outdir = app.outdir
+    html_file = outdir / 'index.html'
+    html_content = html_file.read_text(encoding='utf-8')
+
+    # Both labels should be present
+    assert 'undefined_ref' in html_content
+    assert 'undefined_term' in html_content
+
+    # Should have multiple tables (one for each reftype)
+    import re
+    all_tables = re.findall(r'<table[^>]*class="[^"]*docutils[^"]*"', html_content)
+    # At minimum: 2 outer tables (one for ref, one for term) + 2 nested tables
+    assert len(all_tables) >= 4, f"Expected at least 4 tables (2 for each reftype + nested), got {len(all_tables)}"

@@ -107,10 +107,15 @@ The build succeeds, and undefined references are documented in the output with a
 
 When a document contains references to undefined labels, `partly` automatically appends a section at the end titled "Undefined References". This section contains:
 
-- **A descriptive paragraph** explaining that some cross-references couldn't be resolved
-- **A table listing each reference occurrence**:
+- **A main section** with the configurable title (default: "Outgoing Cross-References")
+- **Subsections for each reference type** encountered:
+  - `Cross-references (ref)` - for `:ref:` references
+  - `Glossary terms (term)` - for `:term:` references
+  - `Documents (doc)` - for `:doc:` references
+  - And other standard Sphinx reference types
+- **A table within each subsection** listing reference occurrences:
   - **Label**: The undefined label name
-  - **Document**: The source document where this reference appears
+  - **Used In**: Where the reference appears (chapter and source file)
 
 **Important**: Each row in the table represents a specific cross-reference occurrence, not just unique labels. If the same undefined label is referenced multiple times, there will be multiple rows (one for each reference).
 
@@ -120,31 +125,36 @@ If your document contains:
 
 ```rst
 See :ref:`missing_section` for details.
-Also check :ref:`missing_section` later.
+Also check :term:`missing_term` in the glossary.
 And :ref:`another_missing` too.
 ```
 
-The table will show 3 rows:
+The output will show separate subsections:
 
 ```text
+Outgoing Cross-References
+==========================
 
-Undefined References
-====================
-
-The following cross-references could not be resolved:
+Cross-references (ref)
+----------------------
 
 +-------------------+------------+
-| Label             | Document   |
+| Label             | Used In    |
 +===================+============+
 | another_missing   | index      |
 +-------------------+------------+
 | missing_section   | index      |
 +-------------------+------------+
-| missing_section   | index      |
+
+Glossary terms (term)
+---------------------
+
++-------------------+------------+
+| Label             | Used In    |
++===================+============+
+| missing_term      | index      |
 +-------------------+------------+
 ```
-
-Note that `missing_section` appears twice because it was referenced twice in the document.
 
 ## Usage
 
