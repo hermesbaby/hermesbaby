@@ -169,7 +169,7 @@ def _load_config():
 def _validate_part_path(part: str, source_dir: Path) -> None:
     """Validate that the part path exists and is a directory."""
     if part:
-        part_path = source_dir / Path(part)
+        part_path = Path(part)
         if not part_path.exists() or not part_path.is_dir():
             typer.echo(
                 f"Error: Extract path '{part_path}' does not exist or is not a directory.",
@@ -182,7 +182,7 @@ def _get_source_dir_with_part(part: str) -> Path:
     """Get the source directory, adjusting for part path if provided."""
     source_dir = Path(_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value)
     if part:
-        source_dir = source_dir / Path(part)
+        source_dir = Path(part)
     return source_dir
 
 
@@ -466,7 +466,7 @@ def html(
     part: str = typer.Option(
         None,
         "--partly",
-        help="Relative directory below source dir to the chapter to be built as an part.",
+        help="Directory relative to the current working directory to build only a part of the document. ",
     ),
 ):
     """Build to format HTML"""
@@ -484,7 +484,7 @@ def html_live(
     part: str = typer.Option(
         None,
         "--partly",
-        help="Relative directory below source dir to the chapter to be built as an part.",
+        help="Directory relative to the current working directory to build only a part of the document. ",
     ),
 ):
     """Build to format HTML with live reload"""
