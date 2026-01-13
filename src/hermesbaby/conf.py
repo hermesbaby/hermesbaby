@@ -27,9 +27,11 @@ import sys
 
 import kconfiglib
 import requests
+import shutil
 import urllib3
 import yaml
 from docutils import nodes
+from sphinx.addnodes import tabular_col_spec
 from docutils.parsers.rst import roles
 from sphinx.util import logging
 
@@ -38,6 +40,17 @@ logger = logging.getLogger(__name__)
 _cwd_realpath = os.path.realpath((os.environ.get("HERMESBABY_CWD")))
 _conf_realpath = os.path.realpath(os.path.dirname(__file__))
 _tools_realpath = os.path.realpath(os.path.join(_conf_realpath, "tools"))
+
+### Tweak: Allow not-cacheable config values ##################################
+# Enable Usage of Sphinx 8.x and higher (unless this we needed to stick to 7.1.5)
+# @see https://github.com/sphinx-doc/sphinx/issues/12300
+# @see https://github.com/sphinx-doc/sphinx/pull/12203
+suppress_warnings = ["config.cache"]
+
+### Collected app-setups #####################################################
+
+# List of functions to be called by Sphinx's setup(app) function
+app_setups = []
 
 
 ### Import project configuration ##############################################
@@ -205,7 +218,11 @@ rst_prolog = f"""
 # @see https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-language
 language = kconfig.syms["DOC__LANGUAGE"].str_value
 
-templates_path = []
+templates_path = [
+    "theme_templates"
+]
+
+html_context = {}
 
 source_suffix = [".rst", ".md", ".ipynb"]
 
@@ -314,50 +331,460 @@ if os.path.exists(web_root_dir):
 # @see https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-latex-output
 # @see more settings at https://www.sphinx-doc.org/en/master/latex.html#the-latex-elements-configuration-setting
 
+# Handle unicode characters properly
+latex_engine = "lualatex"
+
+# Miktex doesn't work with Xindy, :-(
+latex_use_xindy = False
+
+
+# Place metadata (build information) on the title page instead of the date.
+if builder == "latex":
+    _metadata_latex = _metadata.replace('\\', '\\textbackslash{}').replace('_', '\\_').replace('&', '\\&').replace('%', '\\%').replace('$', '\\$').replace('#', '\\#').replace('{', '\\{').replace('}', '\\}').replace('~', '\\textasciitilde{}').replace('^', '\\textasciicircum{}')
+
+    today = _metadata_latex
+
+# Split tables across pages when needed
+latex_table_style = ["longtable"]
+
+# Platform-specific font selection for LaTeX/PDF builds
+# Use fonts that are natively available on each platform
+if platform.system() == "Windows":
+    _latex_main_font = "Segoe UI"
+    _latex_font_config = r"""
+\setmainfont{Segoe UI}[
+  AutoFakeBold=1.5,
+  AutoFakeSlant=0.2
+]"""
+else:
+    # Linux and other Unix-like systems
+    _latex_main_font = "DejaVu Sans"
+    _latex_font_config = r"""
+\setmainfont{DejaVu Sans}[
+  Extension=.ttf,
+  UprightFont=*,
+  BoldFont=*-Bold,
+  ItalicFont=*-Oblique,
+  BoldItalicFont=*-BoldOblique,
+  AutoFakeBold=1.5,
+  AutoFakeSlant=0.2
+]"""
+
 latex_elements = {
     "papersize": "a4paper",
     "pointsize": "12pt",
+    "maxlistdepth": "10",
     "preamble": r"""
-\setlength{\headheight}{15pt}
-\addtolength{\topmargin}{-3pt}
-\usepackage[utf8]{inputenc}
+% Don't complain about included PDF version being newer
+\pdfinclusionerrorlevel=0
 
-%% --------------------------------------------------
-%% |:sec:| add list of figures, list of tables, list of code blocks to TOC
-%% --------------------------------------------------
+
+% --- Unicode support for symbols like 🢂👍😎😁👏❌👎⚕️ ---
+
+% With lualatex/xelatex we use fontspec instead of inputenc/fontenc
+\usepackage{fontspec}
+
+% Suppress font not found errors and use fallback glyphs
+\tracinglostchars=1
+\suppressfontnotfounderror=1
+
+% Main text font (adapt as you like)
+% Use AutoFakeBold/AutoFakeSlant to generate missing font variants
+""" + _latex_font_config + r"""
+
+
+% Use adjustbox package for intelligent image scaling
+% Configuration: adjust these values to control image sizing
+\usepackage{graphicx}
+\usepackage{adjustbox}
+
 \makeatletter
-\renewcommand{\sphinxtableofcontents}{%
-    %
-    % before resetting page counter, let's do the right thing.
-    \if@openright\cleardoublepage\else\clearpage\fi
-    \pagenumbering{roman}%
-    \begingroup
-        \parskip \z@skip
-        \tableofcontents
-    \endgroup
-    %
-    %% addtional lists
-    \if@openright\cleardoublepage\else\clearpage\fi
-    \addcontentsline{toc}{chapter}{Abbildungsverzeichnis}%
-    \listoffigures
-    %
-    \if@openright\cleardoublepage\else\clearpage\fi
-    \addcontentsline{toc}{chapter}{Tabellenverzeichnis}%
-    \listoftables
-    %
-    \if@openright\cleardoublepage\else\clearpage\fi
-    \if@openright\cleardoublepage\else\clearpage\fi
-    \addcontentsline{toc}{chapter}{Verzeichnis der Quellcodes}%
-    \listof{literalblock}{Verzeichnis der Quellcodes}%
-    %
-    \if@openright\cleardoublepage\else\clearpage\fi
-    \pagenumbering{arabic}%
+% Set screws for image sizing (tweak these as needed):
+\def\HBMaxImageWidth{\linewidth}        % Maximum width (default: full text width)
+\def\HBMaxImageHeight{0.90\textheight}  % Maximum height (0.65 = 65% of text height)
+                                         % Decrease for more caption space, increase for larger images
+\let\original@includegraphics\includegraphics
+\renewcommand{\includegraphics}[2][]{%
+  % adjustbox with max size: scales only if needed, preserves aspect ratio
+  \begin{adjustbox}{max width=\HBMaxImageWidth,max height=\HBMaxImageHeight}%
+    \original@includegraphics[#1]{#2}%
+  \end{adjustbox}%
 }
 \makeatother
 
 
+% Make tabulary columns not ridiculously narrow
+% (Sphinx manual recommends overriding \tymin)
+\setlength{\tymin}{1.5cm} % tweak: 1cm, 1.2cm, 2cm, ...
+
+
+% Fix fancyhdr warning about headheight being too small
+\setlength{\headheight}{14.5pt}
+\addtolength{\topmargin}{-2.5pt}
+
+% Be generous with line breaking to avoid overfull boxes
+\emergencystretch=3em
+\sloppy
 """,
 }
+
+
+def _latex_add_global_colspec(app, doctree, docname):
+    """
+    For every table, add a tabular_col_spec that:
+    - For longtables: uses p{} columns with intelligent width distribution
+      (narrower columns for short content, wider for longer content)
+    - For regular tables: uses tabulary 'L' columns for automatic width
+    """
+    for table in doctree.traverse(nodes.table):
+        parent = table.parent
+
+        # Skip if there is already a colspec for this table
+        existing = [
+            n for n in parent.children
+            if isinstance(n, tabular_col_spec)
+        ]
+        if existing:
+            continue
+
+        # Determine number of columns from the first row
+        first_row = table.next_node(nodes.row)
+        if first_row is None:
+            continue
+        ncols = sum(
+            1 for child in first_row.children
+            if isinstance(child, nodes.entry)
+        )
+        if ncols == 0:
+            continue
+
+        # Check if this table will be rendered as longtable
+        is_longtable = "longtable" in table.get("classes", [])
+
+        if is_longtable:
+            # For longtable, we need to use p{} columns with intelligent widths
+            # Analyze content to estimate relative column widths
+            column_weights = _estimate_column_widths(table, ncols)
+
+            # Distribute available width based on weights
+            # Use less than full linewidth to account for:
+            # - column separators (|)
+            # - padding (\tabcolsep on each side of each column)
+            # - slight margin for safety
+            # Empirically, 0.88 works well for tables with 5 columns
+            available_width = 0.88
+            total_weight = sum(column_weights)
+            widths = [available_width * (w / total_weight) for w in column_weights]
+
+            spec = "|" + "|".join(
+                f"p{{{width:.3f}\\linewidth}}"
+                for width in widths
+            ) + "|"
+        else:
+            # For regular tables, analyze content and use p{} columns too
+            # This is more reliable than tabulary in all contexts
+            column_weights = _estimate_column_widths(table, ncols)
+            available_width = 0.88
+            total_weight = sum(column_weights)
+            widths = [available_width * (w / total_weight) for w in column_weights]
+
+            spec = "|" + "|".join(
+                f"p{{{width:.3f}\\linewidth}}"
+                for width in widths
+            ) + "|"
+
+        colspec = tabular_col_spec()
+        colspec["spec"] = spec
+        idx = parent.index(table)
+        parent.insert(idx, colspec)
+
+
+def _estimate_column_widths(table: nodes.table, ncols: int) -> list:
+    """
+    Estimate relative widths for table columns based on content length.
+    Returns a list of weights (relative widths) for each column.
+    """
+    # Collect text content from all cells in each column
+    column_texts = [[] for _ in range(ncols)]
+
+    for row in table.traverse(nodes.row):
+        col_idx = 0
+        for entry in row.traverse(nodes.entry):
+            if col_idx < ncols:
+                # Get all text content from this cell
+                text = entry.astext()
+                column_texts[col_idx].append(text)
+                col_idx += 1
+
+    # Calculate weight for each column based on average text length
+    # and maximum text length (to handle both typical and extreme cases)
+    weights = []
+    for col_texts in column_texts:
+        if not col_texts:
+            weights.append(1.0)  # Default weight
+            continue
+
+        # Calculate average and max text length
+        text_lengths = [len(text) for text in col_texts]
+        avg_length = sum(text_lengths) / len(text_lengths) if text_lengths else 0
+        max_length = max(text_lengths) if text_lengths else 0
+
+        # Weight is a combination of average (70%) and max (30%)
+        # This gives preference to typical content while respecting outliers
+        weight = 0.7 * avg_length + 0.3 * max_length
+
+        # Minimum weight to avoid extremely narrow columns
+        weight = max(weight, 20)
+
+        weights.append(weight)
+
+    return weights
+
+def _is_nested(table: nodes.table) -> bool:
+    # Check if this table has any ancestor table (walking up the tree)
+    parent = table.parent
+    while parent is not None:
+        if isinstance(parent, nodes.table):
+            return True
+        parent = getattr(parent, 'parent', None)
+
+    # Check if this table contains any child tables
+    return bool(list(table.traverse(nodes.table, include_self=False)))
+
+def _table_dimensions(table: nodes.table) -> tuple[int, int]:
+    rows = [row for row in table.traverse(nodes.row)]
+    n_rows = len(rows)
+    max_cols = 0
+    for row in rows:
+        cols = [e for e in row.children if isinstance(e, nodes.entry)]
+        max_cols = max(max_cols, len(cols))
+    return n_rows, max_cols
+
+def _latex_force_all_non_nested_tables_longtable(app, doctree, docname):
+    for table in doctree.traverse(nodes.table):
+        if _is_nested(table):
+            continue
+
+        n_rows, n_cols = _table_dimensions(table)
+
+        # Check if table contains complex content that tabulary can't handle
+        has_nested_table = bool(list(table.traverse(nodes.table, include_self=False)))
+        has_math = bool(list(table.traverse(nodes.math)))
+
+        # Force longtable if:
+        # - Table has nested tables (tabulary can't handle nesting)
+        # - Table has math content (tabulary has issues with math)
+        # - Table is larger than small thresholds
+        should_be_longtable = (
+            has_nested_table or
+            has_math or
+            n_cols > 2 or
+            n_rows > 6
+        )
+
+        if should_be_longtable:
+            classes = table.setdefault("classes", [])
+            if "longtable" not in classes:
+                classes.append("longtable")
+
+
+# Patch tables with no body rows (e.g., Markdown tables with only a header)
+def _latex_patch_empty_body_tables(app, doctree):
+    """
+    For tables with a header but no body rows, forcibly append an empty row with the correct number of columns.
+    Always creates a tbody if missing. Always adds at least one cell. Adds debug logging for diagnosis.
+
+    Note: This handler is connected to 'doctree-read' event which only passes (app, doctree).
+    """
+    for table in doctree.traverse(nodes.table):
+        tgroup = next((c for c in table.children if getattr(c, 'tagname', None) == 'tgroup'), None)
+        if not tgroup:
+            continue
+        thead = next((c for c in tgroup.children if getattr(c, 'tagname', None) == 'thead'), None)
+        tbody = next((c for c in tgroup.children if getattr(c, 'tagname', None) == 'tbody'), None)
+
+        # Determine number of columns from thead or first row in tgroup
+        n_cols = 0
+        first_row = None
+        if thead and thead.children:
+            first_row = next((r for r in thead.children if isinstance(r, nodes.row)), None)
+        if not first_row and tgroup.children:
+            first_row = next((r for r in tgroup.children if isinstance(r, nodes.row)), None)
+        if first_row:
+            n_cols = sum(1 for e in first_row.children if isinstance(e, nodes.entry))
+        # Fallback: try tgroup's 'cols' attribute (docutils convention)
+        if n_cols == 0 and hasattr(tgroup, 'attributes') and 'cols' in tgroup.attributes:
+            try:
+                n_cols = int(tgroup.attributes['cols'])
+            except Exception:
+                pass
+        # Fallback: try to count colspec children
+        if n_cols == 0:
+            n_cols = sum(1 for c in tgroup.children if getattr(c, 'tagname', None) == 'colspec')
+        # Fallback: if all else fails, use 1
+        if n_cols == 0:
+            n_cols = 1
+        # If tbody exists and has at least one row, skip (table already has a body)
+        if tbody and any(isinstance(child, nodes.row) for child in tbody.children):
+            continue
+
+        # Always ensure a tbody exists
+        if not tbody:
+            tbody = nodes.tbody()
+            # Insert tbody after thead if present, else at end
+            if thead:
+                idx = tgroup.children.index(thead) + 1
+                tgroup.children.insert(idx, tbody)
+            else:
+                tgroup += tbody
+        # Remove any non-row children from tbody (shouldn't be any, but just in case)
+        tbody.children = [c for c in tbody.children if isinstance(c, nodes.row)]
+        # Only add the empty row if tbody is empty
+        if not tbody.children:
+            empty_row = nodes.row()
+            for _ in range(n_cols):
+                empty_entry = nodes.entry()
+                empty_entry += nodes.paragraph(text="")
+                empty_row += empty_entry
+            tbody += empty_row
+            logger.info(f"[hermesbaby] Patched empty table: added row with {n_cols} columns.")
+
+def _latex_protect_citations_in_captions(app, docname, source):
+    """
+    Convert citations inside captions to plain text to avoid LaTeX hyperlink issues.
+    Transforms {cite:p}`ISO_25010` into [ISO_25010]
+
+    This runs at source-read stage before MyST parsing, only for LaTeX builds.
+    """
+    if app.builder.format != 'latex':
+        return
+
+    import re
+
+    # Pattern to match citations in various forms
+    citation_pattern = re.compile(r'\{cite:[pts]+\}`([^`]+)`')
+
+    def replace_citation(match):
+        cite_key = match.group(1)
+        return f'[{cite_key}]'
+
+    # Modify the source in-place
+    source[0] = citation_pattern.sub(replace_citation, source[0])
+
+
+def _latex_download_and_convert_remote_images(app, doctree, docname):
+    """
+    Download remote images and convert unsupported formats (like .webp, .apng) to .png for LaTeX builds.
+    """
+    if app.builder.format != 'latex':
+        return
+
+    import hashlib
+    from PIL import Image
+    from io import BytesIO
+
+    # Create a directory for converted images
+    convert_dir = os.path.join(app.builder.outdir, '_converted_images')
+    os.makedirs(convert_dir, exist_ok=True)
+
+    for image_node in doctree.traverse(nodes.image):
+        uri = image_node.get('uri', '')
+
+        is_remote = uri.startswith('http://') or uri.startswith('https://')
+        is_unsupported = uri.lower().endswith(('.apng', '.webp'))
+
+        # Only process remote images or local unsupported formats
+        if not (is_remote or is_unsupported):
+            continue
+
+        try:
+            if is_remote:
+                # Generate a unique filename based on URL hash
+                url_hash = hashlib.md5(uri.encode()).hexdigest()
+                local_filename = f"remote_{url_hash}.png"
+                local_path = os.path.join(convert_dir, local_filename)
+
+                # Download if not already cached
+                if not os.path.exists(local_path):
+                    logger.info(f"[hermesbaby] Downloading remote image: {uri}")
+                    response = requests.get(uri, timeout=30, verify=False)
+                    response.raise_for_status()
+
+                    # Convert to PNG
+                    img = Image.open(BytesIO(response.content))
+
+                    # Convert RGBA to RGB if necessary
+                    if img.mode in ('RGBA', 'LA', 'P'):
+                        background = Image.new('RGB', img.size, (255, 255, 255))
+                        if img.mode == 'P':
+                            img = img.convert('RGBA')
+                        background.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+                        img = background
+
+                    # Save as PNG
+                    img.save(local_path, 'PNG', optimize=True)
+                    logger.info(f"[hermesbaby] Saved converted image to: {local_path}")
+
+                # Convert to relative path for LaTeX (relative to output dir)
+                # Use forward slashes for LaTeX compatibility on Windows
+                rel_path = os.path.relpath(local_path, app.builder.outdir)
+                image_node['uri'] = rel_path.replace('\\', '/')
+
+            elif is_unsupported:
+                # Handle local unsupported formats (.apng, .webp, etc.)
+                # Resolve the path relative to source directory
+                source_path = uri
+                if not os.path.isabs(source_path):
+                    source_path = os.path.join(app.srcdir, uri)
+
+                if not os.path.exists(source_path):
+                    logger.warning(f"[hermesbaby] Source image not found: {source_path}")
+                    continue
+
+                # Generate output filename
+                base_name = os.path.splitext(os.path.basename(uri))[0]
+                path_hash = hashlib.md5(uri.encode()).hexdigest()[:8]
+                local_filename = f"{base_name}_{path_hash}.png"
+                local_path = os.path.join(convert_dir, local_filename)
+
+                # Convert if not already cached
+                if not os.path.exists(local_path):
+                    logger.info(f"[hermesbaby] Converting unsupported format: {uri}")
+                    img = Image.open(source_path)
+
+                    # Convert RGBA to RGB if necessary
+                    if img.mode in ('RGBA', 'LA', 'P'):
+                        background = Image.new('RGB', img.size, (255, 255, 255))
+                        if img.mode == 'P':
+                            img = img.convert('RGBA')
+                        background.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+                        img = background
+
+                    # Save as PNG
+                    img.save(local_path, 'PNG', optimize=True)
+                    logger.info(f"[hermesbaby] Converted to: {local_path}")
+
+                # Convert to relative path for LaTeX (relative to output dir)
+                # Use forward slashes for LaTeX compatibility on Windows
+                rel_path = os.path.relpath(local_path, app.builder.outdir)
+                image_node['uri'] = rel_path.replace('\\', '/')
+
+        except Exception as e:
+            logger.warning(f"[hermesbaby] Failed to process image {uri}: {e}")
+            # Leave the original URI - it will fail but won't crash the build
+
+
+def setup_app__latex_improve_tables(app):
+    app.connect("doctree-read", _latex_patch_empty_body_tables)
+    app.connect("source-read", _latex_protect_citations_in_captions)
+    # Important: _latex_force_all_non_nested_tables_longtable must run BEFORE _latex_add_global_colspec
+    # so that the longtable class is set before we generate the column spec
+    app.connect("doctree-resolved", _latex_force_all_non_nested_tables_longtable)
+    app.connect("doctree-resolved", _latex_add_global_colspec)
+    app.connect("doctree-resolved", _latex_download_and_convert_remote_images)
+
+if builder == "latex":
+    app_setups.append(setup_app__latex_improve_tables)
 
 
 # @see https://chatgpt.com/share/1ed3fcdf-0405-45a3-9fd6-fcb97d7e793c
@@ -381,6 +808,9 @@ def sanitize_filename(internal_string):
 
 _pdf_basename = sanitize_filename(kconfig.syms["DOC__TITLE"].str_value)
 
+# Make _pdf_basename available in html templates
+html_context["_pdf_basename"] = _pdf_basename
+
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto, manual, or own class]).
 latex_documents = [
@@ -390,27 +820,57 @@ latex_documents = [
         kconfig.syms["DOC__TITLE"].str_value,
         author,
         "manual",
-    ),
-    (
-        "00-Project-Manual/index",
-        f"Projekthandbuch-{project}.tex",
-        project,
-        author,
-        "manual",
-    ),
+    )
 ]
-
 
 ###############################################################################
 ### EXTENSIONS AND THEIR SETTINGS #############################################
 ###############################################################################
-
 # Ordered list. Order: Most general first, then for more and more special usescases
 # Just initialize as a list here. To be filled from extensions below
 extensions = []
 
-# List of functions to be called by Sphinx's setup(app) function
-app_setups = []
+### Add additional files to output folder #####################################
+
+# Here we can detect whether the build runs under sphinx-build or under sphinx-autobuild.
+# This can be recognised by the presence of the environment variable "SPHINX_AUTOBUILD".
+
+def _add_files_to_output_folder(app):
+    additional_files_dir = os.path.join(_conf_realpath, "additional-files-for-out")
+
+    # Set live to true in case value of environment variable "HERMESBABY_COMMAND" contains "live":
+    live =  "live" in os.environ.get("HERMESBABY_COMMAND", "")
+
+    # Copy favicon.ico
+    src_file = os.path.join(additional_files_dir, "favicon.ico")
+    dst_file = os.path.join(app.builder.outdir, "favicon.ico")
+    shutil.copy2(src_file, dst_file)
+
+    if live:
+        if app.builder.name == 'latex':
+            # Run index.html.jinja through jinja2 to create index.html
+            src_file = os.path.join(additional_files_dir, "index.html.jinja")
+            dst_file = os.path.join(app.builder.outdir, "index.html")
+            import jinja2
+            template_loader = jinja2.FileSystemLoader(searchpath=additional_files_dir)
+            template_env = jinja2.Environment(loader=template_loader)
+            template = template_env.get_template("index.html.jinja")
+            rendered_content = template.render(
+                title=kconfig.syms["DOC__TITLE"].str_value,
+                basename=_pdf_basename
+            )
+            with open(dst_file, "w", encoding="utf-8") as f_dst:
+                f_dst.write(rendered_content)
+
+            # Extract the pdfjs.zip to the output folder
+            pdfjs_zip_file = os.path.join(additional_files_dir, "pdfjs.zip")
+            shutil.unpack_archive(pdfjs_zip_file, app.builder.outdir)
+
+
+def setup_app__add_files_to_output_folder(app):
+    app.connect("builder-inited", _add_files_to_output_folder)
+
+app_setups.append(setup_app__add_files_to_output_folder)
 
 
 ### Create redirects for moved pages ##########################################
@@ -454,7 +914,9 @@ use_dirhtml = False
 ### Draw diagrams with "draw.io" ##############################################
 # @see https://pypi.org/project/sphinxcontrib-drawio/
 
-extensions.append("sphinxcontrib.drawio")
+# Do use the local copy we made from sphinxcontrib-drawio version 0.0.17
+#extensions.append("sphinxcontrib.drawio")
+extensions.append("hermesbaby.drawio")
 
 ## Settings regarding run in headless mode
 
@@ -712,7 +1174,7 @@ bibtex_default_style = "customkey"  # unsorted or pick "ieee"/"plain"/"alpha", e
 ### Make use of Inkscape for PDF output work  #################################
 # @see https://pypi.org/project/sphinxcontrib-svg2pdfconverter/
 
-if False:
+if builder == 'latex':
     extensions.append("sphinxcontrib.inkscapeconverter")
 
 
@@ -1321,17 +1783,24 @@ pre_post_build_programs = {
         {
             "name": "Create PDF from Latex code",
             "builder": "latex",
-            "program": "make",
+            "condition": "on_success",
+            "program": "latexmk",
+            "args": [
+                "-pdf",
+                "-pdflatex=lualatex",
+                "-halt-on-error",
+                "-file-line-error",
+                "-interaction=nonstopmode",
+                "-quiet",
+                "-latexoption=-interaction=nonstopmode",
+                "-latexoption=-halt-on-error",
+                "-latexoption=-file-line-error",
+                f"{_pdf_basename}.tex",
+            ],
             "cwd": "$outputdir",
-            "severity": "info",
-        },
-        {
-            "name": "View",
-            "builder": "latex",
-            "program": "sumatrapdf",
-            "args": [f"$outputdir\\{_pdf_basename}.pdf"],
-            "severity": "info",
-        },
+            "severity": "error",
+            "output": "on_error",
+        }
     ]
 }
 

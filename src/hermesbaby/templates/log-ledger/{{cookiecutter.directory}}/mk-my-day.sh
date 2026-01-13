@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 ################################################################
 #                                                              #
@@ -32,9 +32,9 @@ set -u
 
 # Identifying the environment
 environment=""
-if   [ "${USER-}" = "codespace" ]; then
+if   [ "${USER:-}" = "codespace" ]; then
     environment="codespace"
-elif [ "${USER-}" = "mobile" ]; then
+elif [ "${USER:-}" = "mobile" ]; then
     environment="ipad"
 else
     environment="local_pc"
@@ -46,7 +46,7 @@ fi
 # Set or unset, that's the question here (not true or false)
 
 feature_scm_pull_upstream_changes=true  # default
-if [ "${environment-}" = "local_pc" ]; then
+if [ "${environment:-}" = "local_pc" ]; then
      unset feature_scm_pull_upstream_changes
 fi
 
@@ -141,7 +141,7 @@ scm_pull_upstream_changes() {
     git pull
 }
 
-if [ "${feature_scm_pull_upstream_changes-}"]; then
+if [ "${feature_scm_pull_upstream_changes:-}" ]; then
 scm_pull_upstream_changes
 fi
 
@@ -300,7 +300,7 @@ update_root
 
 # Skip subsequent actions if not on local_pc
 
-if [ "${environment=}" != "local_pc" ]; then
+if [ "${environment:-}" != "local_pc" ]; then
     echo "info: Skipping subsequent actions because USER=${USER:-} ."
     exit 0
 fi
@@ -322,7 +322,7 @@ symlink_cwd=$(pwd)
 symlink_today_path_rel=$(cat today-path)
 symlink_today_path_abs=$(echo $symlink_cwd/$symlink_today_path_rel)
 
-if [[ "$OS" == "Windows_NT" ]]; then # === Windows =============================
+if [ "${OS:-linux}" = "Windows_NT" ]; then # === Windows =============================
 
 rm -rf $symlink_today_dir
 
@@ -349,8 +349,15 @@ vs_code_today_file_path=$file_day_relpath
 
 file_with_cursor_pos=$vs_code_today_file_path:$(echo $(cat $vs_code_today_file_path | wc -l))
 
-echo "info: Opening vscode and setting cursor to end of file $vs_code_today_file_path"
-code . --goto $file_with_cursor_pos
-
+# In case option "--skip-open-vscode" is given, skip opening VS code
+case " $* " in
+    *" --skip-open-vscode "*)
+        echo "info: Skipping opening VS code due to --skip-open-vscode option."
+        ;;
+    *)
+        echo "info: Opening vscode and setting cursor to end of file $vs_code_today_file_path"
+        code . --goto "$file_with_cursor_pos"
+        ;;
+esac
 
 ### EOF #######################################################################

@@ -115,3 +115,21 @@ Click Statusbar / html-live
 Apply changes to some `docs/*/index.md` ... and so on.
 
 Happy coding specifications ;-) "
+
+## Development and Testing
+
+### Running End-to-End (E2E) Tests
+
+The E2E tests are written using [BATS](https://github.com/bats-core/bats-core). To run them manually, ensure you have the project dependencies installed via Poetry.
+
+#### Windows (Git Bash)
+
+```bash
+poetry run bash ./tests/e2e/bats/bin/bats tests/e2e/
+```
+
+#### Linux / macOS
+
+```bash
+poetry run tests/e2e/bats/bin/bats tests/e2e/
+```

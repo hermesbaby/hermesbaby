@@ -48,6 +48,10 @@
 
     "indentRainbow.excludedLanguages": ["yaml"],
 
+    "files.associations": {
+        "*.bats": "shellscript"
+    },
+
 
     // Extension: solomonkinard.git-blame
     "git-blame.config.ignoreWhitespace": true,
@@ -76,5 +80,6 @@
         "tests"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "eslint.enable": false
 }

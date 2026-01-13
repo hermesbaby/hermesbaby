@@ -25,6 +25,16 @@ Motivation:
 
 With PreAndPostbuild you have a common way.
 
+## Output Logging
+
+The extension automatically captures and logs all output from the executed programs to three separate log files:
+
+- `<sanitized-name>_stdout.log` - Contains only stdout output
+- `<sanitized-name>_stderr.log` - Contains only stderr output
+- `<sanitized-name>_console.log` - Contains combined stdout and stderr output as they appeared on the console
+
+The log files are created in the working directory specified by `cwd`, or in the output directory if `cwd` is not specified. The name is sanitized by replacing special characters with underscores and converting to lowercase.
+
 Example how to configure n `conf.py`:
 
 ```

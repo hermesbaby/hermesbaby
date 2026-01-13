@@ -30,12 +30,23 @@ jobs:
 
     - name: Install external tools
       run: |
-        sudo ./src/hermesbaby/setup.sh
+        sudo ./src/hermesbaby/ci/setup.sh
 
-    - name: Run tests
+    - name: Run unit tests
       run: |
         poetry run pytest
+
+    - name: Run e2e tests (BATS)
+      run: |
+        poetry run tests/e2e/bats/bin/bats --tap --verbose-run -x tests/e2e/
 
     - name: Build package
       run: |
         poetry build
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: hermesbaby-dist
+        path: dist/
+        retention-days: ${{ github.ref_name == 'main' && 90 || 7 }}

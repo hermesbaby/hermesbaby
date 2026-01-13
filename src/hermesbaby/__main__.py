@@ -186,16 +186,19 @@ def _get_source_dir_with_part(part: str) -> Path:
     return source_dir
 
 
-def _set_env(part_dir: str = None):
+def _set_env(ctx, part_dir: str = None):
     os.environ["HERMESBABY_CWD"] = os.getcwd()
+    os.environ["HERMESBABY_COMMAND"] = ctx.info_name
     if part_dir:
         os.environ["HERMESBABY_PART_DIR"] = part_dir
 
 
-def _build_html_common(
+def _build_common(
     ctx: typer.Context,
+    builder: str,
     part: str,
     tool_name: str,
+    verbose: int = 0,
     extra_args: list = None,
 ) -> int:
     """Common logic for HTML build commands.
@@ -214,7 +217,7 @@ def _build_html_common(
         source_dir = Path(_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value)
         _validate_part_path(part, source_dir)
 
-    _set_env(part_dir=part)
+    _set_env(ctx, part_dir=part)
     _load_config()
 
     kconfig = _get_kconfig()
@@ -225,13 +228,16 @@ def _build_html_common(
     command = [
         f"{executable}",
         "-b",
-        "html",
+        builder,
         "-W",
         "-c",
         f"{_get_resource_path('')}",
         f"{source_dir}",
         f"{build_dir}",
     ]
+
+    for _ in range(verbose):
+        command.insert(1, "-v")
 
     # Add extra arguments if provided
     if extra_args:
@@ -341,6 +347,12 @@ app = typer.Typer(
     cls=SortedGroup,
 )
 
+app_ci = typer.Typer(
+    help="CI/CD utilities",
+    no_args_is_help=True,
+)
+app.add_typer(app_ci, name="ci")
+
 app_htaccess = typer.Typer(
     help="Manage access of published document",
     no_args_is_help=True,
@@ -389,7 +401,7 @@ def new(
 ):
     """Create a new project"""
 
-    _set_env()
+    _set_env(ctx)
     _load_config()
 
     templates_root_path = _get_template_dir()
@@ -464,9 +476,16 @@ def html(
         "--partly",
         help="Directory relative to the current working directory to build only a part of the document. ",
     ),
+    verbose: int = typer.Option(
+        0,
+        "--verbose",
+        "-v",
+        count=True,
+        help="Increase verbosity (can be repeated)",
+    )
 ):
     """Build to format HTML"""
-    returncode = _build_html_common(ctx, part, "sphinx-build")
+    returncode = _build_common(ctx, part=part, builder="html", tool_name="sphinx-build")
     sys.exit(returncode)
 
 
@@ -478,10 +497,17 @@ def html_live(
         "--partly",
         help="Directory relative to the current working directory to build only a part of the document. ",
     ),
+    verbose: int = typer.Option(
+        0,
+        "--verbose",
+        "-v",
+        count=True,
+        help="Increase verbosity (can be repeated)",
+    ),
 ):
     """Build to format HTML with live reload"""
 
-    _set_env(part_dir=part)
+    _set_env(ctx, part_dir=part)
     _load_config()
 
     kconfig = _get_kconfig()
@@ -496,8 +522,67 @@ def html_live(
         f"{int(kconfig.syms['BUILD__PORTS__HTML__LIVE'].str_value)}",
         "--open-browser",
     ]
-    returncode = _build_html_common(ctx, part, "sphinx-autobuild", extra_args)
+    returncode = _build_common(ctx, part=part, builder="html", tool_name="sphinx-autobuild", extra_args=extra_args)
     sys.exit(returncode)
+
+
+@app.command()
+def pdf(
+    ctx: typer.Context,
+    part: str = typer.Option(
+        None,
+        "--partly",
+        help="Directory relative to the current working directory to build only a part of the document. ",
+    ),
+    verbose: int = typer.Option(
+        0,
+        "--verbose",
+        "-v",
+        count=True,
+        help="Increase verbosity (can be repeated)",
+    )
+):
+    """Build to format PDF"""
+    returncode = _build_common(ctx, part=part, builder="latex", tool_name="sphinx-build")
+    sys.exit(returncode)
+
+
+@app.command()
+def pdf_live(
+    ctx: typer.Context,
+    part: str = typer.Option(
+        None,
+        "--partly",
+        help="Directory relative to the current working directory to build only a part of the document. ",
+    ),
+    verbose: int = typer.Option(
+        0,
+        "--verbose",
+        "-v",
+        count=True,
+        help="Increase verbosity (can be repeated)",
+    ),
+):
+    """Build to format PDF with live reload"""
+
+    _set_env(ctx, part_dir=part)
+    _load_config()
+
+    kconfig = _get_kconfig()
+    extra_args = [
+        "-j",
+        "10",
+        "--watch",
+        f"{kconfig.syms['BUILD__DIRS__CONFIG'].str_value}",
+        "--re-ignore",
+        "_tags/.*",
+        "--port",
+        f"{int(kconfig.syms['BUILD__PORTS__PDF__LIVE'].str_value)}",
+        "--open-browser",
+    ]
+    returncode = _build_common(ctx, part=part, builder="latex", tool_name="sphinx-autobuild", extra_args=extra_args)
+    sys.exit(returncode)
+
 
 
 @app.command()
@@ -507,11 +592,27 @@ def configure(
         ".",
         help="Directory where to execute the command. ",
     ),
+    update: bool = typer.Option(
+        False,
+        "--update",
+        help="Update .hermesbaby file with current Kconfig values without interactive prompts",
+    ),
 ):
     """Configure the project"""
 
-    _set_env()
+    _set_env(ctx)
     _load_config()
+
+    # If --update is specified, silently update the config file
+    if update:
+        kconfig = _get_kconfig()
+        config_file_path = Path(directory) / CFG_CONFIG_CUSTOM_FILE
+
+        # Write all current configuration values to .hermesbaby
+        kconfig.write_config(str(config_file_path))
+
+        typer.echo(f"Updated {config_file_path} with current Kconfig values")
+        return
 
     # Set environment variable KCONFIG_CONFIG to the value of CFG_CONFIG_CUSTOM_FILE
     os.environ["KCONFIG_CONFIG"] = CFG_CONFIG_CUSTOM_FILE
@@ -541,7 +642,7 @@ def clean(
 ):
     """Clean the build directory"""
 
-    _set_env()
+    _set_env(ctx)
     _load_config()
 
     folder_to_remove = (
@@ -566,7 +667,7 @@ def venv(
         typer.echo(ctx.get_help())
         raise typer.Exit()
 
-    _set_env()
+    _set_env(ctx)
     _load_config()
 
     _flag_install = True
@@ -710,7 +811,7 @@ def update(
         typer.echo(ctx.get_help())
         raise typer.Exit()
 
-    _set_env()
+    _set_env(ctx)
     _load_config()
 
     from hermesbaby.web_access_ctrl import create_htaccess_entries
@@ -752,7 +853,7 @@ def publish(
     Publish the build output to the configured server using SSH
     """
 
-    _set_env()
+    _set_env(ctx)
     _load_config()
 
     kconfig = _get_kconfig()
@@ -856,6 +957,15 @@ def publish(
 
 
 @app_tools.command()
+def install():
+    """
+    Install the external tools necessary for documentation build on ci system.
+    (Deprecated: use 'hb ci install-tools')
+    """
+    ci_install_tools()
+
+
+@app_tools.command()
 def check_scoop(
     install: bool = typer.Option(
         False, "--install", help="Automatically install scoop if missing"
@@ -886,7 +996,7 @@ def check_scoop(
 @app_tools.command()
 def check(
     install: bool = typer.Option(
-        False, "--install", help="Automatically install missing tools"
+        False, "--install", help="Automatically install missing tools via scoop"
     ),
     tag: str = typer.Option(None, "--tag", help="Filter tag"),
 ):
@@ -1276,14 +1386,12 @@ def vscode_uninstall():
         _vscode_display_table(recommendations, installed_extensions)
 
 
-@app_tools.command()
-def install():
-    """Install the external tools necessary for documentation build"""
+@app_ci.command(name="install-tools")
+def ci_install_tools():
+    """Install the external tools necessary for documentation build on CI/CD"""
 
     typer.echo("Installing tools for CI/CD pipeline")
 
-    # Check if running on Ubuntu Linux
-    # Check if running on Linux
     system = platform.system()
     if system != "Linux":
         typer.echo(
@@ -1291,7 +1399,6 @@ def install():
         )
         raise typer.Exit(code=1)
 
-    # Check if it's a Debian-based distribution
     is_debian_based = False
     try:
         with open("/etc/os-release", "r") as f:
@@ -1309,11 +1416,48 @@ def install():
 
     path = Path(__file__).parent
 
-    command = f"{path}/setup.sh"
+    command = f"{path}/ci/setup.sh"
     typer.echo(command)
-    result = subprocess.run(command.split(), cwd=path)
+    try:
+        subprocess.run(command.split(), cwd=path, check=True)
+    except subprocess.CalledProcessError as e:
+        typer.secho(f"Error: Command failed with code {e.returncode}.", fg=typer.colors.RED)
+        raise typer.Exit(code=e.returncode)
 
-    sys.exit(result.returncode)
+
+@app_ci.command(name="config-to-env")
+def ci_config_to_env(
+    file_path: str = typer.Argument(
+        ...,
+        help="Path to JSON configuration file to parse",
+    ),
+):
+    """
+    Parse a JSON config file and output shell export commands.
+
+    Adds prefix HERMESBABY_CI__' to each variable.
+
+    You update your shell environment by running:
+
+    eval $(hb ci config-to-env path/to/config.json)
+
+    """
+    from hermesbaby.ci.parse_config import get_env_vars_from_json, format_as_export_commands
+
+    try:
+        env_vars = get_env_vars_from_json(file_path)
+        commands = format_as_export_commands(env_vars)
+        for cmd in commands:
+            typer.echo(cmd)
+    except json.JSONDecodeError as e:
+        typer.echo(f"Error: '{file_path}' is not a valid JSON file. {e}", err=True)
+        raise typer.Exit(code=1)
+    except (FileNotFoundError, ValueError) as e:
+        typer.echo(f"Info: {e}", err=True)
+        raise typer.Exit(code=0)
+    except Exception as e:
+        typer.echo(f"Error reading file '{file_path}': {e}", err=True)
+        raise typer.Exit(code=1)
 
 
 if __name__ == "__main__":

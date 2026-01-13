@@ -172,8 +172,8 @@ config BUILD__PORTS__HTML__LIVE
     int "Port for live preview of HTML build"
     default 1976
 
-config BUILD__PORTS__PRESENTATION__LIVE
-    int "Port for live preview of presentation build"
+config BUILD__PORTS__PDF__LIVE
+    int "Port for live preview of pdf build"
     default 1973
 
 endmenu
@@ -231,6 +231,12 @@ endmenu
 
 
 menu "Publish"
+
+config PUBLISH__CREATE_AND_EMBED_PDF
+    bool "Build PDF and embed it to the html based site"
+    default n
+    help
+        Whether to add the generated PDF to the publish process.
 
 config PUBLISH__HOST
     string "Host (with port if necessary)"

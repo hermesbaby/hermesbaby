@@ -58,6 +58,7 @@ Technischer Kontext
 ```{table} Technischer Kontext
 | Fachliche Schnittstelle | Beschreibung | Verbundenes System |
 |-------------------------|--------------|--------------------|
+|                         |              |                    |
 ```
 
 
@@ -100,5 +101,6 @@ Technischer Kontext
 ```{table} Technischer Kontext
 | Technische Schnittstelle | Beschreibung | Protokoll/Technologie | Verbundenes System | Fachliche Schnittstelle |
 |--------------------------|--------------|-----------------------|--------------------|-------------------------|
+|                          |              |                       |                    |                         |
 ```
 
