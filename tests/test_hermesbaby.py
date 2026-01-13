@@ -93,14 +93,13 @@ def test_task_new(cli_runner, project_dir, some_rel_path_as_str, option):
 
 
 @pytest.mark.parametrize(
-    "directory, extract_option",
+    "extract_option",
     [
-        (".", ""),  # Default directory, no extract
-        ("", ""),  # Empty directory (defaults to current), no extract
-        (".", "--partly some/extract/path"),  # Default directory with extract
+        (""),  # Empty directory (defaults to current), no extract
+        ("--partly docs/some/extract/path"),  # Default directory with extract
     ],
 )
-def test_task_html(cli_runner, project_dir, directory, extract_option):
+def test_task_html(cli_runner, project_dir, extract_option):
 
     from src.hermesbaby.__main__ import app
 
@@ -117,8 +116,6 @@ def test_task_html(cli_runner, project_dir, directory, extract_option):
 
     # Build the command
     args = ["html"]
-    if directory:
-        args.append(directory)
     if extract_option:
         args.extend(extract_option.split())
 

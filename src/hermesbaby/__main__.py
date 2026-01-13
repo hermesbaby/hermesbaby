@@ -194,7 +194,6 @@ def _set_env(part_dir: str = None):
 
 def _build_html_common(
     ctx: typer.Context,
-    directory: str,
     part: str,
     tool_name: str,
     extra_args: list = None,
@@ -203,7 +202,6 @@ def _build_html_common(
 
     Args:
         ctx: Typer context
-        directory: Directory where to execute the command
         part: Extract path (optional)
         tool_name: Name of the sphinx tool to use (e.g., 'sphinx-build', 'sphinx-autobuild')
         extra_args: Additional command-line arguments to append (optional)
@@ -242,7 +240,7 @@ def _build_html_common(
     print(f"DEBUG: extra_args={extra_args}", file=sys.stderr)
 
     typer.echo(" ".join(shlex.quote(a) for a in command))
-    result = subprocess.run(command, cwd=directory, check=True)
+    result = subprocess.run(command, check=True)
     return result.returncode
 
 def _tools_load_external_tools() -> dict:
@@ -461,10 +459,6 @@ def new(
 @app.command()
 def html(
     ctx: typer.Context,
-    directory: str = typer.Argument(
-        ".",
-        help="Directory where to execute the command. ",
-    ),
     part: str = typer.Option(
         None,
         "--partly",
@@ -472,17 +466,13 @@ def html(
     ),
 ):
     """Build to format HTML"""
-    returncode = _build_html_common(ctx, directory, part, "sphinx-build")
+    returncode = _build_html_common(ctx, part, "sphinx-build")
     sys.exit(returncode)
 
 
 @app.command()
 def html_live(
     ctx: typer.Context,
-    directory: str = typer.Argument(
-        ".",
-        help="Directory where to execute the command. ",
-    ),
     part: str = typer.Option(
         None,
         "--partly",
@@ -506,7 +496,7 @@ def html_live(
         f"{int(kconfig.syms['BUILD__PORTS__HTML__LIVE'].str_value)}",
         "--open-browser",
     ]
-    returncode = _build_html_common(ctx, directory, part, "sphinx-autobuild", extra_args)
+    returncode = _build_html_common(ctx, part, "sphinx-autobuild", extra_args)
     sys.exit(returncode)
 
 
