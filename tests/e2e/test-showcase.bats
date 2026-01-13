@@ -30,7 +30,7 @@ _configure_subtree() {
 
     _configure_subtree "$subtree"
 
-    run python -m hermesbaby html .
+    run python -m hermesbaby html
     [ "$status" -eq 0 ]
 }
 
@@ -40,7 +40,7 @@ _configure_subtree() {
 
     _configure_subtree "$subtree"
 
-    run python -m hermesbaby html .
+    run python -m hermesbaby html
     [ "$status" -eq 0 ]
 }
 
@@ -50,7 +50,7 @@ _configure_subtree() {
 
     _configure_subtree "$subtree"
 
-    run python -m hermesbaby htpdfml .
+    run python -m hermesbaby pdf
     [ "$status" -eq 0 ]
 }
 
@@ -60,6 +60,6 @@ _configure_subtree() {
 
     _configure_subtree "$subtree"
 
-    run python -m hermesbaby pdf .
+    run python -m hermesbaby pdf
     [ "$status" -eq 0 ]
 }

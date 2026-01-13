@@ -18,7 +18,7 @@ teardown() {
 
 @test "CI can create and embed PDF into HTML package" {
     # Create test data
-    run python3 -m hermesbaby new --template hello .
+    run python3 -m hermesbaby new --template hello
     [ "$status" -eq 0 ]
 
     export HERMESBABY_CI_OPTIONS_JSON_PATH=build_parameters.json
