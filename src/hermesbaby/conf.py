@@ -779,8 +779,8 @@ def setup_app__latex_improve_tables(app):
     app.connect("source-read", _latex_protect_citations_in_captions)
     # Important: _latex_force_all_non_nested_tables_longtable must run BEFORE _latex_add_global_colspec
     # so that the longtable class is set before we generate the column spec
-    app.connect("doctree-resolved", _latex_force_all_non_nested_tables_longtable)
-    app.connect("doctree-resolved", _latex_add_global_colspec)
+    # app.connect("doctree-resolved", _latex_force_all_non_nested_tables_longtable)
+    # app.connect("doctree-resolved", _latex_add_global_colspec)
     app.connect("doctree-resolved", _latex_download_and_convert_remote_images)
 
 if builder == "latex":
@@ -880,10 +880,15 @@ redirects_file = os.path.join(_src_realpath, "redirects.txt")
 
 if os.path.exists(redirects_file):
 
-    extensions.append("sphinxext.rediraffe")
+    if os.getenv("HERMESBABY_PART_DIR"):
+        logger.info("[hermesbaby] Skipping rediraffe extension in partial build.")
 
-    rediraffe_redirects = str(redirects_file)
-    rediraffe_branch = _git_branch
+    else:
+
+        extensions.append("sphinxext.rediraffe")
+
+        rediraffe_redirects = str(redirects_file)
+        rediraffe_branch = _git_branch
 
 
 ### Enable support for RSS-Feed readers #######################################
