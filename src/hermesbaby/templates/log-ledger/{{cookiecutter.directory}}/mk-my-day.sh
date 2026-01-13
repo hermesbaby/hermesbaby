@@ -268,8 +268,8 @@ update_year
 
 
 update_root () {
-    echo "info: Rewriting year's $filename to make sure that \
-toctree covers all months' $filename of this year."
+    echo "info: Rewriting docs's $filename to make sure that \
+toctree covers all years' $filename of this document."
 
     heading="Log Ledger"
 

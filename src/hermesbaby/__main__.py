@@ -166,9 +166,82 @@ def _load_config():
         logger.info("There is no '{hermesbaby__config_file}'. Using default config.")
 
 
-def _set_env():
-    os.environ["HERMESBABY_CWD"] = os.getcwd()
+def _validate_part_path(part: str, source_dir: Path) -> None:
+    """Validate that the part path exists and is a directory."""
+    if part:
+        part_path = Path(part)
+        if not part_path.exists() or not part_path.is_dir():
+            typer.echo(
+                f"Error: Extract path '{part_path}' does not exist or is not a directory.",
+                err=True,
+            )
+            raise typer.Abort()
 
+
+def _get_source_dir_with_part(part: str) -> Path:
+    """Get the source directory, adjusting for part path if provided."""
+    source_dir = Path(_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value)
+    if part:
+        source_dir = Path(part)
+    return source_dir
+
+
+def _set_env(part_dir: str = None):
+    os.environ["HERMESBABY_CWD"] = os.getcwd()
+    if part_dir:
+        os.environ["HERMESBABY_PART_DIR"] = part_dir
+
+
+def _build_html_common(
+    ctx: typer.Context,
+    part: str,
+    tool_name: str,
+    extra_args: list = None,
+) -> int:
+    """Common logic for HTML build commands.
+
+    Args:
+        ctx: Typer context
+        part: Extract path (optional)
+        tool_name: Name of the sphinx tool to use (e.g., 'sphinx-build', 'sphinx-autobuild')
+        extra_args: Additional command-line arguments to append (optional)
+
+    Returns:
+        Exit code from the subprocess
+    """
+    # Check if part refers to a valid directory
+    if part:
+        source_dir = Path(_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value)
+        _validate_part_path(part, source_dir)
+
+    _set_env(part_dir=part)
+    _load_config()
+
+    kconfig = _get_kconfig()
+    build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
+    source_dir = _get_source_dir_with_part(part)
+    executable = _resolve_tool(tool_name)
+
+    command = [
+        f"{executable}",
+        "-b",
+        "html",
+        "-W",
+        "-c",
+        f"{_get_resource_path('')}",
+        f"{source_dir}",
+        f"{build_dir}",
+    ]
+
+    # Add extra arguments if provided
+    if extra_args:
+        command.extend(extra_args)
+
+    print(f"DEBUG: extra_args={extra_args}", file=sys.stderr)
+
+    typer.echo(" ".join(shlex.quote(a) for a in command))
+    result = subprocess.run(command, check=True)
+    return result.returncode
 
 def _tools_load_external_tools() -> dict:
     file_path = _get_resource_path("external_tools.json")
@@ -386,66 +459,35 @@ def new(
 @app.command()
 def html(
     ctx: typer.Context,
-    directory: str = typer.Argument(
-        ".",
-        help="Directory where to execute the command. ",
+    part: str = typer.Option(
+        None,
+        "--partly",
+        help="Directory relative to the current working directory to build only a part of the document. ",
     ),
 ):
     """Build to format HTML"""
-
-    _set_env()
-    _load_config()
-
-    build_dir = (
-        Path(_get_kconfig().syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
-    )
-
-    build_dir = (
-        Path(_get_kconfig().syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
-    )
-    executable = _resolve_tool("sphinx-build")
-    command = [
-        f"{executable}",
-        "-b",
-        "html",
-        "-W",
-        "-c",
-        f"{_get_resource_path('')}",
-        f"{_get_kconfig().syms['BUILD__DIRS__SOURCE'].str_value}",
-        f"{build_dir}",
-    ]
-    typer.echo(" ".join(shlex.quote(a) for a in command))
-    result = subprocess.run(command, cwd=directory, check=True)
-    sys.exit(result.returncode)
+    returncode = _build_html_common(ctx, part, "sphinx-build")
+    sys.exit(returncode)
 
 
 @app.command()
 def html_live(
     ctx: typer.Context,
-    directory: str = typer.Argument(
-        ".",
-        help="Directory where to execute the command. ",
+    part: str = typer.Option(
+        None,
+        "--partly",
+        help="Directory relative to the current working directory to build only a part of the document. ",
     ),
 ):
     """Build to format HTML with live reload"""
 
-    _set_env()
+    _set_env(part_dir=part)
     _load_config()
 
     kconfig = _get_kconfig()
-    build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
-    executable = _resolve_tool("sphinx-autobuild")
-    command = [
-        f"{executable}",
-        "-b",
-        "html",
+    extra_args = [
         "-j",
         "10",
-        "-W",
-        "-c",
-        f"{_get_resource_path('')}",
-        f"{kconfig.syms['BUILD__DIRS__SOURCE'].str_value}",
-        f"{build_dir}",
         "--watch",
         f"{kconfig.syms['BUILD__DIRS__CONFIG'].str_value}",
         "--re-ignore",
@@ -454,9 +496,8 @@ def html_live(
         f"{int(kconfig.syms['BUILD__PORTS__HTML__LIVE'].str_value)}",
         "--open-browser",
     ]
-    typer.echo(" ".join(shlex.quote(a) for a in command))
-    result = subprocess.run(command, cwd=directory, check=True)
-    sys.exit(result.returncode)
+    returncode = _build_html_common(ctx, part, "sphinx-autobuild", extra_args)
+    sys.exit(returncode)
 
 
 @app.command()

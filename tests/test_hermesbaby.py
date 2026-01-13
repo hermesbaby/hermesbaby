@@ -21,6 +21,8 @@ import time
 from pathlib import Path
 import sys
 
+from sqlalchemy import extract
+
 
 @pytest.mark.parametrize(
     "command_line",
@@ -90,7 +92,14 @@ def test_task_new(cli_runner, project_dir, some_rel_path_as_str, option):
     ), f"Project path does not exist: {path_to_index_md}"
 
 
-def test_task_html(cli_runner, project_dir):
+@pytest.mark.parametrize(
+    "extract_option",
+    [
+        (""),  # Empty directory (defaults to current), no extract
+        ("--partly docs/some/extract/path"),  # Default directory with extract
+    ],
+)
+def test_task_html(cli_runner, project_dir, extract_option):
 
     from src.hermesbaby.__main__ import app
 
@@ -98,9 +107,22 @@ def test_task_html(cli_runner, project_dir):
     result = cli_runner.invoke(app, ["new", "."])
     assert result.exit_code == 0, "Setup failed"
 
-    result = cli_runner.invoke(app, ["html"])
-    assert result.exit_code == 0, "Call failed"
+    # If testing extract option, create a subdirectory with content
+    if extract_option:
+        extract_dir = project_dir / "docs" / "some" / "extract" / "path"
+        extract_dir.mkdir(parents=True, exist_ok=True)
+        # Create a minimal index.md in the extract directory
+        (extract_dir / "index.md").write_text("# Test Extract\n\nThis is a test extract.")
 
+    # Build the command
+    args = ["html"]
+    if extract_option:
+        args.extend(extract_option.split())
+
+    result = cli_runner.invoke(app, args)
+    assert result.exit_code == 0, f"Call failed with args: {args}"
+
+    # Verify the build output exists
     index_html = project_dir / "out" / "docs" / "html" / "index.html"
     assert index_html.exists(), f"Build output does not exist: {index_html}"
 
@@ -127,6 +149,7 @@ def test_task_config_file(cli_runner, project_dir):
     assert index_html.exists(), f"Build output does not exist: {index_html}"
 
 
+@pytest.mark.skipif(sys.platform != "linux", reason="Install test only runs on Linux")
 def test_task_install(cli_runner):
 
     from src.hermesbaby.__main__ import app_tools
