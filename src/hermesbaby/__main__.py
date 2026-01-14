@@ -243,8 +243,6 @@ def _build_common(
     if extra_args:
         command.extend(extra_args)
 
-    print(f"DEBUG: extra_args={extra_args}", file=sys.stderr)
-
     typer.echo(" ".join(shlex.quote(a) for a in command))
     result = subprocess.run(command, check=True)
     return result.returncode
