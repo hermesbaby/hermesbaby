@@ -934,8 +934,10 @@ if "Linux" == platform.system():
     # Run virtual X-Server.
     drawio_headless = True
 
-    # Make it work in docker containers
+    # Make it work in dockerized CI environments
     drawio_no_sandbox = True
+    drawio_disable_gpu = True
+    drawio_disable_dev_shm_usage = True
 
 
 ## Settings regarding the output
