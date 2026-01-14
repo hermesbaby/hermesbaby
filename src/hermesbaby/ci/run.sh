@@ -20,16 +20,6 @@
 ### RUN #######################################################################
 ###############################################################################
 
-### Get out of detached HEAD state. ###########################################
-
-# The documentation generator shall retrieve the git information and insert it
-# into the documentation. Therefore this step is necessary.
-
-# Jenkins has set environment variable "branch" to the branch name.
-if [ -n "$branch" ]; then
-    git checkout "$branch"
-fi
-
 ### Do the work in the printshop ##############################################
 
 # Fail and exist immediately on unset environment variables and/or broken pipes
@@ -76,19 +66,8 @@ source .hermesbaby
 # This prefixing has security aspects as well. By this there is no chance to
 # override the environment variables used in the publish step
 
+echo "Populating environment from CI options JSON file at: $HERMESBABY_CI_OPTIONS_JSON_PATH"
 eval $(hb ci config-to-env "$HERMESBABY_CI_OPTIONS_JSON_PATH")
-
-
-### DELETE publication when branch is deleted and exit  #######################
-
-if [[ "${HERMES_SCM_TRIGGER:-}" == "REF DELETED" ]]; then
-    echo "Detected REF DELETED trigger; skipping build/package/publish steps."
-    curl -k \
-        -X DELETE \
-        -H "Authorization: Bearer $HERMES_API_TOKEN" \
-        $HERMES_BASE_URL/$HERMES_PUBLISH_PROJECT/$HERMES_PUBLISH_REPO/$HERMES_PUBLISH_BRANCH
-    exit 0
-fi
 
 
 ### BUILD #####################################################################
@@ -130,7 +109,7 @@ curl -k \
     -X PUT \
     -H "Authorization: Bearer $HERMES_API_TOKEN" \
     -F "file=@$CONFIG_BUILD__DIRS__BUILD/html.tar.gz" \
-    $HERMES_BASE_URL/$HERMES_PUBLISH_PROJECT/$HERMES_PUBLISH_REPO/$HERMES_PUBLISH_BRANCH
+    $HERMES_PUBLISH_BASE_URL/$HERMES_PUBLISH_PROJECT/$HERMES_PUBLISH_REPO/$HERMES_PUBLISH_BRANCH
 
 
 ### END OF WORKFLOW ###########################################################

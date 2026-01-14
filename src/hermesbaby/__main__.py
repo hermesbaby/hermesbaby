@@ -1457,6 +1457,27 @@ def ci_config_to_env(
         typer.echo(f"Error reading file '{file_path}': {e}", err=True)
         raise typer.Exit(code=1)
 
+@app_ci.command(name="run")
+def ci_run():
+    """
+    Executes the embedded ci workflow.
+    """
+
+    script_path = _get_resource_path("ci/run.sh")
+
+    bash = shutil.which("bash") or shutil.which("sh")
+    if not bash:
+        typer.echo(
+            "Error: 'bash' (or 'sh') was not found in PATH. "
+            "Install Git Bash on Windows or ensure a POSIX shell is available.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
+    command = [bash, str(script_path)]
+    typer.echo(" ".join(shlex.quote(a) for a in command))
+    result = subprocess.run(command, cwd=os.getcwd())
+    raise typer.Exit(code=result.returncode)
 
 if __name__ == "__main__":
     app()

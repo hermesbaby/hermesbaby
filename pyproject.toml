@@ -31,7 +31,8 @@ include = [
     "README.md",
     "LICENSES.md",
     "licenses/**",
-    "templates/**"
+    "templates/**",
+    "src/hermesbaby/ci/**"
 ]
 
 
