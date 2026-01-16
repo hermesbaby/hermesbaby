@@ -173,7 +173,7 @@ publish () {
         # Append the project name coming from the .hermesbaby file in case we are not in the root folder
         local document="$HERMES_PUBLISH_REPO"
         if [ "$hermesbaby_file" != "./.hermesbaby" ]; then
-            document+="-${CONFIG_DOC__PROJECT}"
+            document+="-${CONFIG_PUBLISH__REPO}"
         fi
 
         # Publish to hermes ( @see https://github.com/hermesbaby/hermes )
