@@ -44,19 +44,6 @@ set -euo pipefail
 # export HERMES_PUBLISH_BRANCH
 
 
-### Inject hermesbaby project configuration into environment ##################
-
-# Make sure that there is a .hermesbaby file even the project doesn't have one
-# Also make sure that the .hermesbaby file contains most recent parameters
-hb configure --update
-
-# Strip possible trailing \r from each line
-sed -i 's/\r$//' .hermesbaby
-
-# Inject into environment
-source .hermesbaby
-
-
 ### Inject CI options into environment ########################################
 # The build may have injected a file with build parameteres.
 # Those parameters may even override the project configuration parameters.
@@ -72,45 +59,72 @@ eval $(hb ci config-to-env "$HERMESBABY_CI_OPTIONS_JSON_PATH")
 
 ### BUILD #####################################################################
 
-# Build always HTML
-hb html
+build() {
+    echo "Building HermesBaby project to HTML."
 
-# Build optionally PDF and embed into HTML
-# The switch CONFIG_PUBLISH__CREATE_AND_EMBED_PDF may come from
-# - the .hermesbaby file
-# - the build_parameters.json file
-if [ "${CONFIG_PUBLISH__CREATE_AND_EMBED_PDF:-n}" == "y" ]; then
-    hb pdf
-    pdf_file=$(basename $(ls "$CONFIG_BUILD__DIRS__BUILD"/pdf/*.tex) .tex).pdf
-    cp "$CONFIG_BUILD__DIRS__BUILD"/pdf/$pdf_file "$CONFIG_BUILD__DIRS__BUILD"/html
-fi
+    # Inject hermesbaby project configuration into environment
+
+    # Make sure that there is a .hermesbaby file even the project doesn't have one
+    # Also make sure that the .hermesbaby file contains most recent parameters
+    hb configure --update
+
+    # Strip possible trailing \r from each line
+    sed -i 's/\r$//' .hermesbaby
+
+    # Inject into environment
+    source .hermesbaby
+
+    # Build HTML
+    hb html
+
+    # Build optionally PDF and embed into HTML
+    # The switch CONFIG_PUBLISH__CREATE_AND_EMBED_PDF may come from
+    # - the .hermesbaby file
+    # - the build_parameters.json file
+    if [ "${CONFIG_PUBLISH__CREATE_AND_EMBED_PDF:-n}" == "y" ]; then
+        hb pdf
+        pdf_file=$(basename $(ls "$CONFIG_BUILD__DIRS__BUILD"/pdf/*.tex) .tex).pdf
+        cp "$CONFIG_BUILD__DIRS__BUILD"/pdf/$pdf_file "$CONFIG_BUILD__DIRS__BUILD"/html
+    fi
+}
 
 
-### PACKAGE and PUBLISH #######################################################
+### PACKAGE ###################################################################
 
-# PACKAGE
+package() {
+    echo "Packaging HTML output into tar.gz archive."}
+    tar -czf \
+        $CONFIG_BUILD__DIRS__BUILD/html.tar.gz \
+        -C $CONFIG_BUILD__DIRS__BUILD/html \
+        .
+}
 
-tar -czf \
-    $CONFIG_BUILD__DIRS__BUILD/html.tar.gz \
-    -C $CONFIG_BUILD__DIRS__BUILD/html \
-    .
+
+### PUBLISH ###################################################################
+
+publish () {
+    echo "Publishing HTML archive to Hermes server."
+
+    # Check if publishing should be skipped
+    if [ "${CONFIG_PUBLISH_SKIP_PUBLISH:-n}" == "y" ]; then
+        echo "Publishing is skipped due to CONFIG_PUBLISH_SKIP_PUBLISH being set to 'y'."
+        exit 0
+    fi
+
+    # Publish to hermes ( @see https://github.com/hermesbaby/hermes )
+    curl -k \
+        -X PUT \
+        -H "Authorization: Bearer $HERMES_API_TOKEN" \
+        -F "file=@$CONFIG_BUILD__DIRS__BUILD/html.tar.gz" \
+        $HERMES_PUBLISH_BASE_URL/$HERMES_PUBLISH_PROJECT/$HERMES_PUBLISH_REPO/$HERMES_PUBLISH_BRANCH
+}
 
 
-# PUBLISH
+### EXECUTION FLOW ############################################################
 
-# Check if publishing should be skipped
-if [ "${CONFIG_PUBLISH_SKIP_PUBLISH:-n}" == "y" ]; then
-    echo "Publishing is skipped due to CONFIG_PUBLISH_SKIP_PUBLISH being set to 'y'."
-    exit 0
-fi
-
-# Publish to hermes ( @see https://github.com/hermesbaby/hermes )
-curl -k \
-    -X PUT \
-    -H "Authorization: Bearer $HERMES_API_TOKEN" \
-    -F "file=@$CONFIG_BUILD__DIRS__BUILD/html.tar.gz" \
-    $HERMES_PUBLISH_BASE_URL/$HERMES_PUBLISH_PROJECT/$HERMES_PUBLISH_REPO/$HERMES_PUBLISH_BRANCH
-
+build
+package
+publish
 
 ### END OF WORKFLOW ###########################################################
 
