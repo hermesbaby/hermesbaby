@@ -152,6 +152,8 @@ package() {
 ### PUBLISH ###################################################################
 
 publish () {
+    local hermesbaby_file=$1
+
     # Inject into environment and make it available across
     source .hermesbaby
 
@@ -161,12 +163,18 @@ publish () {
         exit 0
     fi
 
+    # Append the project name coming from the .hermesbaby file in case we are not in the root folder
+    local document="$HERMES_PUBLISH_REPO"
+    if [ "$hermesbaby_file" != "./.hermesbaby" ]; then
+        document+="-${CONFIG_DOC__PROJECT}"
+    fi
+
     # Publish to hermes ( @see https://github.com/hermesbaby/hermes )
-    curl -k \
+    echo curl -k \
         -X PUT \
         -H "Authorization: Bearer $HERMES_API_TOKEN" \
         -F "file=@$CONFIG_BUILD__DIRS__BUILD/html.tar.gz" \
-        $HERMES_PUBLISH_BASE_URL/$HERMES_PUBLISH_PROJECT/$HERMES_PUBLISH_REPO/$HERMES_PUBLISH_BRANCH
+        $HERMES_PUBLISH_BASE_URL/$HERMES_PUBLISH_PROJECT/$document/$HERMES_PUBLISH_BRANCH
 }
 
 
@@ -177,7 +185,7 @@ loop_over() {
     for rel in "${HERMESBABY_FILES[@]}"; do
         pushd "$(dirname "$rel")" > /dev/null
         echo ">>> Running step '$step' for project: ${rel#./}"
-        $step
+        $step $rel
         popd > /dev/null
     done
 }
