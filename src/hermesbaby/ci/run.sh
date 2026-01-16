@@ -177,7 +177,7 @@ publish () {
         fi
 
         # Publish to hermes ( @see https://github.com/hermesbaby/hermes )
-        echo curl -k \
+        curl -k \
             -X PUT \
             -H "Authorization: Bearer $HERMES_API_TOKEN" \
             -F "file=@$CONFIG_BUILD__DIRS__BUILD/html.tar.gz" \
