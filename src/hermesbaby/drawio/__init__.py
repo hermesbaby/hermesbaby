@@ -36,6 +36,8 @@ VALID_OUTPUT_FORMATS = {
     "pdf": "application/pdf",
 }
 
+# SCREENSIZE = '1920x1080x24'
+SCREENSIZE = '3840x2160x24'
 
 def is_headless(config: Config):
     if config.drawio_headless == "auto":
@@ -176,7 +178,10 @@ class DrawIOConverter(ImageConverter):
             srcpath = node["candidates"]["*"]
 
         abs_srcpath = Path(self.app.srcdir) / srcpath
-        if not os.path.exists(abs_srcpath):
+        if not abs_srcpath.is_file():
+            logger.error(
+                f"draw.io input path must be a file, got: {srcpath}"
+            )
             return
 
         options = node.attributes
@@ -352,6 +357,51 @@ class DrawIOConverter(ImageConverter):
         # such as for the reStructuredText (sphinx) preview.
         new_env.pop("ELECTRON_RUN_AS_NODE", None)
 
+        # Reduce noise and latency in headless/container environments
+        new_env["DRAWIO_DISABLE_UPDATE"] = "1"
+        new_env["DRAWIO_DISABLE_AUTOUPDATE"] = "1"
+        new_env["DBUS_SESSION_BUS_ADDRESS"] = "disabled"
+        new_env["NO_AT_BRIDGE"] = "1"
+
+        # Periodically restart Xvfb to clear accumulated rendering state
+        try:
+            builder.config._drawio_conversion_count = getattr(builder.config, "_drawio_conversion_count", 0) + 1
+            restart_interval = builder.config.drawio_headless_xvfb_restart_interval
+            if builder.config._xvfb and restart_interval > 0 and builder.config._drawio_conversion_count % restart_interval == 0:
+                logger.info(
+                    f"(drawio) Restarting Xvfb after {builder.config._drawio_conversion_count} conversions to clear accumulated state"
+                )
+                try:
+                    builder.config._xvfb.terminate()
+                    builder.config._xvfb.wait(timeout=2)
+                except Exception:
+                    try:
+                        builder.config._xvfb.kill()
+                    except Exception:
+                        pass
+
+                # Start fresh Xvfb
+                with TemporaryFile() as fp:
+                    fd = fp.fileno()
+                    xvfb = Popen(
+                        ["Xvfb", "-displayfd", str(fd), "-screen", "0", SCREENSIZE, "-reset"],
+                        pass_fds=(fd,),
+                        stdout=PIPE,
+                        stderr=PIPE,
+                    )
+                    if xvfb.poll() is None:
+                        while fp.tell() == 0:
+                            sleep(0.01)
+                        fp.seek(0)
+                        builder.config._xvfb = xvfb
+                        builder.config._display = fp.read().decode("ascii").strip()
+                        new_env["DISPLAY"] = f":{builder.config._display}"
+                        logger.info(f"(drawio) Xvfb restarted on display :{builder.config._display}")
+                    else:
+                        logger.error("(drawio) Failed to restart Xvfb")
+        except Exception as e:
+            logger.debug(f"(drawio) Xvfb restart logic skipped: {e}")
+
         logger.info(f"(drawio) '{input_relpath}' -> '{export_relpath}'")
         try:
             ret = subprocess.run(
@@ -389,7 +439,7 @@ def on_config_inited(app: Sphinx, config: Config) -> None:
         with TemporaryFile() as fp:
             fd = fp.fileno()
             xvfb = Popen(
-                ["Xvfb", "-displayfd", str(fd), "-screen", "0", "1280x768x16"],
+                ["Xvfb", "-displayfd", str(fd), "-screen", "0", SCREENSIZE, "-reset"],
                 pass_fds=(fd,),
                 stdout=PIPE,
                 stderr=PIPE,
@@ -404,6 +454,7 @@ def on_config_inited(app: Sphinx, config: Config) -> None:
             fp.seek(0)
             config._xvfb = xvfb
             config._display = fp.read().decode("ascii").strip()
+            config._drawio_conversion_count = 0
         logger.info(f"Xvfb is running on display :{config._display}")
     else:
         logger.info("running in non-headless mode, not starting Xvfb")
@@ -450,6 +501,7 @@ def setup(app: Sphinx) -> Dict[str, Any]:
     )
     app.add_config_value("drawio_disable_gpu", False, "html", ENUM(True, False))
     app.add_config_value("drawio_no_sandbox", False, "html", ENUM(True, False))
+    app.add_config_value("drawio_headless_xvfb_restart_interval", 25, "html")
 
     # Add CSS file to the HTML static path for add_css_file
     app.connect("build-finished", on_build_finished)

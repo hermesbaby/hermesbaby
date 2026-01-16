@@ -933,6 +933,7 @@ if "Linux" == platform.system():
 
     # Run virtual X-Server.
     drawio_headless = True
+    drawio_headless_xvfb_restart_interval = 33
 
     # Make it work in dockerized CI environments
     drawio_no_sandbox = True
