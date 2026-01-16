@@ -238,6 +238,12 @@ config PUBLISH__CREATE_AND_EMBED_PDF
     help
         Whether to add the generated PDF to the publish process.
 
+config PUBLISH__TARBALL
+    bool "Publish tarball"
+    default n
+    help
+        Create an tarball html.tar.gz and place it in the root of the published site
+
 config PUBLISH__HOST
     string "Host (with port if necessary)"
     default "docs.some-host.com"

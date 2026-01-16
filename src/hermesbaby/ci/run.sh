@@ -132,6 +132,16 @@ package() {
     # Inject into environment and make it available across
     source .hermesbaby
 
+    # Optional create a tarball which is embedded into the published site
+    if [ "${CONFIG_PUBLISH__TARBALL:-n}" == "y" ]; then
+        echo "Creating tarball html.tar.gz in $CONFIG_BUILD__DIRS__BUILD/html.tar.gz"
+        tar -czf \
+            $CONFIG_BUILD__DIRS__BUILD/html.tar.gz \
+            -C $CONFIG_BUILD__DIRS__BUILD/html \
+            .
+        mv $CONFIG_BUILD__DIRS__BUILD/html.tar.gz $CONFIG_BUILD__DIRS__BUILD/html/
+    fi
+
     tar -czf \
         $CONFIG_BUILD__DIRS__BUILD/html.tar.gz \
         -C $CONFIG_BUILD__DIRS__BUILD/html \
