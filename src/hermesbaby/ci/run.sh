@@ -103,49 +103,55 @@ build() {
     # Strip possible trailing \r from each line
     sed -i 's/\r$//' .hermesbaby
 
-    # Inject into environment and make it available across
-    source .hermesbaby
+    # Apply the .hermesbaby file to the environment only for this function
+    (
+        # Inject into environment and make it available across
+        source .hermesbaby
 
-    mkdir -p "$CONFIG_BUILD__DIRS__BUILD"/html
-    touch "$CONFIG_BUILD__DIRS__BUILD"/html/index.html
-    ls "$CONFIG_BUILD__DIRS__BUILD"/html/
+        mkdir -p "$CONFIG_BUILD__DIRS__BUILD"/html
+        touch "$CONFIG_BUILD__DIRS__BUILD"/html/index.html
+        ls "$CONFIG_BUILD__DIRS__BUILD"/html/
 
-    # Build HTML
-    hb html
+        # Build HTML
+        hb html
 
-    # Build optionally PDF and embed into HTML
-    # The switch CONFIG_PUBLISH__CREATE_AND_EMBED_PDF may come from
-    # - the .hermesbaby file
-    # - the build_parameters.json file
-    if [ "${CONFIG_PUBLISH__CREATE_AND_EMBED_PDF:-n}" == "y" ]; then
-        echo "### Building HermesBaby project to PDF in $PWD"
-        hb pdf
-        pdf_file=$(basename $(ls "$CONFIG_BUILD__DIRS__BUILD"/pdf/*.tex) .tex).pdf
-        cp "$CONFIG_BUILD__DIRS__BUILD"/pdf/$pdf_file "$CONFIG_BUILD__DIRS__BUILD"/html
-    fi
+        # Build optionally PDF and embed into HTML
+        # The switch CONFIG_PUBLISH__CREATE_AND_EMBED_PDF may come from
+        # - the .hermesbaby file
+        # - the build_parameters.json file
+        if [ "${CONFIG_PUBLISH__CREATE_AND_EMBED_PDF:-n}" == "y" ]; then
+            echo "### Building HermesBaby project to PDF in $PWD"
+            hb pdf
+            pdf_file=$(basename $(ls "$CONFIG_BUILD__DIRS__BUILD"/pdf/*.tex) .tex).pdf
+            cp "$CONFIG_BUILD__DIRS__BUILD"/pdf/$pdf_file "$CONFIG_BUILD__DIRS__BUILD"/html
+        fi
+    )
 }
 
 
 ### PACKAGE ###################################################################
 
 package() {
-    # Inject into environment and make it available across
-    source .hermesbaby
 
-    # Optional create a tarball which is embedded into the published site
-    if [ "${CONFIG_PUBLISH__TARBALL:-n}" == "y" ]; then
-        echo "Creating tarball html.tar.gz in $CONFIG_BUILD__DIRS__BUILD/html.tar.gz"
+    # Apply the .hermesbaby file to the environment only for this function
+    (
+        source .hermesbaby
+
+        # Optional create a tarball which is embedded into the published site
+        if [ "${CONFIG_PUBLISH__TARBALL:-n}" == "y" ]; then
+            echo "Creating tarball html.tar.gz in $CONFIG_BUILD__DIRS__BUILD/html.tar.gz"
+            tar -czf \
+                $CONFIG_BUILD__DIRS__BUILD/html.tar.gz \
+                -C $CONFIG_BUILD__DIRS__BUILD/html \
+                .
+            mv $CONFIG_BUILD__DIRS__BUILD/html.tar.gz $CONFIG_BUILD__DIRS__BUILD/html/
+        fi
+
         tar -czf \
             $CONFIG_BUILD__DIRS__BUILD/html.tar.gz \
             -C $CONFIG_BUILD__DIRS__BUILD/html \
             .
-        mv $CONFIG_BUILD__DIRS__BUILD/html.tar.gz $CONFIG_BUILD__DIRS__BUILD/html/
-    fi
-
-    tar -czf \
-        $CONFIG_BUILD__DIRS__BUILD/html.tar.gz \
-        -C $CONFIG_BUILD__DIRS__BUILD/html \
-        .
+    )
 }
 
 
@@ -154,27 +160,29 @@ package() {
 publish () {
     local hermesbaby_file=$1
 
-    # Inject into environment and make it available across
-    source .hermesbaby
+    # Apply the .hermesbaby file to the environment only for this function
+    (
+        source .hermesbaby
 
-    # Check if publishing should be skipped
-    if [ "${CONFIG_PUBLISH_SKIP_PUBLISH:-n}" == "y" ]; then
-        echo "Publishing is skipped due to CONFIG_PUBLISH_SKIP_PUBLISH being set to 'y'."
-        exit 0
-    fi
+        # Check if publishing should be skipped
+        if [ "${CONFIG_PUBLISH_SKIP_PUBLISH:-n}" == "y" ]; then
+            echo "Publishing is skipped due to CONFIG_PUBLISH_SKIP_PUBLISH being set to 'y'."
+            exit 0
+        fi
 
-    # Append the project name coming from the .hermesbaby file in case we are not in the root folder
-    local document="$HERMES_PUBLISH_REPO"
-    if [ "$hermesbaby_file" != "./.hermesbaby" ]; then
-        document+="-${CONFIG_DOC__PROJECT}"
-    fi
+        # Append the project name coming from the .hermesbaby file in case we are not in the root folder
+        local document="$HERMES_PUBLISH_REPO"
+        if [ "$hermesbaby_file" != "./.hermesbaby" ]; then
+            document+="-${CONFIG_DOC__PROJECT}"
+        fi
 
-    # Publish to hermes ( @see https://github.com/hermesbaby/hermes )
-    echo curl -k \
-        -X PUT \
-        -H "Authorization: Bearer $HERMES_API_TOKEN" \
-        -F "file=@$CONFIG_BUILD__DIRS__BUILD/html.tar.gz" \
-        $HERMES_PUBLISH_BASE_URL/$HERMES_PUBLISH_PROJECT/$document/$HERMES_PUBLISH_BRANCH
+        # Publish to hermes ( @see https://github.com/hermesbaby/hermes )
+        echo curl -k \
+            -X PUT \
+            -H "Authorization: Bearer $HERMES_API_TOKEN" \
+            -F "file=@$CONFIG_BUILD__DIRS__BUILD/html.tar.gz" \
+            $HERMES_PUBLISH_BASE_URL/$HERMES_PUBLISH_PROJECT/$document/$HERMES_PUBLISH_BRANCH
+    )
 }
 
 
