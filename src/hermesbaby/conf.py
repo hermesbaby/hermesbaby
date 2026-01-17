@@ -372,7 +372,7 @@ else:
 
 latex_elements = {
     "papersize": "a4paper",
-    "pointsize": "12pt",
+    "pointsize": "10pt",
     "maxlistdepth": "10",
     "preamble": r"""
 % Don't complain about included PDF version being newer
@@ -387,6 +387,10 @@ latex_elements = {
 % Suppress font not found errors and use fallback glyphs
 \tracinglostchars=1
 \suppressfontnotfounderror=1
+
+% Line spacing
+\usepackage{setspace}
+\onehalfspacing
 
 % Main text font (adapt as you like)
 % Use AutoFakeBold/AutoFakeSlant to generate missing font variants
