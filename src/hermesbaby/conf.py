@@ -813,11 +813,28 @@ html_context["_pdf_basename"] = _pdf_basename
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto, manual, or own class]).
+
+def handle_latex_special_chars(text: str) -> str:
+    esc = {
+        "&": r"\&",
+        "%": r"\%",
+        "$": r"\$",
+        "#": r"\#",
+        "_": r"\_",
+        "{": r"\{",
+        "}": r"\}",
+        "~": r"\textasciitilde{}",
+        "^": r"\textasciicircum{}",
+        "\\": r"\textbackslash{}",
+    }
+    return "".join(esc.get(c, c) for c in text)
+
+
 latex_documents = [
     (
         "index",
         f"{_pdf_basename}.tex",
-        kconfig.syms["DOC__TITLE"].str_value,
+        handle_latex_special_chars(kconfig.syms["DOC__TITLE"].str_value),
         author,
         "manual",
     )
@@ -1807,7 +1824,6 @@ pre_post_build_programs = {
                 "-halt-on-error",
                 "-file-line-error",
                 "-interaction=nonstopmode",
-                "-quiet",
                 "-latexoption=-interaction=nonstopmode",
                 "-latexoption=-halt-on-error",
                 "-latexoption=-file-line-error",
