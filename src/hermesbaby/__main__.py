@@ -244,8 +244,12 @@ def _build_common(
         command.extend(extra_args)
 
     typer.echo(" ".join(shlex.quote(a) for a in command))
-    result = subprocess.run(command, check=True)
-    return result.returncode
+    try:
+        result = subprocess.run(command, check=True)
+        return result.returncode
+    except subprocess.CalledProcessError as e:
+        # Exit gracefully without showing traceback
+        sys.exit(e.returncode)
 
 def _tools_load_external_tools() -> dict:
     file_path = _get_resource_path("external_tools.json")
@@ -622,7 +626,10 @@ def configure(
     executable = _resolve_tool(config_tool)
     command = [executable, str(_config_file)]
     typer.echo(" ".join(shlex.quote(a) for a in command))
-    result = subprocess.run(command, cwd=directory, check=True)
+    try:
+        result = subprocess.run(command, cwd=directory, check=True)
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
 
     # Don't retain any *.old file
     Path(CFG_CONFIG_CUSTOM_FILE + ".old").unlink(missing_ok=True)
@@ -1477,7 +1484,7 @@ def ci_run():
     command = [bash, str(script_path)]
     typer.echo(" ".join(shlex.quote(a) for a in command))
     result = subprocess.run(command, cwd=os.getcwd())
-    raise typer.Exit(code=result.returncode)
+    sys.exit(result.returncode)
 
 if __name__ == "__main__":
     app()
