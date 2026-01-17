@@ -226,6 +226,14 @@ config STYLING__COLOR_ACCENT
         light-blue, cyan, teal, green, light-green, lime, yellow, amber,
         orange, deep-orange, brown, grey, blue-grey, and white.
 
+config STYLING__GLOBALTOC_DEPTH
+    int "Global Table of Contents Depth"
+    default 3
+    help
+        The depth of the global table of contents in the sidebar.
+        This controls how many levels of the document structure are shown.
+        Default is 3.
+
 endmenu
 
 
