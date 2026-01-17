@@ -1176,13 +1176,6 @@ register_plugin('pybtex.style.formatting', 'customkey', CustomKeyStyle)
 bibtex_default_style = "customkey"  # unsorted or pick "ieee"/"plain"/"alpha", etc.
 
 
-### Make use of Inkscape for PDF output work  #################################
-# @see https://pypi.org/project/sphinxcontrib-svg2pdfconverter/
-
-if builder == 'latex':
-    extensions.append("sphinxcontrib.inkscapeconverter")
-
-
 ### Convert images for LaTeX/PDF builds  ###################################
 # @see https://www.sphinx-doc.org/en/master/usage/extensions/imgconverter.html
 

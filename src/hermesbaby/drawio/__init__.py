@@ -462,6 +462,21 @@ def on_config_inited(app: Sphinx, config: Config) -> None:
         config._display = None
 
 
+def intercept_drawio_images(app: Sphinx, doctree) -> None:
+    """Intercept standard image and figure directives with .drawio.png or .drawio.svg files.
+
+    This runs on doctree-read (early) to mark drawio images before other converters can process them.
+    """
+    for image_node in doctree.traverse(nodes.image):
+        uri = image_node.get('uri', '')
+
+        # Check if this is a .drawio.png or .drawio.svg file
+        if uri.endswith('.drawio.png') or uri.endswith('.drawio.svg'):
+            # Add the 'drawio' class to trigger DrawIOConverter handling
+            if 'drawio' not in image_node.get('classes', []):
+                image_node['classes'].append('drawio')
+
+
 def on_build_finished(app: Sphinx, exc: Exception) -> None:
     if app.builder.format == 'html' and exc is None:
         this_file_path = os.path.dirname(os.path.realpath(__file__))
@@ -506,6 +521,8 @@ def setup(app: Sphinx) -> Dict[str, Any]:
     # Add CSS file to the HTML static path for add_css_file
     app.connect("build-finished", on_build_finished)
     app.connect("config-inited", on_config_inited)
+    # Use doctree-read (early event) to mark drawio images before other converters process them
+    app.connect("doctree-read", intercept_drawio_images)
     app.add_css_file("drawio.css")
 
     return {"version": __version__, "parallel_read_safe": True}
