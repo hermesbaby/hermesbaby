@@ -444,6 +444,18 @@ latex_elements = {
         \par\noindent\hrule height 0.4pt\relax\par
         \addvspace{1.0ex}%
 }%
+
+% Render sphinx.ext.todo blocks consistently as well.
+% The argument (#1) contains the localized title (e.g. "Zu tun:" vs "Todo:")
+% and may include a \label{...}; \label does not typeset, so it's safe to keep.
+\renewenvironment{sphinxtodo}[1]{%
+    \par\addvspace{1.0ex}%
+    \noindent\hrule height 0.4pt\relax\par
+    \noindent\textbf{#1}\hspace{0.75em}\ignorespaces
+}{%
+    \par\noindent\hrule height 0.4pt\relax\par
+    \addvspace{1.0ex}%
+}%
 \makeatother
 """,
 }
