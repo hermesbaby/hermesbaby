@@ -395,11 +395,20 @@ latex_elements = {
 \makeatother
 \phantomsection
 \hbAddToC{\listfigurename}
+% Some projects set \setcounter{tocdepth}{0} (chapters only). LaTeX uses
+% the same tocdepth for \@dottedtocline, which would hide LoF/LoT entries
+% (level 1). Raise tocdepth locally while rendering the lists.
+\begingroup
+\setcounter{tocdepth}{1}
 \listoffigures
+\endgroup
 \clearpage
 \phantomsection
 \hbAddToC{\listtablename}
+\begingroup
+\setcounter{tocdepth}{1}
 \listoftables
+\endgroup
 \clearpage
 """,
     "preamble": r"""
