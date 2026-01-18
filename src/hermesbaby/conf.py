@@ -376,6 +376,11 @@ latex_elements = {
     "maxlistdepth": "10",
     # Include LoF/LoT in PDFs (right after the ToC)
     "tableofcontents": r"""
+% Ensure the ToC itself appears in the PDF outline (bookmarks pane)
+\phantomsection
+\ifdefined\pdfbookmark
+    \pdfbookmark[0]{\contentsname}{hb-contents}%
+\fi
 \tableofcontents
 \clearpage
 % Add LoF/LoT as entries in the main ToC (localized via babel/polyglossia)
