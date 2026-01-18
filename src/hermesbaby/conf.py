@@ -432,6 +432,37 @@ latex_elements = {
 """,
 }
 
+# Select LaTeX document language based on Kconfig choice flags.
+# This affects hyphenation/line-breaking only (does not change table generation).
+if builder == "latex":
+    _is_german = False
+    _is_english = False
+    try:
+        _is_german = (
+            kconfig.syms.get("DOC_LANGUAGE_GERMAN")
+            and kconfig.syms["DOC_LANGUAGE_GERMAN"].str_value == "y"
+        )
+        _is_english = (
+            kconfig.syms.get("DOC_LANGUAGE_ENGLISH")
+            and kconfig.syms["DOC_LANGUAGE_ENGLISH"].str_value == "y"
+        )
+    except Exception:
+        pass
+
+    if _is_german:
+        latex_elements["babel"] = r"""
+% LuaLaTeX: prefer Babel locale mechanism.
+\usepackage[provide=*]{babel}
+\babelprovide[main]{ngerman}
+\selectlanguage{ngerman}
+"""
+    elif _is_english:
+        latex_elements["babel"] = r"""
+\usepackage[provide=*]{babel}
+\babelprovide[main]{english}
+\selectlanguage{english}
+"""
+
 
 def _latex_add_global_colspec(app, doctree, docname):
     """
