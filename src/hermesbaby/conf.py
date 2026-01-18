@@ -429,6 +429,22 @@ latex_elements = {
 % Be generous with line breaking to avoid overfull boxes
 \emergencystretch=3em
 \sloppy
+
+% --- Make admonitions render consistently across TeX distributions ---
+% Some TeX installations (often TeX Live) use a tcolorbox-based definition of
+% Sphinx's sphinxadmonition environment, while others (often MiKTeX) fall back
+% to a simpler rule-based layout. To avoid platform-specific look & feel,
+% override the environment to a minimal horizontal-rule style.
+\makeatletter
+\renewenvironment{sphinxadmonition}[2]{%
+        \par\addvspace{1.0ex}%
+        \noindent\hrule height 0.4pt\relax\par
+        \noindent\textbf{#2}\hspace{0.75em}\ignorespaces
+}{%
+        \par\noindent\hrule height 0.4pt\relax\par
+        \addvspace{1.0ex}%
+}%
+\makeatother
 """,
 }
 
