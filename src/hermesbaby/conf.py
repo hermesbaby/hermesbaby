@@ -347,6 +347,10 @@ if builder == "latex":
 # Split tables across pages when needed
 latex_table_style = ["longtable"]
 
+# Reuse the global ToC depth for LaTeX/PDF builds as well.
+# LaTeX mapping (tocdepth): 0=chapter, 1=section, 2=subsection, 3=subsubsection, ...
+_latex_toc_depth = max(0, int(kconfig.syms["STYLING__GLOBALTOC_DEPTH"].str_value) - 1)
+
 # Platform-specific font selection for LaTeX/PDF builds
 # Use fonts that are natively available on each platform
 if platform.system() == "Windows":
@@ -415,6 +419,12 @@ latex_elements = {
 % Don't complain about included PDF version being newer
 \pdfinclusionerrorlevel=0
 
+""" + (
+        "% HermesBaby: keep PDF ToC depth in sync with STYLING__GLOBALTOC_DEPTH\n"
+        "% (see Kconfig: STYLING__GLOBALTOC_DEPTH)\n"
+        f"\\setcounter{{tocdepth}}{{{_latex_toc_depth}}}\n"
+        f"\\setcounter{{secnumdepth}}{{{_latex_toc_depth}}}\n\n"
+    ) + r"""
 
 % --- Unicode support for symbols like 🢂👍😎😁👏❌👎⚕️ ---
 
