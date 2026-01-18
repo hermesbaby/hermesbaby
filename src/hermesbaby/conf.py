@@ -347,6 +347,10 @@ if builder == "latex":
 # Split tables across pages when needed
 latex_table_style = ["longtable"]
 
+# Reuse the global ToC depth for LaTeX/PDF builds as well.
+# LaTeX mapping (tocdepth): 0=chapter, 1=section, 2=subsection, 3=subsubsection, ...
+_latex_toc_depth = max(0, int(kconfig.syms["STYLING__GLOBALTOC_DEPTH"].str_value) - 1)
+
 # Platform-specific font selection for LaTeX/PDF builds
 # Use fonts that are natively available on each platform
 if platform.system() == "Windows":
@@ -374,10 +378,53 @@ latex_elements = {
     "papersize": "a4paper",
     "pointsize": "10pt",
     "maxlistdepth": "10",
+    # Include LoF/LoT in PDFs (right after the ToC)
+    "tableofcontents": r"""
+% Ensure the ToC itself appears in the PDF outline (bookmarks pane)
+\phantomsection
+\ifdefined\pdfbookmark
+    \pdfbookmark[0]{\contentsname}{hb-contents}%
+\fi
+\tableofcontents
+\clearpage
+% Add LoF/LoT as entries in the main ToC (localized via babel/polyglossia)
+\makeatletter
+\newcommand{\hbAddToC}[1]{%
+    \ifdefined\chapter
+        \addcontentsline{toc}{chapter}{#1}%
+    \else
+        \addcontentsline{toc}{section}{#1}%
+    \fi
+}
+\makeatother
+\phantomsection
+\hbAddToC{\listfigurename}
+% Some projects set \setcounter{tocdepth}{0} (chapters only). LaTeX uses
+% the same tocdepth for \@dottedtocline, which would hide LoF/LoT entries
+% (level 1). Raise tocdepth locally while rendering the lists.
+\begingroup
+\setcounter{tocdepth}{1}
+\listoffigures
+\endgroup
+\clearpage
+\phantomsection
+\hbAddToC{\listtablename}
+\begingroup
+\setcounter{tocdepth}{1}
+\listoftables
+\endgroup
+\clearpage
+""",
     "preamble": r"""
 % Don't complain about included PDF version being newer
 \pdfinclusionerrorlevel=0
 
+""" + (
+        "% HermesBaby: keep PDF ToC depth in sync with STYLING__GLOBALTOC_DEPTH\n"
+        "% (see Kconfig: STYLING__GLOBALTOC_DEPTH)\n"
+        f"\\setcounter{{tocdepth}}{{{_latex_toc_depth}}}\n"
+        f"\\setcounter{{secnumdepth}}{{{_latex_toc_depth}}}\n\n"
+    ) + r"""
 
 % --- Unicode support for symbols like 🢂👍😎😁👏❌👎⚕️ ---
 
@@ -429,8 +476,67 @@ latex_elements = {
 % Be generous with line breaking to avoid overfull boxes
 \emergencystretch=3em
 \sloppy
+
+% --- Make admonitions render consistently across TeX distributions ---
+% Some TeX installations (often TeX Live) use a tcolorbox-based definition of
+% Sphinx's sphinxadmonition environment, while others (often MiKTeX) fall back
+% to a simpler rule-based layout. To avoid platform-specific look & feel,
+% override the environment to a minimal horizontal-rule style.
+\makeatletter
+\renewenvironment{sphinxadmonition}[2]{%
+        \par\addvspace{1.0ex}%
+        \noindent\hrule height 0.4pt\relax\par
+        \noindent\textbf{#2}\hspace{0.75em}\ignorespaces
+}{%
+        \par\noindent\hrule height 0.4pt\relax\par
+        \addvspace{1.0ex}%
+}%
+
+% Render sphinx.ext.todo blocks consistently as well.
+% The argument (#1) contains the localized title (e.g. "Zu tun:" vs "Todo:")
+% and may include a \label{...}; \label does not typeset, so it's safe to keep.
+\renewenvironment{sphinxtodo}[1]{%
+    \par\addvspace{1.0ex}%
+    \noindent\hrule height 0.4pt\relax\par
+    \noindent\textbf{#1}\hspace{0.75em}\ignorespaces
+}{%
+    \par\noindent\hrule height 0.4pt\relax\par
+    \addvspace{1.0ex}%
+}%
+\makeatother
 """,
 }
+
+# Select LaTeX document language based on Kconfig choice flags.
+# This affects hyphenation/line-breaking only (does not change table generation).
+if builder == "latex":
+    _is_german = False
+    _is_english = False
+    try:
+        _is_german = (
+            kconfig.syms.get("DOC_LANGUAGE_GERMAN")
+            and kconfig.syms["DOC_LANGUAGE_GERMAN"].str_value == "y"
+        )
+        _is_english = (
+            kconfig.syms.get("DOC_LANGUAGE_ENGLISH")
+            and kconfig.syms["DOC_LANGUAGE_ENGLISH"].str_value == "y"
+        )
+    except Exception:
+        pass
+
+    if _is_german:
+        latex_elements["babel"] = r"""
+% LuaLaTeX: prefer Babel locale mechanism.
+\usepackage[provide=*]{babel}
+\babelprovide[main]{ngerman}
+\selectlanguage{ngerman}
+"""
+    elif _is_english:
+        latex_elements["babel"] = r"""
+\usepackage[provide=*]{babel}
+\babelprovide[main]{english}
+\selectlanguage{english}
+"""
 
 
 def _latex_add_global_colspec(app, doctree, docname):

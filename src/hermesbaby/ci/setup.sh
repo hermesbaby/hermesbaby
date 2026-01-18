@@ -114,6 +114,7 @@ $SUDO apt-get install -y \
     texlive-latex-recommended \
     texlive-latex-extra \
     texlive-luatex \
+    texlive-lang-german \
     texlive-font-utils \
     texlive-fonts-recommended \
     texlive-fonts-extra \
