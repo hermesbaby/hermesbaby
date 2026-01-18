@@ -374,6 +374,15 @@ latex_elements = {
     "papersize": "a4paper",
     "pointsize": "10pt",
     "maxlistdepth": "10",
+    # Include LoF/LoT in PDFs (right after the ToC)
+    "tableofcontents": r"""
+\tableofcontents
+\clearpage
+\listoffigures
+\clearpage
+\listoftables
+\clearpage
+""",
     "preamble": r"""
 % Don't complain about included PDF version being newer
 \pdfinclusionerrorlevel=0
