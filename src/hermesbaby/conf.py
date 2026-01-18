@@ -378,8 +378,22 @@ latex_elements = {
     "tableofcontents": r"""
 \tableofcontents
 \clearpage
+% Add LoF/LoT as entries in the main ToC (localized via babel/polyglossia)
+\makeatletter
+\newcommand{\hbAddToC}[1]{%
+    \ifdefined\chapter
+        \addcontentsline{toc}{chapter}{#1}%
+    \else
+        \addcontentsline{toc}{section}{#1}%
+    \fi
+}
+\makeatother
+\phantomsection
+\hbAddToC{\listfigurename}
 \listoffigures
 \clearpage
+\phantomsection
+\hbAddToC{\listtablename}
 \listoftables
 \clearpage
 """,
