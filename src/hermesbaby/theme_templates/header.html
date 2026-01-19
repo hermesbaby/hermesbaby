@@ -29,7 +29,7 @@
       </div>
 
         <div class="md-flex__cell md-flex__cell--shrink" id="pdf-link-container">
-        <a href="{{ _pdf_basename }}.pdf"
+        <a href="{{ pathto(_pdf_basename ~ '.pdf', 1) | e }}"
             class="md-header-nav__button"
             title="PDF"
             target="_blank">
@@ -52,7 +52,7 @@
     (function() {
       var pdfContainer = document.getElementById('pdf-link-container');
       if (pdfContainer) {
-        var pdfUrl = '{{ _pdf_basename }}.pdf';
+        var pdfUrl = '{{ pathto(_pdf_basename ~ '.pdf', 1) | e }}';
         fetch(pdfUrl, { method: 'HEAD' })
           .then(function(response) {
             if (!response.ok) {
