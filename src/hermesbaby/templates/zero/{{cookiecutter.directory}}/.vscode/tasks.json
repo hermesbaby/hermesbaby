@@ -98,6 +98,26 @@
             }
         },
         {
+            "label": "html-live-partly",
+            "type": "shell",
+            "command": "hb html-live --partly \"${relativeFileDirname}\"",
+            "options": {
+                "statusbar": {
+                    "hide": false
+                }
+            },
+            "presentation": {
+                "panel": "dedicated",
+                "reveal": "always",
+                "clear": true
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
             "label": "publish",
             "type": "shell",
             "command": "hb publish",
