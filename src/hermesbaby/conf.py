@@ -227,7 +227,10 @@ html_context = {}
 source_suffix = [".rst", ".md", ".ipynb"]
 
 exclude_patterns = [
+    kconfig.syms["BUILD__DIRS__BUILD"].str_value + "/**",
     "README.md",
+    "_attachments/*.md",
+    "_attachments/*.rst",
     "**/_attachments/*.rst",
     "**/_attachments/**/*.rst",
     "**/_attachments/*.md",
