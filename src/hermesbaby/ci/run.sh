@@ -80,7 +80,7 @@ discover_documents() {
             -prune \
             -o -name .hermesbaby -print \
             | awk '{ depth = gsub("/", "/", $0); print depth, $0 }' \
-            | sort -nr -k1,1 -k2,2 \
+            | sort -n -k1,1 -k2,2 \
             | awk '{ $1=""; sub(/^ /,""); print }'
     )
 
