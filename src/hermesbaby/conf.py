@@ -41,11 +41,21 @@ _cwd_realpath = os.path.realpath((os.environ.get("HERMESBABY_CWD")))
 _conf_realpath = os.path.realpath(os.path.dirname(__file__))
 _tools_realpath = os.path.realpath(os.path.join(_conf_realpath, "tools"))
 
-### Tweak: Allow not-cacheable config values ##################################
+##############################################################################
+### Supression of Sphinx warnings ############################################
+##############################################################################
+
+##Tweak: Allow not-cacheable config values:
 # Enable Usage of Sphinx 8.x and higher (unless this we needed to stick to 7.1.5)
 # @see https://github.com/sphinx-doc/sphinx/issues/12300
 # @see https://github.com/sphinx-doc/sphinx/pull/12203
 suppress_warnings = ["config.cache"]
+
+import warnings
+from sphinx.deprecation import RemovedInSphinx90Warning
+
+warnings.filterwarnings("ignore", category=RemovedInSphinx90Warning)
+
 
 ### Collected app-setups #####################################################
 
