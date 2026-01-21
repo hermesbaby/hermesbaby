@@ -614,6 +614,9 @@ def configure(
         kconfig.write_config(str(config_file_path))
 
         typer.echo(f"Updated {config_file_path} with current Kconfig values")
+
+        # Don't retain any *.old file
+        Path(CFG_CONFIG_CUSTOM_FILE + ".old").unlink(missing_ok=True)
         return
 
     # Set environment variable KCONFIG_CONFIG to the value of CFG_CONFIG_CUSTOM_FILE
