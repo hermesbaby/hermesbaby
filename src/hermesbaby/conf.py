@@ -236,15 +236,23 @@ html_context = {}
 
 source_suffix = [".rst", ".md", ".ipynb"]
 
+def _exclude_any_depth(dir, ext):
+    return [
+        f"{dir}/*{ext}",
+        f"{dir}/**/*{ext}",
+        f"**/{dir}/*{ext}",
+        f"**/{dir}/**/*{ext}"
+    ]
+
+# Any .rst files place here to be downward compatible.
+# Hermesbaby focuses on (Myst) Markdown and declares reSTructured text
+# as obsolete
 exclude_patterns = [
     kconfig.syms["BUILD__DIRS__BUILD"].str_value + "/**",
     "README.md",
-    "_attachments/*.md",
-    "_attachments/*.rst",
-    "**/_attachments/*.rst",
-    "**/_attachments/**/*.rst",
-    "**/_attachments/*.md",
-    "**/_attachments/**/*.md",
+    *_exclude_any_depth("_unused", ".md"),
+    *_exclude_any_depth("_attachments", ".md"),
+    *_exclude_any_depth("_attachments", ".rst"),
 ]
 
 ## Let's expand `some string` to `some string` instead of *some string*
