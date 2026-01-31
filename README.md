@@ -50,31 +50,26 @@ HermesBaby doesn't just promote structured authoring — it makes documentation 
 
 By lowering the barrier to entry for engineers while raising the bar on control and compliance, HermesBaby bridges the cultural and technical gap between **grassroots Docs-as-Code practices** and **enterprise-grade documentation workflows**.
 
+See also: [«Article» Engineering Mechatronic Product Lines using the Docs-as-Code Approach](https://basejumpa.github.io/blog/2025-08-Docs-As-Code-In-Engineering)
+
 ## Installation
 
-Two options are available: System-wide or project-wise
+While it's possible to install it globally via `pip`, it's recommended to install it via `uv tool` to keep your system clean and tidy since `hermesbaby` brings many Python packages with it.
 
-### System-wide
+```bash
+python3 -m pip install uv
+uv tool update-shell
 
-While it's possible to install it globally via `pip`, it's recommended to install it via `pipx` to keep your system clean and tidy since `hermesbaby` brings many Python packages with it.
+uv tool install hermesbaby
+```
+
+Using `pipx` is common as well  :
 
 ```bash
 python3 -m pip install pipx
+pipx ensurepath
+
 python3 -m pipx install hermesbaby
-```
-
-### Project-wise
-
-Let's assume your project is managed with Poetry you would add `hermesbaby` similar to
-
-```bash
-poetry add hermesbaby
-```
-
-or
-
-```bash
-poetry add hermesbaby --group dev
 ```
 
 ## First usage
@@ -90,14 +85,15 @@ hb
 Check environment for prerequisites
 
 ```bash
-hb check tools
+hb tools check
 ```
 
 Start your first new virtual piece of writing
 
 ```bash
-hb new --template arc42
-cd arc42
+hb new --list-templates
+hb new --template hello some_dir
+cd some_dir
 hb html-live
 ```
 
