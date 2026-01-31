@@ -83,6 +83,7 @@ mlx-traceability = "^11.7.0"
 myst-parser = "^4.0.0"
 linkify-it-py = "^2.0.3"
 sphinxcontrib-xlsxtable = "^1.1.1"
+sphinx-inline-svg = "^0.2.0"
 
 
 [tool.poetry.group.dev.dependencies]

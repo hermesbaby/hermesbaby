@@ -1079,6 +1079,20 @@ drawio_builder_export_format = (
 )
 
 
+### Make SVG images inline in HTML ##########################################
+# @see https://github.com/satamame/sphinx-inline-svg
+# @see https://crashedmind.github.io/PlantUMLHitchhikersGuide/
+
+
+### Embed diagrams as code in plantuml language with "plantuml" ##############
+# @see https://github.com/sphinx-contrib/plantuml
+# User needs to explicitely enable it in the graphc with attribute `:class: inline-svg`
+
+extensions.append("sphinx_inline_svg")
+
+# Enabled for Myst as well by myst_enable_extensions.append("attrs_inline") in the Myst section in this config file
+
+
 ### Embedd diagrams as code in plantuml language with "plantuml" #############
 # @see https://github.com/sphinx-contrib/plantuml
 # @see https://crashedmind.github.io/PlantUMLHitchhikersGuide/
