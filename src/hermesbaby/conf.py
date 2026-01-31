@@ -1671,7 +1671,55 @@ needs_role_need_template = "{title:*^20s}"
 
 extensions.append("sphinxcontrib.datatemplates")
 
-templates_path.append(os.path.join(_src_realpath, "datatemplates"))
+
+def _append_all_datatemplates_paths(root_dir: str) -> None:
+    """Find all folders named 'datatemplates' under root_dir and add them to templates_path."""
+    exclude_patterns_norm = [p.replace("\\", "/") for p in exclude_patterns]
+
+    def _is_excluded_dir(rel_dir_posix: str) -> bool:
+        # exclude_patterns is a file/path glob list. To decide whether a directory is excluded,
+        # probe a synthetic child path; patterns like "foo/**" or "**/foo/**/*" then match.
+        probe = f"{rel_dir_posix}/__hb_probe__" if rel_dir_posix not in {"", "."} else "__hb_probe__"
+        return any(fnmatch.fnmatch(probe, pattern) for pattern in exclude_patterns_norm)
+
+    # Resolve existing template paths (support relative and absolute entries)
+    existing_realpaths = set()
+    for template_path in templates_path:
+        if os.path.isabs(template_path):
+            existing_realpaths.add(os.path.realpath(template_path))
+        else:
+            existing_realpaths.add(os.path.realpath(os.path.join(_conf_realpath, template_path)))
+
+    found = []
+    for dirpath, dirnames, _filenames in os.walk(root_dir, topdown=True, followlinks=False):
+        # Prune traversal using the same globs as Sphinx's exclude_patterns.
+        pruned = []
+        for dirname in dirnames:
+            candidate = os.path.join(dirpath, dirname)
+            rel_dir = os.path.relpath(candidate, root_dir).replace("\\", "/")
+            if not _is_excluded_dir(rel_dir):
+                pruned.append(dirname)
+        dirnames[:] = pruned
+
+        if os.path.basename(dirpath) != "datatemplates":
+            continue
+
+        realpath = os.path.realpath(dirpath)
+        if realpath in existing_realpaths:
+            continue
+
+        found.append(dirpath)
+        existing_realpaths.add(realpath)
+
+    for dirpath in sorted(found):
+        templates_path.append(dirpath)
+
+    logger.info(
+        f"[hermesbaby] datatemplates discovery: added {len(found)} folder(s) under {root_dir}"
+    )
+
+
+_append_all_datatemplates_paths(_src_realpath)
 
 
 import html
