@@ -236,7 +236,7 @@ html_context = {}
 
 source_suffix = [".rst", ".md", ".ipynb"]
 
-def _exclude_any_depth(dir, ext):
+def _exclude_any_depth(dir, ext=""):
     return [
         f"{dir}/*{ext}",
         f"{dir}/**/*{ext}",
@@ -250,9 +250,12 @@ def _exclude_any_depth(dir, ext):
 exclude_patterns = [
     kconfig.syms["BUILD__DIRS__BUILD"].str_value + "/**",
     "README.md",
-    *_exclude_any_depth("_unused", ".md"),
-    *_exclude_any_depth("_attachments", ".md"),
-    *_exclude_any_depth("_attachments", ".rst"),
+    *_exclude_any_depth(".git"),
+    *_exclude_any_depth(".venv"),
+    *_exclude_any_depth("_attachments"),
+    *_exclude_any_depth("_attachments"),
+    *_exclude_any_depth("_listings"),
+    *_exclude_any_depth("_unused"),
 ]
 
 ## Let's expand `some string` to `some string` instead of *some string*
