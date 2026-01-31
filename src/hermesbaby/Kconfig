@@ -170,11 +170,17 @@ config BUILD__DIRS__BUILD
 
 config BUILD__PORTS__HTML__LIVE
     int "Port for live preview of HTML build"
-    default 1976
+    default 0
+    help
+        The port number for live preview of the HTML build.
+        Set to 0 to auto-detect a free port.
 
 config BUILD__PORTS__PDF__LIVE
     int "Port for live preview of pdf build"
-    default 1973
+    default 0
+    help
+        The port number for live preview of the PDF build.
+        Set to 0 to auto-detect a free port.
 
 endmenu
 
