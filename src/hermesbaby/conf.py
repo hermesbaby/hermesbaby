@@ -18,6 +18,7 @@
 #                                                              #
 ################################################################
 
+import fnmatch
 import os
 import platform
 import re
