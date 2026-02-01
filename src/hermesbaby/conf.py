@@ -229,6 +229,9 @@ rst_prolog = f"""
 # @see https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-language
 language = kconfig.syms["DOC__LANGUAGE"].str_value
 
+locale_dirs = ['locales/']
+gettext_compact = False
+
 templates_path = [
     "theme_templates"
 ]
