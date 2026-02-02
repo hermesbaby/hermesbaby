@@ -375,10 +375,12 @@ def on_warn_missing_reference(app, domain, node):
 
 
 def on_doctree_resolved(app, doctree, docname):
-    """Add a section listing undefined references at the end of each document.
+    """Add a section listing undefined references at the end of the root document.
 
     This is called after cross-reference resolution for each document.
     Also checks for bibliography directive and tracks citation references.
+    Collects references from all documents and creates ONE consolidated section
+    in the root document only.
     """
     from docutils import nodes
 
@@ -400,17 +402,24 @@ def on_doctree_resolved(app, doctree, docname):
                 logger.debug(f"Found citation element in {docname}")
                 break
 
-    # Handle outgoing cross-references (existing functionality)
-    # Get the set of undefined labels (those that had on_missing_reference called)
-    undefined_label_set = {ref['target'] for ref in undefined_refs}
+    # Handle outgoing cross-references - only inject in the root document
+    # This creates ONE consolidated section for the entire documentation
+    if docname != root_docname:
+        # Not the root document, skip injection
+        # (references are still being collected globally in pending_xrefs)
+        pass
+    else:
+        # This is the root document - inject the consolidated section with ALL references
+        # Get the set of undefined labels (those that had on_missing_reference called)
+        undefined_label_set = {ref['target'] for ref in undefined_refs}
 
-    # Filter pending_xrefs to find all occurrences in this document that are actually undefined
-    ref_occurrences = [
-        ref for ref in pending_xrefs
-        if ref['source'] == docname and ref['target'] in undefined_label_set
-    ]
+        # Filter pending_xrefs to find all occurrences across ALL documents that are actually undefined
+        ref_occurrences = [
+            ref for ref in pending_xrefs
+            if ref['target'] in undefined_label_set
+        ]
 
-    if ref_occurrences:
+    if docname == root_docname and ref_occurrences:
         # Sort by reftype first, then by label for better visual grouping
         ref_occurrences_sorted = sorted(ref_occurrences, key=lambda r: (r['type'], r['target']))
 
@@ -523,9 +532,17 @@ def on_doctree_resolved(app, doctree, docname):
                     nested_row = nodes.row()
                     nested_tbody += nested_row
 
-                    # Chapter column
+                    # Chapter column - now includes source document for context
                     nested_entry = nodes.entry()
                     nested_para = nodes.paragraph()
+
+                    # Add source document prefix if not the root document
+                    source_with_suffix = app.env.doc2path(source, base=False)
+                    if source != root_docname:
+                        # Show which document this reference is in
+                        nested_para += nodes.literal('', source_with_suffix)
+                        nested_para += nodes.Text(' → ')
+
                     if section_id:
                         # Create a reference to the section
                         refnode = nodes.reference('', '', internal=True)
@@ -538,11 +555,9 @@ def on_doctree_resolved(app, doctree, docname):
                     nested_entry += nested_para
                     nested_row += nested_entry
 
-                    # Source File column
+                    # Source File column - keep for clarity
                     nested_entry = nodes.entry()
                     nested_para = nodes.paragraph()
-                    # Add file suffix to source file name
-                    source_with_suffix = app.env.doc2path(source, base=False)
                     nested_para += nodes.literal('', source_with_suffix)
                     nested_entry += nested_para
                     nested_row += nested_entry

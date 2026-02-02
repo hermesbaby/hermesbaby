@@ -164,10 +164,23 @@ config BUILD__DIRS__CONFIG
     string "Config Directory"
     default "docs"
 
+config BUILD__DIR_PARTLY
+    string "Partly Directory"
+    default ""
+    help
+        If non-empty, then Partly Build is activated.
+
+        Same as option --partly <rel-path>
+            where <rel-path> is the relative path to the directory where .hermesbaby resides.
+        This enables partly a build of only a sub-section of the documentation.
+        Use value same as Source Directory to build the entire document but make the build
+            tolerating Unresolved References ({ref}, {term}) and perceive them as Outgoing References
+        In case such exist, a chapter "Outgoing References" is added to the end of the document
+            listing all Unresolved References including backlinks to where they were referenced.
+
 config BUILD__DIRS__BUILD
     string "Build Directory"
     default "out/docs"
-
 config BUILD__PORTS__HTML__LIVE
     int "Port for live preview of HTML build"
     default 0

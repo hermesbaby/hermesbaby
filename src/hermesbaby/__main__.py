@@ -176,6 +176,8 @@ def _validate_part_path(part: str, source_dir: Path) -> None:
                 err=True,
             )
             raise typer.Abort()
+        else:
+            typer.echo(f"Building partly from subtree {part_path} appending chapter Outgoing References if needed.")
 
 
 def _get_source_dir_with_part(part: str) -> Path:
@@ -212,15 +214,23 @@ def _build_common(
     Returns:
         Exit code from the subprocess
     """
+
+    _load_config()
+    kconfig = _get_kconfig()
+
+    # Regard partly parameter from Kconfig
+    # Precedence: command line over Kconfig
+    part_config = _get_kconfig().syms['BUILD__DIR_PARTLY'].str_value
+    if not part and part_config:
+        part = part_config
+
     # Check if part refers to a valid directory
     if part:
         source_dir = Path(_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value)
         _validate_part_path(part, source_dir)
 
     _set_env(ctx, part_dir=part)
-    _load_config()
 
-    kconfig = _get_kconfig()
     build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
     source_dir = _get_source_dir_with_part(part)
     executable = _resolve_tool(tool_name)
