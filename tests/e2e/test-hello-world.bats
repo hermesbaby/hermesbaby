@@ -9,12 +9,17 @@ setup() {
     TEST_DIR="$(mktemp -d)"
     export TEST_DIR
     cd "$TEST_DIR"
+
+    # Clean up any previous output directories if they exist.
+    rm -rf "$TEST_DIR"
 }
 
 teardown() {
     # This function runs after each test.
     # Clean up the temporary directory.
-    rm -rf "$TEST_DIR"
+    # Add any additional teardown steps here if necessary.
+    # For now we just leave it empty and place a no-op:
+    :
 }
 
 @test "Check something" {
@@ -23,9 +28,11 @@ teardown() {
 
     run echo "Hello World"
 
-    # Check if the output is as expected.
-    [ "$output" = "Hello World" ]
-
     # [ "$status" -eq 0 ] checks if the command succeeded.
     [ "$status" -eq 0 ]
+
+    # Check if the output is as expected.
+    output = "Hello World"
+    [ "$output" = "Hello World" ]
+
 }
