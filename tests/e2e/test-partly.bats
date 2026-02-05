@@ -1,5 +1,7 @@
 #!/usr/bin/env bats
 
+load "test_helper/load.bash"
+
 setup() {
     TEST_DIR="tests/data/partly"
     export TEST_DIR
@@ -18,11 +20,9 @@ teardown() {
 @test "hb text" {
 
     run python -m hermesbaby text
-    [ "$status" -eq 0 ]
+    assert_success
 
     # Challenge actual output against expectations
 
-    # There shall be the document's entry
-    [ -f out/docs/text/index.txt ]
-
+    assert_file_exist "out/docs/text/index.txt"
 }

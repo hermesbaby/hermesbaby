@@ -3,9 +3,12 @@
 # This is a simple BATS test file to serve as a starting point for E2E tests.
 # BATS (Bash Automated Testing System) is a TAP-compliant testing framework for Bash.
 
-## Bats documentation and tutorial
-# - @see https://bats-core.readthedocs.io/en/stable/?utm_source=chatgpt.com
-# - @see https://bats-core.readthedocs.io/en/stable/tutorial.html?utm_source=chatgpt.com
+## Bats documentation and tutorial and the codebase of BATS
+# - @see https://bats-core.readthedocs.io/en/stable/
+# - @see https://bats-core.readthedocs.io/en/stable/tutorial.html
+# - @see https://github.com/bats-core/bats-core
+
+load "test_helper/load.bash"
 
 setup() {
     # This function runs before each test.
