@@ -4,9 +4,12 @@ The global glossary
 
 ```{glossary}
 
-TermA
-    Definition of TermA
+TermX
+    Definition of TermX
 
-TermB
-    Definition of TermB
+TermY
+    Definition of TermY
+
+TermZ
+    Definition of TermZ
 ```
