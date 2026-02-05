@@ -5,6 +5,9 @@ setup() {
     export TEST_DIR
     cd "$TEST_DIR"
 
+    rm -rf out_1/
+    cp -r out/ out_1/
+
     rm -rf out/
 }
 
@@ -12,9 +15,9 @@ teardown() {
     :
 }
 
-@test "hb html" {
+@test "hb text" {
 
-    run python -m hermesbaby html
+    run python -m hermesbaby text
     [ "$status" -eq 0 ]
 
     output="Hello World"
