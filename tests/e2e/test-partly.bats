@@ -20,7 +20,9 @@ teardown() {
     run python -m hermesbaby text
     [ "$status" -eq 0 ]
 
-    output="Hello World"
-    [ "$output" = "Hello World" ]
+    # Challenge actual output against expectations
+
+    # There shall be the document's entry
+    [ -f out/docs/text/index.txt ]
 
 }

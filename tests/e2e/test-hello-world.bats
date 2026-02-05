@@ -3,6 +3,10 @@
 # This is a simple BATS test file to serve as a starting point for E2E tests.
 # BATS (Bash Automated Testing System) is a TAP-compliant testing framework for Bash.
 
+## Bats documentation and tutorial
+# - @see https://bats-core.readthedocs.io/en/stable/?utm_source=chatgpt.com
+# - @see https://bats-core.readthedocs.io/en/stable/tutorial.html?utm_source=chatgpt.com
+
 setup() {
     # This function runs before each test.
     # Create a temporary directory for the test to avoid polluting the workspace.
