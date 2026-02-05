@@ -479,6 +479,26 @@ def new(
         f'Created new project in directory {directory} using template "{template}"'
     )
 
+@app.command()
+def text(
+    ctx: typer.Context,
+    part: str = typer.Option(
+        None,
+        "--partly",
+        help="Directory relative to the current working directory to build only a part of the document. ",
+    ),
+    verbose: int = typer.Option(
+        0,
+        "--verbose",
+        "-v",
+        count=True,
+        help="Increase verbosity (can be repeated)",
+    )
+):
+    """Build to format text"""
+    returncode = _build_common(ctx, part=part, builder="text", tool_name="sphinx-build")
+    sys.exit(returncode)
+
 
 @app.command()
 def html(

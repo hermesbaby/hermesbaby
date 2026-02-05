@@ -10,6 +10,10 @@ setup() {
     export TEST_DIR
     cd "$TEST_DIR"
 
+    # Keep previous run in mind to enable diffing while developing
+    rm -rf out_1/
+    cp -r out/ out_1/
+
     # Clean up any previous output directories if they exist.
     rm -rf "$TEST_DIR"
 }
