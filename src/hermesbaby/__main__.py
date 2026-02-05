@@ -27,7 +27,7 @@ import subprocess
 import sys
 from importlib.resources import files
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import typer
 
@@ -254,9 +254,77 @@ def _build_common(
         command.extend(extra_args)
 
     typer.echo(" ".join(shlex.quote(a) for a in command))
+
+    # Create log directory if it doesn't exist
+    build_dir.mkdir(parents=True, exist_ok=True)
+
+    # Open log files
+    console_log = build_dir / "console.log"
+    stdout_log = build_dir / "stdout.log"
+    stderr_log = build_dir / "stderr.log"
+
     try:
-        result = subprocess.run(command, check=True)
-        return result.returncode
+        with open(console_log, 'w', encoding='utf-8') as f_console, \
+             open(stdout_log, 'w', encoding='utf-8') as f_stdout, \
+             open(stderr_log, 'w', encoding='utf-8') as f_stderr:
+
+            # Start subprocess with pipes
+            process = subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1  # Line buffered
+            )
+
+            import select
+            import threading
+
+            def reader_thread(pipe, name, file_handle, console_file):
+                """Read from pipe and write to both console and log files"""
+                for line in iter(pipe.readline, ''):
+                    if line:
+                        # Write to console
+                        if name == 'stderr':
+                            sys.stderr.write(line)
+                            sys.stderr.flush()
+                        else:
+                            sys.stdout.write(line)
+                            sys.stdout.flush()
+                        # Write to specific log
+                        file_handle.write(line)
+                        file_handle.flush()
+                        # Write to combined log
+                        console_file.write(line)
+                        console_file.flush()
+                pipe.close()
+
+            # Create threads for stdout and stderr
+            stdout_thread = threading.Thread(
+                target=reader_thread,
+                args=(process.stdout, 'stdout', f_stdout, f_console)
+            )
+            stderr_thread = threading.Thread(
+                target=reader_thread,
+                args=(process.stderr, 'stderr', f_stderr, f_console)
+            )
+
+            # Start threads
+            stdout_thread.start()
+            stderr_thread.start()
+
+            # Wait for threads to complete
+            stdout_thread.join()
+            stderr_thread.join()
+
+            # Wait for process to complete
+            returncode = process.wait()
+
+            if returncode != 0:
+                raise subprocess.CalledProcessError(returncode, command)
+
+            return returncode
+
     except subprocess.CalledProcessError as e:
         # Exit gracefully without showing traceback
         sys.exit(e.returncode)
