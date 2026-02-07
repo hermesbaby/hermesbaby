@@ -1,16 +1,29 @@
 #!/usr/bin/env bats
 
+#########################################################################################
+# Local run (pwd is the repo's root):
+#
+# bcomp tests/data/partly/out_1 tests/data/partly/out &
+# source ./.venv/Scripts/activate
+# tests/e2e/bats/bin/bats tests/e2e/test-partly.bats -x --show-output-of-passing-tests
+#########################################################################################
+
+
 load "test_helper/load.bash"
 
-setup() {
+setup_file() {
     TEST_DIR="tests/data/partly"
     export TEST_DIR
     cd "$TEST_DIR"
 
     rm -rf out_1/
-    cp -r out/ out_1/
+    [ -d out ] && mv out out_1
 
     rm -rf out/
+}
+
+setup() {
+    :
 }
 
 teardown() {

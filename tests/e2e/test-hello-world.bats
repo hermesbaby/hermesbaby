@@ -10,7 +10,7 @@
 
 load "test_helper/load.bash"
 
-setup() {
+setup_file() {
     # This function runs before each test.
     # Create a temporary directory for the test to avoid polluting the workspace.
     TEST_DIR="$(mktemp -d)"
@@ -18,11 +18,15 @@ setup() {
     cd "$TEST_DIR"
 
     # Keep previous run in mind to enable diffing while developing
-    rm -rf out_1/
-    cp -r out/ out_1/
+    # rm -rf out_1/
+    # cp -r out/ out_1/
 
     # Clean up any previous output directories if they exist.
     rm -rf "$TEST_DIR"
+}
+
+setup() {
+    :
 }
 
 teardown() {
