@@ -1278,17 +1278,18 @@ bibtex_bibfiles = []
 
 bibtex_bibfiles_candidates = [
     os.path.join(_src_realpath, "bibliography.bib"),
+    os.path.join(_src_realpath, "bibliography/*.bib"),
 ]
 
 
-def append_existing_files(file_list, filenames_to_check):
-    for filename in filenames_to_check:
-        if os.path.exists(filename):
-            file_list.append(filename)
-        else:
-            logger.info(
-                f"There is no '{filename}'. You may create one to start a bibliography. See https://www.bibtex.com/g/bibtex-format/ for more information."
-            )
+def append_existing_files(file_list, patterns_to_check):
+    from glob import glob
+    for file_pattern in patterns_to_check:
+        file_list += glob(file_pattern)
+    if len(file_list)==0:
+        logger.info(
+            f"There is no {patterns_to_check}. You may create one to start a bibliography. See https://www.bibtex.com/g/bibtex-format/ for more information."
+        )
 
 
 append_existing_files(bibtex_bibfiles, bibtex_bibfiles_candidates)
