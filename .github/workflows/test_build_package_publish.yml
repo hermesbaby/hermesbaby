@@ -33,7 +33,7 @@ jobs:
       run: |
         poetry run pytest
 
-    - name: Run e2e tests (BATS)
+    - name: Run e2e tests
       run: |
         poetry run tests/e2e/bats/bin/bats --tap --verbose-run -x tests/e2e/
 
