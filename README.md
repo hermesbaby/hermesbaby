@@ -72,6 +72,18 @@ pipx ensurepath
 python3 -m pipx install hermesbaby
 ```
 
+You update it later via:
+
+```bash
+uv tool update hermesbaby
+```
+
+respectively, in case you work with `pipx`:
+
+```bash
+python3 -m pipx upgrade hermesbaby
+```
+
 ## First usage
 
 Close the gaps by installing the missing tools. You may use the help hermesbaby gave you to do so.
@@ -118,14 +130,25 @@ Happy coding specifications ;-) "
 
 The E2E tests are written using [BATS](https://github.com/bats-core/bats-core). To run them manually, ensure you have the project dependencies installed via Poetry.
 
-#### Windows (Git Bash)
-
 ```bash
-poetry run bash ./tests/e2e/bats/bin/bats tests/e2e/
-```
+# Enable the virtual environment:
+poetry install --with dev
+# Set up the development environment after you have cloned the repository:
+# a) Windows (in git-bash):
+source ./.venv/Scripts/activate
+# b) Linux / macOS:
+# source ./.venv/bin/activate
 
-#### Linux / macOS
+# Enter the TDD-Loop:
+# 1) Run not all tests but the tests focussing on the feature you want to implement, e.g. for bibliographies:
+tests/e2e/bats/bin/bats tests/e2e/test-bibliographies.bats -x --show-output-of-passing-tests
+# 2) edit your files
+code .
+# Go to 1) and repeat until you are happy with the implementation.
 
-```bash
-poetry run tests/e2e/bats/bin/bats tests/e2e/
+# After the 2nd run, you can compare the outputs with using Beyond Compare:
+bcomp tests/data/bibliographies/out_1 tests/data/bibliographies/out &
+
+# After you are done, you can run all tests to check if everything is fine:
+tests/e2e/bats/bin/bats tests/e2e/ -x
 ```
