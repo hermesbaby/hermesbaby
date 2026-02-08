@@ -47,7 +47,7 @@ teardown() {
     [ "$status" -eq 0 ]
 
     # Check if the output is as expected.
-    output = "Hello World"
+    output="Hello World"
     [ "$output" = "Hello World" ]
 
 }
