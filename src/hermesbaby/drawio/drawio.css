@@ -6,3 +6,14 @@ img.drawio {
 object.drawio {
     max-width: 100%;
 }
+
+/* Force light mode for drawio images - ignore browser dark mode */
+@media (prefers-color-scheme: dark) {
+    img.drawio,
+    object.drawio {
+        filter: none !important;
+        opacity: 1 !important;
+        background-color: transparent !important;
+        color-scheme: light only !important;
+    }
+}

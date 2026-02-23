@@ -1,0 +1,34 @@
+<mxfile>
+  <diagram id="LXTDxbdbtSB--EIrCixo" name="Page-1">
+    <mxGraphModel dx="1484" dy="561" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="583" pageHeight="413" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" value="solid, white&lt;div&gt;fill&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="190" y="60" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="3" value="transparent/no&lt;div&gt;fill&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="330" y="90" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="4" value="solid, white&lt;div&gt;fill&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="230" y="150" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="5" value="transparent/no&lt;div&gt;fill&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="340" y="200" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="6" value="&lt;font style=&quot;color: rgb(255, 255, 255);&quot;&gt;solid, black&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;color: rgb(255, 255, 255);&quot;&gt;fill&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#000000;fontColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="-90" y="120" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="7" value="transparent/no&lt;div&gt;fill&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="50" y="150" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="8" value="&lt;font style=&quot;color: rgb(255, 255, 255);&quot;&gt;solid, black&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;color: rgb(255, 255, 255);&quot;&gt;fill&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=12;fontColor=#FFFFFF;fillColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="-50" y="210" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="9" value="transparent/no&lt;div&gt;fill&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="60" y="260" width="140" height="80" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
