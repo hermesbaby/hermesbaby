@@ -463,6 +463,20 @@ def version(
     )
 ):
     """CLI Tool hb"""
+    # Check for updates (once per day)
+    try:
+        from . import update_checker
+        latest_version = update_checker.check_for_updates(__version__)
+        if latest_version:
+            typer.echo(
+                f"\n[Update Available] A newer version of hermesbaby is available: {latest_version}\n"
+                f"Current version: {__version__}\n"
+                f"Update with: pip install --upgrade hermesbaby\n",
+                err=False
+            )
+    except Exception:
+        # Silently fail if update check fails
+        pass
 
 
 @app.command()
