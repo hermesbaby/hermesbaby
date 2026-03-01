@@ -22,7 +22,7 @@ setup_file() {
     # cp -r out/ out_1/
 
     # Clean up any previous output directories if they exist.
-    rm -rf "$TEST_DIR"
+    rm -rf "out/"
 }
 
 setup() {

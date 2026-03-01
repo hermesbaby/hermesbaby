@@ -478,6 +478,10 @@ def new(
     template: str = typer.Option(
         None, "--template", "-t", help="Template to use. Default: zero"
     ),
+    force: bool = typer.Option(
+        False, "--force", "-f",
+        help="Force project creation even if the target directory is not empty (use with caution, may overwrite files)."
+    ),
 ):
     """Create a new project"""
 
@@ -526,12 +530,18 @@ def new(
     if target_dir.exists():
         # Check if directory is empty
         if any(target_dir.iterdir()):
-            typer.echo(
-                f"Error: Directory '{directory}' is not empty. "
-                f"Please choose an empty directory or one that doesn't exist.",
-                err=True,
-            )
-            raise typer.Abort()
+            if force:
+                typer.echo(
+                    f"Directory '{directory}' is not empty. "
+                    f"Files may be overwritten since --force is used."
+                )
+            else:
+                typer.echo(
+                    f"Error: Directory '{directory}' is not empty. "
+                    f"Please choose an empty directory, one that doesn't exist. or use --force to overwrite.",
+                    err=True,
+                )
+                raise typer.Abort()
 
     # Execution
 
