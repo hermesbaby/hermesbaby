@@ -350,9 +350,31 @@ else:
 
 
 ### Access control for publish on Apache 2 ####################################
+
 web_root_dir = os.path.join(_src_realpath, "web_root")
 if os.path.exists(web_root_dir):
     html_extra_path.append(web_root_dir)
+
+# In case the file web_root_dir / .htaccess does not exist, then we create a .htaccess file with the htaccess_default_content in the target directory which is the root folder of the output directory. We do this only in case the builder is "html":
+
+# No access to anybody
+htaccess_default_content = """
+<RequireAny>
+</RequireAny>
+"""
+
+def setup_app__htaccess(app):
+    app.connect("builder-inited", _htaccess_on_builder_inited)
+
+app_setups.append(setup_app__htaccess)
+
+def _htaccess_on_builder_inited(app):
+
+    if app.builder.name == "dirhtml" or app.builder.name == "html":
+        htaccess_path = os.path.join(app.outdir, ".htaccess")
+        if not os.path.exists(htaccess_path):
+            with open(htaccess_path, "w") as f:
+                f.write(htaccess_default_content)
 
 
 ### Options for latex / PDF output ############################################
