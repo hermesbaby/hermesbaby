@@ -478,12 +478,6 @@ def intercept_drawio_images(app: Sphinx, doctree) -> None:
 
 
 def on_build_finished(app: Sphinx, exc: Exception) -> None:
-    if app.builder.format == 'html' and exc is None:
-        this_file_path = os.path.dirname(os.path.realpath(__file__))
-        src = os.path.join(this_file_path, "drawio.css")
-        dst = os.path.join(app.outdir, "_static")
-        copy_asset(src, dst)
-
     if app.config._xvfb:
         app.config._xvfb.terminate()
         stdout, stderr = app.config._xvfb.communicate()
@@ -523,6 +517,9 @@ def setup(app: Sphinx) -> Dict[str, Any]:
     app.connect("config-inited", on_config_inited)
     # Use doctree-read (early event) to mark drawio images before other converters process them
     app.connect("doctree-read", intercept_drawio_images)
+
+    static_dir = Path(__file__).parent / "_static"
+    app.config.html_static_path.append(str(static_dir))
     app.add_css_file("drawio.css")
 
     return {"version": __version__, "parallel_read_safe": True}
