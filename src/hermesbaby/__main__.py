@@ -610,10 +610,15 @@ def html_live(
     _set_env(ctx, part_dir=part)
     _load_config()
 
+    jobs = "10"
+    # Due to the fact that some of the Sphinx extensions do not support parallel reading under Linux we set the jobs to 1 in case we are on a Linux system:
+    if platform.system() == "Linux":
+        jobs = "1"
+
     kconfig = _get_kconfig()
     extra_args = [
         "-j",
-        "10",
+        f"{jobs}",
         "--watch",
         f"{kconfig.syms['BUILD__DIRS__CONFIG'].str_value}",
         "--re-ignore",
