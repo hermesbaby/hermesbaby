@@ -297,35 +297,31 @@ def on_missing_reference(app, env, node, contnode):
         std_labels = env.domaindata.get('std', {}).get('labels', {})
         std_anonlabels = env.domaindata.get('std', {}).get('anonlabels', {})
 
-        if reftarget in std_labels or reftarget in std_anonlabels:
-            # Label exists, this shouldn't be treated as undefined
-            # Let Sphinx handle it normally
-            logger.debug(f"Label {reftarget} exists in environment, skipping")
-            return None
+        # Track this as an undefined reference only on first encounter
+        # (subsequent occurrences of the same reference will have it in std_labels)
+        if reftarget not in std_labels and reftarget not in std_anonlabels:
+            undefined_refs.append({
+                'target': reftarget,
+                'type': reftype,
+                'domain': refdomain,
+                'source': refdoc
+            })
 
-        # Track this undefined reference
-        undefined_refs.append({
-            'target': reftarget,
-            'type': reftype,
-            'domain': refdomain,
-            'source': refdoc
-        })
+            # Create dummy label to allow the build to continue
+            # Point it to the source document - we'll add the actual target there later
+            # in on_doctree_resolved
+            env.domaindata['std']['labels'][reftarget] = (
+                refdoc,  # Point to the source document
+                reftarget,  # The target id
+                reftarget  # Just use the label name
+            )
+            env.domaindata['std']['anonlabels'][reftarget] = (refdoc, reftarget)
+            logger.debug(f"Created dummy label for {reftarget} pointing to {refdoc}")
+        else:
+            logger.debug(f"Label {reftarget} already in environment, reusing for subsequent reference")
 
-        # Create dummy label to allow the build to continue
-        # Point it to the source document - we'll add the actual target there later
-        # in on_doctree_resolved
-
-        # Register in standard domain labels
-        env.domaindata['std']['labels'][reftarget] = (
-            refdoc,  # Point to the source document
-            reftarget,  # The target id
-            reftarget  # Just use the label name
-        )
-        env.domaindata['std']['anonlabels'][reftarget] = (refdoc, reftarget)
-        logger.debug(f"Created dummy label for {reftarget} pointing to {refdoc}")
-
-        # Return a reference node to prevent Sphinx from emitting a warning
-        # This allows builds with -W (warningiserror) to succeed
+        # Always return a reference node for std domain references to prevent Sphinx from emitting warnings.
+        # This ensures ALL occurrences of the missing reference (first and subsequent) don't trigger warnings
         # We create a reference that will resolve to the target we'll add in on_doctree_resolved
         from docutils import nodes
 
