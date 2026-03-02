@@ -54,6 +54,11 @@ teardown() {
 
     assert_file_contains "out/docs/text/tree_c/index.txt" ' \*TermY\*'
     assert_file_contains "out/docs/text/tree_c/index.txt" ' \*TermZ\*'
+
+    assert_file_contains "out/docs/text/tree_d/index.txt" 'The caption of the figure with Alice and Bob'
+
+    assert_file_contains "out/docs/text/tree_e/index.txt" ' \*TermE\*'
+    assert_file_contains "out/docs/text/tree_e/index.txt" ' \*TermZ\*'
 }
 
 
@@ -100,6 +105,17 @@ teardown() {
     assert_file_contains "out/docs/text/index.txt" ' "fig_alice_and_bob" used'
 }
 
+@test "hb text --partly docs/tree_e" {
+
+    run python -m hermesbaby text --partly docs/tree_e
+    assert_success
+
+    # Challenge actual output against expectations
+    assert_file_exist "out/docs/text/index.txt"
+    assert_file_not_contains "out/docs/text/index.txt" ' "TermE" used'
+    assert_file_contains "out/docs/text/index.txt" ' "TermZ" used'
+}
+
 @test "hb html **" {
 
     run python -m hermesbaby html
@@ -117,4 +133,6 @@ teardown() {
     run python -m hermesbaby html --partly docs/tree_d
     assert_success
 
+    run python -m hermesbaby html --partly docs/tree_e
+    assert_success
 }
