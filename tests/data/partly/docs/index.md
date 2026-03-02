@@ -8,6 +8,7 @@ tree_b/index
 tree_c/index
 tree_d/index
 tree_e/index
+tree_f/index
 
 glossary
 ```

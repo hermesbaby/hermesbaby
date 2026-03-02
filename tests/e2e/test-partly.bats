@@ -116,6 +116,18 @@ teardown() {
     assert_file_contains "out/docs/text/index.txt" ' "TermZ" used'
 }
 
+@test "hb text --partly docs/tree_f" {
+
+    run python -m hermesbaby text --partly docs/tree_f
+    #assert_success
+    assert_failure
+
+    # Challenge actual output against expectations
+    #assert_file_exist "out/docs/text/index.txt"
+    #assert_file_not_contains "out/docs/text/index.txt" ' "TermF" used'
+    #assert_file_contains "out/docs/text/index.txt" ' "TermZ" used'
+}
+
 @test "hb html **" {
 
     run python -m hermesbaby html
@@ -135,4 +147,8 @@ teardown() {
 
     run python -m hermesbaby html --partly docs/tree_e
     assert_success
+
+    run python -m hermesbaby html --partly docs/tree_f
+    #assert_success
+    assert_failure
 }
