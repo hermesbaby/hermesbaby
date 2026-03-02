@@ -37,6 +37,8 @@ has_bibliography_directive = False
 root_docname = None
 # Track if we need to inject bibliography
 should_inject_bibliography = False
+# Flag to control nested table creation (disabled for text builder)
+nested_tables_is_on = True
 
 
 class CollectPendingXrefs(SphinxTransform):
@@ -93,6 +95,7 @@ def setup(app):
 
     # Connect to events
     app.connect('config-inited', on_config_inited)
+    app.connect('builder-inited', on_builder_inited)
     app.connect('env-before-read-docs', on_env_before_read_docs)
     app.connect('source-read', on_source_read)
     app.connect('missing-reference', on_missing_reference)
@@ -262,6 +265,18 @@ def on_config_inited(app, config):
         logger.debug(f"Could not add citation warning filter: {e}")
 
 
+def on_builder_inited(app):
+    """Detect builder type and configure extension accordingly.
+
+    This event is called after the builder is created, so we can check
+    what type of builder is being used and adjust behavior.
+    """
+    global nested_tables_is_on
+
+    # Detect if using text builder and disable nested tables
+    nested_tables_is_on = (app.builder.name != 'text')
+
+
 def on_missing_reference(app, env, node, contnode):
     """Handle missing cross-references and citations.
 
@@ -404,11 +419,8 @@ def on_doctree_resolved(app, doctree, docname):
 
     # Handle outgoing cross-references - only inject in the root document
     # This creates ONE consolidated section for the entire documentation
-    if docname != root_docname:
-        # Not the root document, skip injection
-        # (references are still being collected globally in pending_xrefs)
-        pass
-    else:
+    ref_occurrences = []
+    if docname == root_docname:
         # This is the root document - inject the consolidated section with ALL references
         # Get the set of undefined labels (those that had on_missing_reference called)
         undefined_label_set = {ref['target'] for ref in undefined_refs}
@@ -428,145 +440,195 @@ def on_doctree_resolved(app, doctree, docname):
         grouped_by_type = {reftype: list(group) for reftype, group in groupby(ref_occurrences_sorted, key=lambda r: r['type'])}
 
         # Create a new section for outgoing cross-references
-        # Use configurable title
         section_title = app.config.partly_undefined_refs_title
         section = nodes.section(ids=['outgoing-cross-references'])
         section += nodes.title('', section_title)
 
-        # Define friendly names for reference types
-        reftype_names = {
-            'ref': 'Cross-references (ref)',
-            'term': 'Glossary terms (term)',
-            'doc': 'Documents (doc)',
-            'numref': 'Numbered references (numref)',
-            'keyword': 'Keywords (keyword)',
-            'option': 'Options (option)',
-            'envvar': 'Environment variables (envvar)',
-        }
+        if nested_tables_is_on:
+            # Create nested tables (for HTML and other builders that support them)
+            # Sort by reftype first, then by label for better visual grouping
+            ref_occurrences_sorted = sorted(ref_occurrences, key=lambda r: (r['type'], r['target']))
 
-        # Create a subsection for each reftype
-        for reftype, refs_of_type in grouped_by_type.items():
-            # Get friendly name or use the type itself
-            subsection_title = reftype_names.get(reftype, f'Type: {reftype}')
+            # Group occurrences by reftype first
+            from itertools import groupby
+            grouped_by_type = {reftype: list(group) for reftype, group in groupby(ref_occurrences_sorted, key=lambda r: r['type'])}
 
-            # Create subsection
-            subsection = nodes.section(ids=[f'outgoing-cross-references-{reftype}'])
-            subsection += nodes.title('', subsection_title)
+            # Define friendly names for reference types
+            reftype_names = {
+                'ref': 'Cross-references (ref)',
+                'term': 'Glossary terms (term)',
+                'doc': 'Documents (doc)',
+                'numref': 'Numbered references (numref)',
+                'keyword': 'Keywords (keyword)',
+                'option': 'Options (option)',
+                'envvar': 'Environment variables (envvar)',
+            }
 
-            # Group occurrences by label within this reftype
-            grouped_refs = {label: list(group) for label, group in groupby(refs_of_type, key=lambda r: r['target'])}
+            # Create a subsection for each reftype
+            for reftype, refs_of_type in grouped_by_type.items():
+                # Get friendly name or use the type itself
+                subsection_title = reftype_names.get(reftype, f'Type: {reftype}')
 
-            # Create outer table with 2 columns: Label and Used In
-            table = nodes.table()
-            tgroup = nodes.tgroup(cols=2)
-            table += tgroup
+                # Create subsection
+                subsection = nodes.section(ids=[f'outgoing-cross-references-{reftype}'])
+                subsection += nodes.title('', subsection_title)
 
-            # Define column widths
-            tgroup += nodes.colspec(colwidth=1)
-            tgroup += nodes.colspec(colwidth=3)
+                # Group occurrences by label within this reftype
+                grouped_refs = {label: list(group) for label, group in groupby(refs_of_type, key=lambda r: r['target'])}
 
-            # Table header
-            thead = nodes.thead()
-            tgroup += thead
-            row = nodes.row()
-            thead += row
-            entry = nodes.entry()
-            entry += nodes.paragraph('', 'Label')
-            row += entry
-            entry = nodes.entry()
-            entry += nodes.paragraph('', 'Used In')
-            row += entry
+                # Create outer table with 2 columns: Label and Used In
+                table = nodes.table()
+                tgroup = nodes.tgroup(cols=2)
+                table += tgroup
 
-            # Table body - one row per unique label
-            tbody = nodes.tbody()
-            tgroup += tbody
+                # Define column widths
+                tgroup += nodes.colspec(colwidth=1)
+                tgroup += nodes.colspec(colwidth=3)
 
-            for label, occurrences in grouped_refs.items():
+                # Table header
+                thead = nodes.thead()
+                tgroup += thead
                 row = nodes.row()
-                tbody += row
-
-                # Label column
+                thead += row
                 entry = nodes.entry()
-                # Create a target node for this label
-                target = nodes.target('', '', ids=[label], names=[label])
-                entry += target
-                # Add the label text in verbatim/code font
-                para = nodes.paragraph()
-                para += nodes.literal('', label)
-                entry += para
+                entry += nodes.paragraph('', 'Label')
+                row += entry
+                entry = nodes.entry()
+                entry += nodes.paragraph('', 'Used In')
                 row += entry
 
-                # Used In column - contains nested table
-                entry = nodes.entry()
+                # Table body - one row per unique label
+                tbody = nodes.tbody()
+                tgroup += tbody
 
-                # Create nested table
-                nested_table = nodes.table()
-                nested_tgroup = nodes.tgroup(cols=2)
-                nested_table += nested_tgroup
+                for label, occurrences in grouped_refs.items():
+                    row = nodes.row()
+                    tbody += row
 
-                # Nested table column widths
-                nested_tgroup += nodes.colspec(colwidth=2)
-                nested_tgroup += nodes.colspec(colwidth=1)
+                    # Label column
+                    entry = nodes.entry()
+                    # Create a target node for this label
+                    target = nodes.target('', '', ids=[label], names=[label])
+                    entry += target
+                    # Add the label text in verbatim/code font
+                    para = nodes.paragraph()
+                    para += nodes.literal('', label)
+                    entry += para
+                    row += entry
 
-                # Nested table header
-                nested_thead = nodes.thead()
-                nested_tgroup += nested_thead
-                nested_row = nodes.row()
-                nested_thead += nested_row
-                nested_entry = nodes.entry()
-                nested_entry += nodes.paragraph('', 'Chapter')
-                nested_row += nested_entry
-                nested_entry = nodes.entry()
-                nested_entry += nodes.paragraph('', 'Source File')
-                nested_row += nested_entry
+                    # Used In column - contains nested table
+                    entry = nodes.entry()
 
-                # Nested table body - one row per occurrence
-                nested_tbody = nodes.tbody()
-                nested_tgroup += nested_tbody
+                    # Create nested table
+                    nested_table = nodes.table()
+                    nested_tgroup = nodes.tgroup(cols=2)
+                    nested_table += nested_tgroup
 
-                for ref in occurrences:
-                    source = ref['source']
-                    section_id = ref.get('section_id')
-                    section_title = ref.get('section_title', 'Top of document')
+                    # Nested table column widths
+                    nested_tgroup += nodes.colspec(colwidth=2)
+                    nested_tgroup += nodes.colspec(colwidth=1)
 
+                    # Nested table header
+                    nested_thead = nodes.thead()
+                    nested_tgroup += nested_thead
                     nested_row = nodes.row()
-                    nested_tbody += nested_row
-
-                    # Chapter column - now includes source document for context
+                    nested_thead += nested_row
                     nested_entry = nodes.entry()
-                    nested_para = nodes.paragraph()
+                    nested_entry += nodes.paragraph('', 'Chapter')
+                    nested_row += nested_entry
+                    nested_entry = nodes.entry()
+                    nested_entry += nodes.paragraph('', 'Source File')
+                    nested_row += nested_entry
 
-                    # Add source document prefix if not the root document
-                    source_with_suffix = app.env.doc2path(source, base=False)
-                    if source != root_docname:
-                        # Show which document this reference is in
+                    # Nested table body - one row per occurrence
+                    nested_tbody = nodes.tbody()
+                    nested_tgroup += nested_tbody
+
+                    for ref in occurrences:
+                        source = ref['source']
+                        section_id = ref.get('section_id')
+                        section_title_text = ref.get('section_title', 'Top of document')
+
+                        nested_row = nodes.row()
+                        nested_tbody += nested_row
+
+                        # Chapter column - now includes source document for context
+                        nested_entry = nodes.entry()
+                        nested_para = nodes.paragraph()
+
+                        # Add source document prefix if not the root document
+                        source_with_suffix = app.env.doc2path(source, base=False)
+                        if source != root_docname:
+                            # Show which document this reference is in
+                            nested_para += nodes.literal('', source_with_suffix)
+                            nested_para += nodes.Text(' → ')
+
+                        if section_id:
+                            # Create a reference to the section
+                            refnode = nodes.reference('', '', internal=True)
+                            refnode['refuri'] = f'#{section_id}'
+                            refnode += nodes.Text(section_title_text)
+                            nested_para += refnode
+                        else:
+                            # No section ID, just show the title as text
+                            nested_para += nodes.Text(section_title_text)
+                        nested_entry += nested_para
+                        nested_row += nested_entry
+
+                        # Source File column - keep for clarity
+                        nested_entry = nodes.entry()
+                        nested_para = nodes.paragraph()
                         nested_para += nodes.literal('', source_with_suffix)
-                        nested_para += nodes.Text(' → ')
+                        nested_entry += nested_para
+                        nested_row += nested_entry
 
-                    if section_id:
-                        # Create a reference to the section
-                        refnode = nodes.reference('', '', internal=True)
-                        refnode['refuri'] = f'#{section_id}'
-                        refnode += nodes.Text(section_title)
-                        nested_para += refnode
-                    else:
-                        # No section ID, just show the title as text
-                        nested_para += nodes.Text(section_title)
-                    nested_entry += nested_para
-                    nested_row += nested_entry
+                    entry += nested_table
+                    row += entry
 
-                    # Source File column - keep for clarity
-                    nested_entry = nodes.entry()
-                    nested_para = nodes.paragraph()
-                    nested_para += nodes.literal('', source_with_suffix)
-                    nested_entry += nested_para
-                    nested_row += nested_entry
+                subsection += table
+                section += subsection
 
-                entry += nested_table
-                row += entry
+        else:
+            # Create a simple bullet list (for text builder and others that don't support nested tables)
+            # Sort by target label for consistent ordering
+            ref_occurrences_sorted = sorted(ref_occurrences, key=lambda r: r['target'])
 
-            subsection += table
-            section += subsection
+            # Create bullet list
+            bullet_list = nodes.bullet_list()
+            section += bullet_list
+
+            for ref in ref_occurrences_sorted:
+                target = ref['target']
+                source = ref['source']
+                section_id = ref.get('section_id')
+                section_title_text = ref.get('section_title', 'Top of document')
+
+                # Create list item
+                list_item = nodes.list_item()
+                bullet_list += list_item
+
+                # Create paragraph for this item
+                para = nodes.paragraph()
+                list_item += para
+
+                # Add label in code font
+                para += nodes.literal('', target)
+                para += nodes.Text(' used in ')
+
+                # Add source document if it's different from root
+                source_with_suffix = app.env.doc2path(source, base=False)
+                if source != root_docname:
+                    para += nodes.literal('', source_with_suffix)
+                    para += nodes.Text(' → ')
+
+                # Add section reference
+                if section_id:
+                    refnode = nodes.reference('', '', internal=True)
+                    refnode['refuri'] = f'#{section_id}'
+                    refnode += nodes.Text(section_title_text)
+                    para += refnode
+                else:
+                    para += nodes.Text(section_title_text)
 
         # Append the section to the document
         doctree += section
@@ -584,7 +646,7 @@ def on_doctree_resolved(app, doctree, docname):
 
 def on_build_finished(app, exception):
     """Report undefined references at the end of the build and determine if bibliography is needed."""
-    global undefined_refs, pending_xrefs, should_inject_bibliography, has_bibliography_directive
+    global undefined_refs, pending_xrefs, should_inject_bibliography, has_bibliography_directive, nested_tables_is_on
 
     if undefined_refs:
         # Get unique labels
@@ -607,6 +669,7 @@ def on_build_finished(app, exception):
     pending_xrefs.clear()
     has_bibliography_directive = False
     should_inject_bibliography = False
+    nested_tables_is_on = True  # Reset to default for next build
 
 
 def _has_citation_references(app):

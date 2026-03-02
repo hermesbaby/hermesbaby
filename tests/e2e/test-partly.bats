@@ -64,25 +64,57 @@ teardown() {
 
     # Challenge actual output against expectations
     assert_file_exist "out/docs/text/index.txt"
+    assert_file_contains "out/docs/text/index.txt" '.*'
 }
 
 
-# @test "hb text --partly docs/tree_b" {
-#
-#     run python -m hermesbaby text --partly docs/tree_a
-#     assert_success
-#
-#     # Challenge actual output against expectations
-#
-#     assert_file_exist "out/docs/text/index.txt"
-# }
+@test "hb text --partly docs/tree_b" {
 
-# @test "hb text --partly docs/tree_c" {
-#
-#     run python -m hermesbaby text --partly docs/tree_c
-#     assert_success
-#
-#     # Challenge actual output against expectations
-#
-#     assert_file_exist "out/docs/text/index.txt"
-# }
+    run python -m hermesbaby text --partly docs/tree_b
+    assert_success
+
+    # Challenge actual output against expectations
+    assert_file_exist "out/docs/text/index.txt"
+    assert_file_contains "out/docs/text/index.txt" ' "TermX" used'
+    assert_file_contains "out/docs/text/index.txt" ' "TermZ" used'
+}
+
+@test "hb text --partly docs/tree_c" {
+
+    run python -m hermesbaby text --partly docs/tree_c
+    assert_success
+
+    # Challenge actual output against expectations
+    assert_file_exist "out/docs/text/index.txt"
+    assert_file_contains "out/docs/text/index.txt" ' "TermY" used'
+    assert_file_contains "out/docs/text/index.txt" ' "TermZ" used'
+}
+
+@test "hb text --partly docs/tree_d" {
+
+    run python -m hermesbaby text --partly docs/tree_d
+    assert_success
+
+    # Challenge actual output against expectations
+    assert_file_exist "out/docs/text/index.txt"
+    assert_file_contains "out/docs/text/index.txt" ' "fig_alice_and_bob" used'
+}
+
+@test "hb html **" {
+
+    run python -m hermesbaby html
+    assert_success
+
+    run python -m hermesbaby html --partly docs/tree_a
+    assert_success
+
+    run python -m hermesbaby html --partly docs/tree_b
+    assert_success
+
+    run python -m hermesbaby html --partly docs/tree_c
+    assert_success
+
+    run python -m hermesbaby html --partly docs/tree_d
+    assert_success
+
+}

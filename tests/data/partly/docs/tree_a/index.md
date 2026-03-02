@@ -1,3 +1,3 @@
 # Tree A
 
-Here I don't use none of the terms in the glossary.
+Here I don't use any of the terms in the glossary.
