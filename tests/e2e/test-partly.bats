@@ -119,8 +119,8 @@ teardown() {
 @test "hb text --partly docs/tree_f" {
 
     run python -m hermesbaby text --partly docs/tree_f
-    #assert_success
-    assert_failure
+    assert_success
+    #assert_failure
 
     # Challenge actual output against expectations
     #assert_file_exist "out/docs/text/index.txt"

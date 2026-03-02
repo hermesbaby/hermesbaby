@@ -50,7 +50,10 @@ _tools_realpath = os.path.realpath(os.path.join(_conf_realpath, "tools"))
 # Enable Usage of Sphinx 8.x and higher (unless this we needed to stick to 7.1.5)
 # @see https://github.com/sphinx-doc/sphinx/issues/12300
 # @see https://github.com/sphinx-doc/sphinx/pull/12203
-suppress_warnings = ["config.cache"]
+
+suppress_warnings = []
+
+suppress_warnings.append("config.cache")
 
 import warnings
 from sphinx.deprecation import RemovedInSphinx90Warning
@@ -265,7 +268,11 @@ exclude_patterns = [
 ## Let's expand `some string` to `some string` instead of *some string*
 default_role = "code"
 
-master_doc = "index"
+path_to_root_doc = ''
+if os.getenv("HERMESBABY_PART_DIR"):
+    print(f"DEBUG DEBUG DEBUG: Using HERMESBABY_PART_DIR={os.getenv('HERMESBABY_PART_DIR')}")
+    path_to_root_doc = f"{os.getenv('HERMESBABY_PART_DIR')}/"
+root_doc = f"{path_to_root_doc}index"
 
 numfig = True
 
@@ -2174,6 +2181,7 @@ if _user_conf_path:
 
 if os.getenv("HERMESBABY_PART_DIR"):
     extensions.append("hermesbaby.partly")
+    suppress_warnings.append("toc.not_included")
 
 
 ###############################################################################

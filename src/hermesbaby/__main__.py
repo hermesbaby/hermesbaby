@@ -183,8 +183,7 @@ def _validate_part_path(part: str, source_dir: Path) -> None:
 def _get_source_dir_with_part(part: str) -> Path:
     """Get the source directory, adjusting for part path if provided."""
     source_dir = Path(_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value)
-    if part:
-        source_dir = Path(part)
+    # root document is handled in conf.py by adjusting config variable root_doc
     return source_dir
 
 
@@ -192,7 +191,10 @@ def _set_env(ctx, part_dir: str = None):
     os.environ["HERMESBABY_CWD"] = os.getcwd()
     os.environ["HERMESBABY_COMMAND"] = ctx.info_name
     if part_dir:
-        os.environ["HERMESBABY_PART_DIR"] = part_dir
+        # Strip the source dir from part_dir and then assign it to the environment variable:
+        source_dir = Path(_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value)
+        part_dir_relative_to_source_dir = str(Path(part_dir).relative_to(source_dir))
+        os.environ["HERMESBABY_PART_DIR"] = part_dir_relative_to_source_dir
 
 
 def _build_common(
