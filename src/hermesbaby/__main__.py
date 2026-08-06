@@ -615,7 +615,12 @@ def html_live(
         help="Increase verbosity (can be repeated)",
     ),
 ):
-    """Build to format HTML with live reload"""
+    """Build to format HTML with live reload
+
+    Use environment variable DEVCONTAINER=true to modify behaviour:
+    Set host address to 0.0.0.0 to listen to all incoming requests inside the container because localhost is not available.
+    Do not open browser because the browser will open on 0.0.0.0 which is meaningless on host. Let VSCode DevContainer handle the situation.
+    """
 
     _set_env(ctx, part_dir=part)
     _load_config()
@@ -635,8 +640,12 @@ def html_live(
         "_tags/.*",
         "--port",
         f"{int(kconfig.syms['BUILD__PORTS__HTML__LIVE'].str_value)}",
-        "--open-browser",
     ]
+    if os.environ.get("DEVCONTAINER")!="true":
+        extra_args.append("--open-browser")
+    else:
+        extra_args.append("--host")
+        extra_args.append("0.0.0.0")
     returncode = _build_common(ctx, part=part, builder="html", tool_name="sphinx-autobuild", extra_args=extra_args)
     sys.exit(returncode)
 
