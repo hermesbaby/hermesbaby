@@ -202,6 +202,8 @@ def _build_common(
     tool_name: str,
     verbose: int = 0,
     extra_args: list = None,
+    warn_as_error: bool = True,
+    out_name: str = None,
 ) -> int:
     """Common logic for HTML build commands.
 
@@ -210,6 +212,12 @@ def _build_common(
         part: Extract path (optional)
         tool_name: Name of the sphinx tool to use (e.g., 'sphinx-build', 'sphinx-autobuild')
         extra_args: Additional command-line arguments to append (optional)
+        warn_as_error: Whether to pass -W (treat warnings as errors) to sphinx-build (default: True)
+        out_name: Name of the build output subdirectory (default: the invoked command's
+            name, ctx.info_name). Override when a command reuses this helper under a
+            different name than the output directory it needs (e.g. an "update-po"
+            command that must still extract into the same "gettext" output dir a
+            standalone "gettext" command would use).
 
     Returns:
         Exit code from the subprocess
@@ -231,7 +239,7 @@ def _build_common(
 
     _set_env(ctx, part_dir=part)
 
-    build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
+    build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / (out_name or ctx.info_name)
     source_dir = _get_source_dir_with_part(part)
     executable = _resolve_tool(tool_name)
 
@@ -239,7 +247,10 @@ def _build_common(
         f"{executable}",
         "-b",
         builder,
-        "-W",
+    ]
+    if warn_as_error:
+        command.append("-W")
+    command += [
         "-c",
         f"{_get_resource_path('')}",
         f"{source_dir}",
@@ -450,6 +461,13 @@ app_vscode_extensions = typer.Typer(
     no_args_is_help=True,
 )
 app.add_typer(app_vscode_extensions, name="vscode")
+
+app_i18n = typer.Typer(
+    help="Support i18n workflow",
+    no_args_is_help=True,
+)
+app.add_typer(app_i18n, name="i18n")
+
 
 
 @app.callback(invoke_without_command=False)
@@ -1619,6 +1637,156 @@ def ci_run():
     typer.echo(" ".join(shlex.quote(a) for a in command))
     result = subprocess.run(command, cwd=os.getcwd())
     sys.exit(result.returncode)
+
+@app_i18n.command(name="gettext")
+def i18n_gettext(
+    ctx: typer.Context,
+    part: str = typer.Option(
+        None,
+        "--partly",
+        help="Directory relative to the current working directory to build only a part of the document. ",
+    ),
+    verbose: int = typer.Option(
+        0,
+        "--verbose",
+        "-v",
+        count=True,
+        help="Increase verbosity (can be repeated)",
+    ),
+):
+    """Extract translatable messages into .pot catalogs"""
+    returncode = _build_common(
+        ctx,
+        part=part,
+        builder="gettext",
+        tool_name="sphinx-build",
+        verbose=verbose,
+        warn_as_error=False,
+    )
+    sys.exit(returncode)
+
+
+@app_i18n.command(name="update-po")
+def i18n_update_po(
+    ctx: typer.Context,
+    language: List[str] = typer.Option(
+        None,
+        "--language",
+        "-l",
+        help="Language(s) to update catalogs for (repeatable). Defaults to I18N__LANGUAGES.",
+    ),
+):
+    """Extract messages and refresh .po catalogs (preserves existing translations)"""
+
+    _set_env(ctx)
+    _load_config()
+    kconfig = _get_kconfig()
+
+    languages = language or [
+        lang.strip()
+        for lang in kconfig.syms["I18N__LANGUAGES"].str_value.split(",")
+        if lang.strip()
+    ]
+
+    if not languages:
+        typer.echo(
+            "No languages given. Pass --language/-l or set I18N__LANGUAGES via 'hb configure'.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
+    returncode = _build_common(
+        ctx,
+        part=None,
+        builder="gettext",
+        tool_name="sphinx-build",
+        warn_as_error=False,
+        out_name="gettext",
+    )
+    if returncode != 0:
+        sys.exit(returncode)
+
+    source_dir = Path(kconfig.syms["BUILD__DIRS__SOURCE"].str_value)
+    pot_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / "gettext"
+    locale_dir = source_dir / "locales"
+
+    executable = _resolve_tool("sphinx-intl")
+    command = [executable, "update", "-p", str(pot_dir), "-d", str(locale_dir)]
+    for lang in languages:
+        command += ["-l", lang]
+
+    typer.echo(" ".join(shlex.quote(a) for a in command))
+    result = subprocess.run(command, cwd=os.getcwd())
+    sys.exit(result.returncode)
+
+
+_I18N_STAT_LINE_RE = re.compile(
+    r"(?P<path>\S*locales[\\/](?P<lang>[^\\/]+)[\\/]LC_MESSAGES\S*):\s*"
+    r"(?P<translated>\d+) translated"
+    r"(?:,\s*(?P<fuzzy>\d+) fuzzy)?"
+    r"(?:,\s*(?P<untranslated>\d+) untranslated)?"
+)
+
+
+@app_i18n.command(name="stats")
+def i18n_stats(
+    ctx: typer.Context,
+):
+    """Print translation coverage (translated/fuzzy/untranslated) per language"""
+
+    _set_env(ctx)
+    _load_config()
+    kconfig = _get_kconfig()
+
+    source_dir = Path(kconfig.syms["BUILD__DIRS__SOURCE"].str_value)
+    locale_dir = source_dir / "locales"
+
+    executable = _resolve_tool("sphinx-intl")
+    command = [executable, "stat", "-d", str(locale_dir)]
+    typer.echo(" ".join(shlex.quote(a) for a in command))
+
+    result = subprocess.run(command, cwd=os.getcwd(), capture_output=True, text=True)
+    typer.echo(result.stdout)
+    if result.stderr:
+        typer.echo(result.stderr, err=True)
+    if result.returncode != 0:
+        sys.exit(result.returncode)
+
+    totals = {}
+    for line in result.stdout.splitlines():
+        match = _I18N_STAT_LINE_RE.search(line)
+        if not match:
+            continue
+        lang = match.group("lang")
+        entry = totals.setdefault(lang, {"translated": 0, "fuzzy": 0, "untranslated": 0})
+        entry["translated"] += int(match.group("translated") or 0)
+        entry["fuzzy"] += int(match.group("fuzzy") or 0)
+        entry["untranslated"] += int(match.group("untranslated") or 0)
+
+    if not totals:
+        typer.echo("No .po catalogs found. Run 'hb i18n update-po' first.")
+        return
+
+    typer.echo("--- Summary ---")
+    grand = {"translated": 0, "fuzzy": 0, "untranslated": 0}
+    for lang in sorted(totals):
+        entry = totals[lang]
+        total = entry["translated"] + entry["fuzzy"] + entry["untranslated"]
+        pct = (entry["translated"] / total * 100) if total else 0.0
+        typer.echo(
+            f"{lang:<4} translated={entry['translated']:<5} fuzzy={entry['fuzzy']:<5} "
+            f"untranslated={entry['untranslated']:<5} total={total:<5} ({pct:.1f}% translated)"
+        )
+        for key in grand:
+            grand[key] += entry[key]
+
+    grand_total = grand["translated"] + grand["fuzzy"] + grand["untranslated"]
+    grand_pct = (grand["translated"] / grand_total * 100) if grand_total else 0.0
+    typer.echo(
+        f"{'ALL':<4} translated={grand['translated']:<5} fuzzy={grand['fuzzy']:<5} "
+        f"untranslated={grand['untranslated']:<5} total={grand_total:<5} ({grand_pct:.1f}% translated)"
+    )
+
 
 if __name__ == "__main__":
     app()
