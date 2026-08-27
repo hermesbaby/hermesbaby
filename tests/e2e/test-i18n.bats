@@ -14,7 +14,7 @@ setup_file() {
     export TEST_DIR
     cd "$TEST_DIR"
 
-    rm -rf docs/locales
+    rm -rf docs/_locales
     rm -rf out_1/
     [ -d out ] && mv out out_1
 
@@ -42,8 +42,8 @@ teardown() {
     run python -m hermesbaby i18n update-po -l en -l de
     assert_success
 
-    assert_file_exist "docs/locales/en/LC_MESSAGES/index.po"
-    assert_file_exist "docs/locales/de/LC_MESSAGES/index.po"
+    assert_file_exist "docs/_locales/en/LC_MESSAGES/index.po"
+    assert_file_exist "docs/_locales/de/LC_MESSAGES/index.po"
 }
 
 @test "hb i18n update-po: preserves an existing translation on re-run" {
@@ -53,14 +53,14 @@ teardown() {
     # ignored by msgmerge/sphinx-intl; a blind msgstr replace would also
     # hit the other (still-untranslated) entry in this catalog.
     sed -i '/^msgid "This is a paragraph to translate\."$/{n;s/^msgstr ""$/msgstr "Dies ist ein Absatz zum Uebersetzen."/}' \
-        docs/locales/de/LC_MESSAGES/index.po
-    run grep -F "Dies ist ein Absatz zum Uebersetzen." docs/locales/de/LC_MESSAGES/index.po
+        docs/_locales/de/LC_MESSAGES/index.po
+    run grep -F "Dies ist ein Absatz zum Uebersetzen." docs/_locales/de/LC_MESSAGES/index.po
     assert_success
 
     run python -m hermesbaby i18n update-po -l en -l de
     assert_success
 
-    run grep -F "Dies ist ein Absatz zum Uebersetzen." docs/locales/de/LC_MESSAGES/index.po
+    run grep -F "Dies ist ein Absatz zum Uebersetzen." docs/_locales/de/LC_MESSAGES/index.po
     assert_success
 }
 

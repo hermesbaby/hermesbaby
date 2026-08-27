@@ -1708,7 +1708,7 @@ def i18n_update_po(
 
     source_dir = Path(kconfig.syms["BUILD__DIRS__SOURCE"].str_value)
     pot_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / "gettext"
-    locale_dir = source_dir / "locales"
+    locale_dir = source_dir / kconfig.syms["I18N__DIR_LOCALES"].str_value
 
     executable = _resolve_tool("sphinx-intl")
     command = [executable, "update", "-p", str(pot_dir), "-d", str(locale_dir)]
@@ -1739,7 +1739,7 @@ def i18n_stats(
     kconfig = _get_kconfig()
 
     source_dir = Path(kconfig.syms["BUILD__DIRS__SOURCE"].str_value)
-    locale_dir = source_dir / "locales"
+    locale_dir = source_dir / kconfig.syms["I18N__DIR_LOCALES"].str_value
 
     executable = _resolve_tool("sphinx-intl")
     command = [executable, "stat", "-d", str(locale_dir)]

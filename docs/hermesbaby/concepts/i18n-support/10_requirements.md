@@ -25,8 +25,9 @@ catalogs, and check translation coverage without leaving `hb`.
   tree (one `.pot` per source document, mirroring the source layout, per
   `gettext_compact = False`).
 - `hb i18n update-po` extracts and then creates/refreshes `.po` catalogs
-  under `<source>/locales/<lang>/LC_MESSAGES/` for a configurable set of
-  languages, without discarding existing translations (merge semantics).
+  under `<source>/<I18N__DIR_LOCALES>/<lang>/LC_MESSAGES/` (default
+  `_locales`, itself configurable) for a configurable set of languages,
+  without discarding existing translations (merge semantics).
 - `hb i18n stats` reports per-language and overall translated / fuzzy /
   untranslated counts.
 - Building with an existing `.po` catalog for the active `DOC__LANGUAGE`

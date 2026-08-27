@@ -229,7 +229,7 @@ rst_prolog = f"""
 # @see https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-language
 language = kconfig.syms["DOC__LANGUAGE"].str_value
 
-locale_dirs = ['locales/']
+locale_dirs = [kconfig.syms["I18N__DIR_LOCALES"].str_value + '/']
 gettext_compact = False
 
 templates_path = [
@@ -260,6 +260,7 @@ exclude_patterns = [
     *_exclude_any_depth("_attachments"),
     *_exclude_any_depth("_listings"),
     *_exclude_any_depth("_unused"),
+    *_exclude_any_depth(kconfig.syms["I18N__DIR_LOCALES"].str_value),
 ]
 
 ## Let's expand `some string` to `some string` instead of *some string*
