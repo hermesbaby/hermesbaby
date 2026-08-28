@@ -28,6 +28,9 @@ Three subcommands under `hb i18n` (`app_i18n` Typer group in
   `-c` resolves `locale_dirs` relative to `conf.py`'s own directory —
   which for hermesbaby is inside the installed package, not the project —
   and silently reports nothing.
+- `hb html`/`hb html-live`/`hb pdf`/`hb pdf-live` gained `--language/-l`
+  to preview a build in a specific language for one invocation — see
+  "Language override for html/pdf builds" below.
 
 ## Key decisions
 
@@ -64,10 +67,45 @@ Three subcommands under `hb i18n` (`app_i18n` Typer group in
   `exclude_patterns` in `conf.py` — `I18N__DIR_LOCALES` is now excluded
   the same way.
 
+## Language override for html/pdf builds
+
+`hb html`/`hb html-live`/`hb pdf`/`hb pdf-live` gained `--language/-l` to
+build in a given language for one invocation, without editing
+`.hermesbaby` — needed to preview/test a translated build.
+
+- Implemented via a `HERMESBABY_LANGUAGE` environment variable (same
+  pattern as the existing `HERMESBABY_CWD`/`HERMESBABY_PART_DIR`),
+  set by `_set_env()` and read by `conf.py`:
+  `language = os.environ.get("HERMESBABY_LANGUAGE") or kconfig.syms["DOC__LANGUAGE"].str_value`.
+  A plain Sphinx `-D language=...` override was considered instead, but
+  Sphinx only applies `-D` overrides *after* `conf.py` finishes running,
+  so `conf.py`'s own module-level code (see next point) can never observe
+  it — an environment variable is visible immediately, at `conf.py`
+  exec time.
+- The LaTeX babel-selection block (which picks `ngerman`/`english` for
+  hyphenation) used to re-derive its own answer from the raw
+  `DOC_LANGUAGE_GERMAN`/`DOC_LANGUAGE_ENGLISH` Kconfig choice symbols,
+  bypassing the `language` value entirely. That would have silently
+  ignored the override for PDF builds (correct translated content, wrong
+  hyphenation language). Fixed by deriving `_is_german`/`_is_english`
+  from the resolved `language` variable instead — one source of truth,
+  correct with or without an override.
+- **Known limitation:** `DOC__CONFIDENTIALITY_LEVEL_LABEL`/
+  `DOC__CONFIDENTIALITY_LEVEL` are Kconfig-conditional defaults keyed off
+  the *persisted* `DOC_LANGUAGE_ENGLISH`/`DOC_LANGUAGE_GERMAN` choice, not
+  off `HERMESBABY_LANGUAGE` — an override only reaches `conf.py`'s own
+  `language` variable, not Kconfig's internal choice state. A `--language
+  de` build still shows the English confidentiality label. Not fixed here:
+  doing so would mean mutating kconfig's own symbol values at runtime, and
+  the override is meant for previewing translated content/layout, not for
+  re-deriving every Kconfig default that happens to branch on language.
+
 ## Files touched
 
 - `src/hermesbaby/__main__.py` — three `app_i18n` commands, `warn_as_error`
-  param on `_build_common`.
+  param on `_build_common`; `--language/-l` option on `html`/`html-live`/
+  `pdf`/`pdf-live`, `language` param threaded through `_set_env`/
+  `_build_common`.
 - `src/hermesbaby/Kconfig` — new `menu "i18n"` / `I18N__LANGUAGES` /
   `I18N__DIR_LOCALES`.
 - `src/hermesbaby/conf.py` — `locale_dirs` reads `I18N__DIR_LOCALES`

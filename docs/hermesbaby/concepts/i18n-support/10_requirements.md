@@ -33,6 +33,10 @@ catalogs, and check translation coverage without leaving `hb`.
 - Building with an existing `.po` catalog for the active `DOC__LANGUAGE`
   (e.g. `hb html`) picks up translations automatically — this already
   works via Sphinx's `gettext_auto_build` and required no new code.
+- `hb html`/`hb html-live`/`hb pdf`/`hb pdf-live` accept `--language/-l`
+  to build/preview a specific language for one invocation, without
+  editing `.hermesbaby` — needed to test each translated version without
+  reconfiguring the project per language.
 - Works on Windows and Linux (no reliance on `awk`/bash-only tooling).
 
 ## Non-goals

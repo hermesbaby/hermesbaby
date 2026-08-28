@@ -188,11 +188,13 @@ def _get_source_dir_with_part(part: str) -> Path:
     return source_dir
 
 
-def _set_env(ctx, part_dir: str = None):
+def _set_env(ctx, part_dir: str = None, language: str = None):
     os.environ["HERMESBABY_CWD"] = os.getcwd()
     os.environ["HERMESBABY_COMMAND"] = ctx.info_name
     if part_dir:
         os.environ["HERMESBABY_PART_DIR"] = part_dir
+    if language:
+        os.environ["HERMESBABY_LANGUAGE"] = language
 
 
 def _build_common(
@@ -204,6 +206,7 @@ def _build_common(
     extra_args: list = None,
     warn_as_error: bool = True,
     out_name: str = None,
+    language: str = None,
 ) -> int:
     """Common logic for HTML build commands.
 
@@ -218,6 +221,8 @@ def _build_common(
             different name than the output directory it needs (e.g. an "update-po"
             command that must still extract into the same "gettext" output dir a
             standalone "gettext" command would use).
+        language: Override DOC__LANGUAGE for this build only, via HERMESBABY_LANGUAGE
+            (does not modify .hermesbaby).
 
     Returns:
         Exit code from the subprocess
@@ -237,7 +242,7 @@ def _build_common(
         source_dir = Path(_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value)
         _validate_part_path(part, source_dir)
 
-    _set_env(ctx, part_dir=part)
+    _set_env(ctx, part_dir=part, language=language)
 
     build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / (out_name or ctx.info_name)
     source_dir = _get_source_dir_with_part(part)
@@ -604,6 +609,12 @@ def html(
         "--partly",
         help="Directory relative to the current working directory to build only a part of the document. ",
     ),
+    language: str = typer.Option(
+        None,
+        "--language",
+        "-l",
+        help="Override DOC__LANGUAGE for this build only (e.g. 'de'). Does not modify .hermesbaby.",
+    ),
     verbose: int = typer.Option(
         0,
         "--verbose",
@@ -613,7 +624,7 @@ def html(
     )
 ):
     """Build to format HTML"""
-    returncode = _build_common(ctx, part=part, builder="html", tool_name="sphinx-build")
+    returncode = _build_common(ctx, part=part, builder="html", tool_name="sphinx-build", language=language)
     sys.exit(returncode)
 
 
@@ -624,6 +635,12 @@ def html_live(
         None,
         "--partly",
         help="Directory relative to the current working directory to build only a part of the document. ",
+    ),
+    language: str = typer.Option(
+        None,
+        "--language",
+        "-l",
+        help="Override DOC__LANGUAGE for this build only (e.g. 'de'). Does not modify .hermesbaby.",
     ),
     verbose: int = typer.Option(
         0,
@@ -640,7 +657,7 @@ def html_live(
     Do not open browser because the browser will open on 0.0.0.0 which is meaningless on host. Let VSCode DevContainer handle the situation.
     """
 
-    _set_env(ctx, part_dir=part)
+    _set_env(ctx, part_dir=part, language=language)
     _load_config()
 
     jobs = "10"
@@ -664,7 +681,7 @@ def html_live(
     else:
         extra_args.append("--host")
         extra_args.append("0.0.0.0")
-    returncode = _build_common(ctx, part=part, builder="html", tool_name="sphinx-autobuild", extra_args=extra_args)
+    returncode = _build_common(ctx, part=part, builder="html", tool_name="sphinx-autobuild", extra_args=extra_args, language=language)
     sys.exit(returncode)
 
 
@@ -676,6 +693,12 @@ def pdf(
         "--partly",
         help="Directory relative to the current working directory to build only a part of the document. ",
     ),
+    language: str = typer.Option(
+        None,
+        "--language",
+        "-l",
+        help="Override DOC__LANGUAGE for this build only (e.g. 'de'). Does not modify .hermesbaby.",
+    ),
     verbose: int = typer.Option(
         0,
         "--verbose",
@@ -685,7 +708,7 @@ def pdf(
     )
 ):
     """Build to format PDF"""
-    returncode = _build_common(ctx, part=part, builder="latex", tool_name="sphinx-build")
+    returncode = _build_common(ctx, part=part, builder="latex", tool_name="sphinx-build", language=language)
     sys.exit(returncode)
 
 
@@ -696,6 +719,12 @@ def pdf_live(
         None,
         "--partly",
         help="Directory relative to the current working directory to build only a part of the document. ",
+    ),
+    language: str = typer.Option(
+        None,
+        "--language",
+        "-l",
+        help="Override DOC__LANGUAGE for this build only (e.g. 'de'). Does not modify .hermesbaby.",
     ),
     verbose: int = typer.Option(
         0,
@@ -712,7 +741,7 @@ def pdf_live(
     Do not open browser because the browser will open on 0.0.0.0 which is meaningless on host. Let VSCode DevContainer handle the situation.
     """
 
-    _set_env(ctx, part_dir=part)
+    _set_env(ctx, part_dir=part, language=language)
     _load_config()
 
     kconfig = _get_kconfig()
@@ -731,7 +760,7 @@ def pdf_live(
     else:
         extra_args.append("--host")
         extra_args.append("0.0.0.0")
-    returncode = _build_common(ctx, part=part, builder="latex", tool_name="sphinx-autobuild", extra_args=extra_args)
+    returncode = _build_common(ctx, part=part, builder="latex", tool_name="sphinx-autobuild", extra_args=extra_args, language=language)
     sys.exit(returncode)
 
 
