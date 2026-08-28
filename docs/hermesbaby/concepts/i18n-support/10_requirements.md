@@ -28,8 +28,11 @@ catalogs, and check translation coverage without leaving `hb`.
   under `<source>/<I18N__DIR_LOCALES>/<lang>/LC_MESSAGES/` (default
   `_locales`, itself configurable) for a configurable set of languages,
   without discarding existing translations (merge semantics).
-- `hb i18n stats` reports per-language and overall translated / fuzzy /
-  untranslated counts.
+- `hb i18n stats` reports raw per-catalog translated / fuzzy / untranslated
+  counts, passing through `sphinx-intl stat`'s own output format
+  unmodified.
+- `hb i18n stats-summary` reports the same counts aggregated per-language
+  and overall.
 - Building with an existing `.po` catalog for the active `DOC__LANGUAGE`
   (e.g. `hb html`) picks up translations automatically — this already
   works via Sphinx's `gettext_auto_build` and required no new code.

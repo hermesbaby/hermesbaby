@@ -1767,11 +1767,8 @@ _I18N_STAT_LINE_RE = re.compile(
 )
 
 
-@app_i18n.command(name="stats")
-def i18n_stats(
-    ctx: typer.Context,
-):
-    """Print translation coverage (translated/fuzzy/untranslated) per language"""
+def _i18n_run_sphinx_intl_stat(ctx: typer.Context) -> subprocess.CompletedProcess:
+    """Shell out to 'sphinx-intl stat', echoing the command like every other hb subcommand"""
 
     _set_env(ctx)
     _load_config()
@@ -1784,8 +1781,38 @@ def i18n_stats(
     command = [executable, "stat", "-d", str(locale_dir)]
     typer.echo(" ".join(shlex.quote(a) for a in command))
 
-    result = subprocess.run(command, cwd=os.getcwd(), capture_output=True, text=True)
+    return subprocess.run(command, cwd=os.getcwd(), capture_output=True, text=True)
+
+
+@app_i18n.command(name="stats")
+def i18n_stats(
+    ctx: typer.Context,
+):
+    """Print translation coverage per catalog (raw 'sphinx-intl stat' output)
+
+    Pass-through of sphinx-intl's own output format, unmodified - safe for
+    tools/scripts that parse it. See 'hb i18n stats-summary' for an
+    aggregated per-language/overall view.
+    """
+
+    result = _i18n_run_sphinx_intl_stat(ctx)
     typer.echo(result.stdout)
+    if result.stderr:
+        typer.echo(result.stderr, err=True)
+    sys.exit(result.returncode)
+
+
+@app_i18n.command(name="stats-summary")
+def i18n_stats_summary(
+    ctx: typer.Context,
+):
+    """Print aggregated translation coverage (translated/fuzzy/untranslated) per language
+
+    See 'hb i18n stats' for the raw, tool-parseable per-catalog output
+    this is aggregated from.
+    """
+
+    result = _i18n_run_sphinx_intl_stat(ctx)
     if result.stderr:
         typer.echo(result.stderr, err=True)
     if result.returncode != 0:
@@ -1806,7 +1833,6 @@ def i18n_stats(
         typer.echo("No .po catalogs found. Run 'hb i18n update-po' first.")
         return
 
-    typer.echo("--- Summary ---")
     grand = {"translated": 0, "fuzzy": 0, "untranslated": 0}
     for lang in sorted(totals):
         entry = totals[lang]

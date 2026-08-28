@@ -64,9 +64,18 @@ teardown() {
     assert_success
 }
 
-@test "hb i18n stats: reports translation coverage" {
+@test "hb i18n stats: reports raw per-catalog translation coverage" {
 
     run python -m hermesbaby i18n stats
+    assert_success
+
+    assert_output --partial "LC_MESSAGES"
+    refute_output --partial "ALL"
+}
+
+@test "hb i18n stats-summary: reports aggregated translation coverage" {
+
+    run python -m hermesbaby i18n stats-summary
     assert_success
 
     assert_output --partial "ALL"

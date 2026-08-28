@@ -8,7 +8,7 @@ updated: 2026-08-26
 
 ## Commands
 
-Three subcommands under `hb i18n` (`app_i18n` Typer group in
+Four subcommands under `hb i18n` (`app_i18n` Typer group in
 `src/hermesbaby/__main__.py`):
 
 - `hb i18n gettext [--partly DIR] [-v]` — thin wrapper: calls the existing
@@ -21,13 +21,23 @@ Three subcommands under `hb i18n` (`app_i18n` Typer group in
   <lang> [-l <lang> ...]`. Language list defaults to the Kconfig
   `I18N__LANGUAGES` (comma-separated), overridable per-invocation with
   repeatable `--language/-l`.
-- `hb i18n stats` — shells out to `sphinx-intl stat -d <source>/<locales>`
-  and aggregates its per-catalog `N translated, N fuzzy, N untranslated`
-  output into a per-language + overall summary, printed to stdout. Always
-  passes `-d` explicitly rather than `-c conf.py`, because `sphinx-intl`'s
-  `-c` resolves `locale_dirs` relative to `conf.py`'s own directory —
-  which for hermesbaby is inside the installed package, not the project —
-  and silently reports nothing.
+- `hb i18n stats` (deliberately plural, unlike `sphinx-intl stat` — hb's
+  own CLI favors readable plural nouns for report-style commands; the
+  wrapped tool's own subcommand name isn't mirrored) — shells out to
+  `sphinx-intl stat -d <source>/<locales>` and prints its per-catalog
+  `N translated, N fuzzy, N untranslated` output unmodified, so
+  scripts/tools that parse `sphinx-intl stat`'s known format keep
+  working. Always passes `-d` explicitly rather than `-c conf.py`,
+  because `sphinx-intl`'s `-c` resolves `locale_dirs` relative to
+  `conf.py`'s own directory — which for hermesbaby is inside the
+  installed package, not the project — and silently reports nothing.
+- `hb i18n stats-summary` — runs the same `sphinx-intl stat` call as
+  `stats` (factored into a shared `_i18n_run_sphinx_intl_stat()` helper)
+  but aggregates the per-catalog counts into a per-language + overall
+  summary instead of printing the raw lines. Split from `stats` into its
+  own command rather than appended output, precisely so `stats` stays a
+  stable, tool-parseable pass-through — see
+  `docs/hermesbaby/decisions/i18n-stats-split-from-summary.md`.
 - `hb html`/`hb html-live`/`hb pdf`/`hb pdf-live` gained `--language/-l`
   to preview a build in a specific language for one invocation — see
   "Language override for html/pdf builds" below.
@@ -102,7 +112,7 @@ build in a given language for one invocation, without editing
 
 ## Files touched
 
-- `src/hermesbaby/__main__.py` — three `app_i18n` commands, `warn_as_error`
+- `src/hermesbaby/__main__.py` — four `app_i18n` commands, `warn_as_error`
   param on `_build_common`; `--language/-l` option on `html`/`html-live`/
   `pdf`/`pdf-live`, `language` param threaded through `_set_env`/
   `_build_common`.
