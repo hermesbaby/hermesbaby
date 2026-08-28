@@ -1654,7 +1654,13 @@ def i18n_gettext(
         help="Increase verbosity (can be repeated)",
     ),
 ):
-    """Extract translatable messages into .pot catalogs"""
+    """Extract translatable messages into .pot catalogs
+
+    Standalone diagnostic step: checks that extraction succeeds (e.g.
+    surfaces orphan-doc warnings) without touching any .po catalog.
+    'update-po' already performs this same extraction internally, so you
+    don't need to run this first.
+    """
     returncode = _build_common(
         ctx,
         part=part,
@@ -1676,7 +1682,11 @@ def i18n_update_po(
         help="Language(s) to update catalogs for (repeatable). Defaults to I18N__LANGUAGES.",
     ),
 ):
-    """Extract messages and refresh .po catalogs (preserves existing translations)"""
+    """Extract messages and refresh .po catalogs (preserves existing translations)
+
+    Runs the same extraction as 'gettext' internally, then merges into .po
+    files via sphinx-intl - this is the one command to run regularly.
+    """
 
     _set_env(ctx)
     _load_config()
