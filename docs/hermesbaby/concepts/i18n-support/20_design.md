@@ -38,6 +38,14 @@ Four subcommands under `hb i18n` (`app_i18n` Typer group in
   own command rather than appended output, precisely so `stats` stays a
   stable, tool-parseable pass-through — see
   `docs/hermesbaby/decisions/i18n-stats-split-from-summary.md`.
+  **Parses `result.stdout` regardless of `sphinx-intl`'s exit code** —
+  `sphinx-intl stat` can return nonzero for a fully-populated,
+  successfully-produced stats report (observed on catalogs with
+  fuzzy/untranslated entries), and `stats` already prints its `stdout`
+  unconditionally the same way; `stats-summary` mirrors that rather than
+  bailing out silently on a nonzero code, then propagates the same code
+  at the end via `sys.exit(result.returncode)` so callers/CI still see
+  the failure.
 - `hb html`/`hb html-live`/`hb pdf`/`hb pdf-live` gained `--language/-l`
   to preview a build in a specific language for one invocation — see
   "Language override for html/pdf builds" below.

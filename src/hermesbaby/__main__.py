@@ -652,7 +652,7 @@ def html_live(
 ):
     """Build to format HTML with live reload
 
-    Use environment variable DEVCONTAINER=true to modify behaviour:
+    Use environment variable DEVCONTAINER=true to modify behavior:
     Set host address to 0.0.0.0 to listen to all incoming requests inside the container because localhost is not available.
     Do not open browser because the browser will open on 0.0.0.0 which is meaningless on host. Let VSCode DevContainer handle the situation.
     """
@@ -736,7 +736,7 @@ def pdf_live(
 ):
     """Build to format PDF with live reload
 
-    Use environment variable DEVCONTAINER=true to modify behaviour:
+    Use environment variable DEVCONTAINER=true to modify behavior:
     Set host address to 0.0.0.0 to listen to all incoming requests inside the container because localhost is not available.
     Do not open browser because the browser will open on 0.0.0.0 which is meaningless on host. Let VSCode DevContainer handle the situation.
     """
@@ -1815,8 +1815,6 @@ def i18n_stats_summary(
     result = _i18n_run_sphinx_intl_stat(ctx)
     if result.stderr:
         typer.echo(result.stderr, err=True)
-    if result.returncode != 0:
-        sys.exit(result.returncode)
 
     totals = {}
     for line in result.stdout.splitlines():
@@ -1831,7 +1829,7 @@ def i18n_stats_summary(
 
     if not totals:
         typer.echo("No .po catalogs found. Run 'hb i18n update-po' first.")
-        return
+        sys.exit(result.returncode)
 
     grand = {"translated": 0, "fuzzy": 0, "untranslated": 0}
     for lang in sorted(totals):
@@ -1851,6 +1849,7 @@ def i18n_stats_summary(
         f"{'ALL':<4} translated={grand['translated']:<5} fuzzy={grand['fuzzy']:<5} "
         f"untranslated={grand['untranslated']:<5} total={grand_total:<5} ({grand_pct:.1f}% translated)"
     )
+    sys.exit(result.returncode)
 
 
 if __name__ == "__main__":
