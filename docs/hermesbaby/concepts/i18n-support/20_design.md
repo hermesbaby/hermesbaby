@@ -70,6 +70,13 @@ Four subcommands under `hb i18n` (`app_i18n` Typer group in
   as, the other is the set of catalogs to keep up to date. A project may
   maintain German and English catalogs while still building only English
   by default.
+- **`I18N__LANGUAGES` defaults to `""`, not a language list** — see
+  `docs/hermesbaby/decisions/i18n-languages-default-empty.md`. Catalog
+  maintenance (`hb i18n update-po`/`stats`) is opt-in per project; with no
+  `.hermesbaby` and no `--language/-l`, `update-po` exits with "No
+  languages given" rather than silently defaulting to `en,de`.
+  `hb html`/`hb pdf` are unaffected either way, since they never read
+  `I18N__LANGUAGES`.
 - **No `.mo`-compiling command.** Sphinx compiles `.po` → `.mo`
   automatically at build time (`gettext_auto_build` defaults to `True`).
 - **The locales directory is configurable** (`I18N__DIR_LOCALES`, relative

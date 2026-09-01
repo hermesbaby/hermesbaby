@@ -115,11 +115,12 @@ config I18N__DIR_LOCALES
 
 config I18N__LANGUAGES
     string "Languages to maintain translation catalogs for (comma-separated)"
-    default "en,de"
+    default ""
     help
         Comma-separated language codes that `hb i18n update-po` / `hb i18n stats`
         maintain .po catalogs for under <source>/<I18N__DIR_LOCALES>/<lang>/LC_MESSAGES/.
-        Override per-invocation with --language/-l (repeatable).
+        Override per-invocation with --language/-l (repeatable). Empty by
+        default so a project opts into i18n explicitly (e.g. "en,de").
 
 endmenu
 
