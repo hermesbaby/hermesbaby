@@ -62,9 +62,7 @@ Four subcommands under `hb i18n` (`app_i18n` Typer group in
   (`external_tools.json` entry). It's a normal PyPI package installed into
   the same venv as `hermesbaby`/`sphinx`, resolved via the existing
   `_resolve_tool()` helper exactly like `sphinx-build`/`sphinx-autobuild`
-  already are. This is what lets `hb i18n` skip the `HERMESBABY_CONFDIR` /
-  `pipx inject --include-apps` workaround that calling `sphinx-intl` by
-  hand outside `hb` requires.
+  already are.
 - **Target languages are a new, separate Kconfig setting** (`I18N__LANGUAGES`,
   see `docs/hermesbaby/decisions/i18n-languages-as-kconfig-string.md`),
   distinct from the existing
@@ -75,10 +73,8 @@ Four subcommands under `hb i18n` (`app_i18n` Typer group in
 - **No `.mo`-compiling command.** Sphinx compiles `.po` → `.mo`
   automatically at build time (`gettext_auto_build` defaults to `True`).
 - **The locales directory is configurable** (`I18N__DIR_LOCALES`, relative
-  to the Source Directory), defaulting to `_locales` rather than bare
-  `locales` — a real project's `docs/` tree is mostly content-chapter
-  folders (`docs/AI-Strategy/`, `docs/CSEP/`, ...), and an unprefixed
-  `locales/` sitting alongside them reads like just another chapter.
+  to the Source Directory), defaulting to `_locales` to separate it from
+  normal chapter names.
   Underscore-prefixing matches the existing `_figures`/`_attachments`/
   `_listings`/`_unused` convention for infrastructure folders, all of
   which are already excluded from Sphinx's document discovery via
