@@ -66,8 +66,12 @@ teardown() {
 
 @test "hb i18n stats: reports raw per-catalog translation coverage" {
 
+    # sphinx-intl stat exits 1 when any catalog has fuzzy/untranslated
+    # entries - the fixture's de/index.po deliberately has one, and hb
+    # i18n stats propagates that exit code by design (see
+    # test_i18n_stats_summary_prints_output_on_nonzero_exit).
     run python -m hermesbaby i18n stats
-    assert_success
+    assert_failure 1
 
     assert_output --partial "LC_MESSAGES"
     refute_output --partial "ALL"
@@ -75,8 +79,9 @@ teardown() {
 
 @test "hb i18n stats-summary: reports aggregated translation coverage" {
 
+    # See the note above: nonzero exit is expected here too.
     run python -m hermesbaby i18n stats-summary
-    assert_success
+    assert_failure 1
 
     assert_output --partial "ALL"
 }
