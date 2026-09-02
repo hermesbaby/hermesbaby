@@ -34,5 +34,7 @@
 	"features": {
 		"ghcr.io/devcontainers/features/git:1": {},
 		"ghcr.io/devcontainers/features/github-cli:1": {}
-	}
+	},
+
+	"postCreateCommand": "poetry install && sudo ./src/hermesbaby/ci/setup.sh"
 }

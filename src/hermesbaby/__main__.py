@@ -188,11 +188,13 @@ def _get_source_dir_with_part(part: str) -> Path:
     return source_dir
 
 
-def _set_env(ctx, part_dir: str = None):
+def _set_env(ctx, part_dir: str = None, language: str = None):
     os.environ["HERMESBABY_CWD"] = os.getcwd()
     os.environ["HERMESBABY_COMMAND"] = ctx.info_name
     if part_dir:
         os.environ["HERMESBABY_PART_DIR"] = part_dir
+    if language:
+        os.environ["HERMESBABY_LANGUAGE"] = language
 
 
 def _build_common(
@@ -202,6 +204,9 @@ def _build_common(
     tool_name: str,
     verbose: int = 0,
     extra_args: list = None,
+    warn_as_error: bool = True,
+    out_name: str = None,
+    language: str = None,
 ) -> int:
     """Common logic for HTML build commands.
 
@@ -210,6 +215,14 @@ def _build_common(
         part: Extract path (optional)
         tool_name: Name of the sphinx tool to use (e.g., 'sphinx-build', 'sphinx-autobuild')
         extra_args: Additional command-line arguments to append (optional)
+        warn_as_error: Whether to pass -W (treat warnings as errors) to sphinx-build (default: True)
+        out_name: Name of the build output subdirectory (default: the invoked command's
+            name, ctx.info_name). Override when a command reuses this helper under a
+            different name than the output directory it needs (e.g. an "update-po"
+            command that must still extract into the same "gettext" output dir a
+            standalone "gettext" command would use).
+        language: Override DOC__LANGUAGE for this build only, via HERMESBABY_LANGUAGE
+            (does not modify .hermesbaby).
 
     Returns:
         Exit code from the subprocess
@@ -229,9 +242,9 @@ def _build_common(
         source_dir = Path(_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value)
         _validate_part_path(part, source_dir)
 
-    _set_env(ctx, part_dir=part)
+    _set_env(ctx, part_dir=part, language=language)
 
-    build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / ctx.info_name
+    build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / (out_name or ctx.info_name)
     source_dir = _get_source_dir_with_part(part)
     executable = _resolve_tool(tool_name)
 
@@ -239,7 +252,10 @@ def _build_common(
         f"{executable}",
         "-b",
         builder,
-        "-W",
+    ]
+    if warn_as_error:
+        command.append("-W")
+    command += [
         "-c",
         f"{_get_resource_path('')}",
         f"{source_dir}",
@@ -451,6 +467,13 @@ app_vscode_extensions = typer.Typer(
 )
 app.add_typer(app_vscode_extensions, name="vscode")
 
+app_i18n = typer.Typer(
+    help="Support i18n workflow",
+    no_args_is_help=True,
+)
+app.add_typer(app_i18n, name="i18n")
+
+
 
 @app.callback(invoke_without_command=False)
 def version(
@@ -586,6 +609,12 @@ def html(
         "--partly",
         help="Directory relative to the current working directory to build only a part of the document. ",
     ),
+    language: str = typer.Option(
+        None,
+        "--language",
+        "-l",
+        help="Override DOC__LANGUAGE for this build only (e.g. 'de'). Does not modify .hermesbaby.",
+    ),
     verbose: int = typer.Option(
         0,
         "--verbose",
@@ -595,7 +624,7 @@ def html(
     )
 ):
     """Build to format HTML"""
-    returncode = _build_common(ctx, part=part, builder="html", tool_name="sphinx-build")
+    returncode = _build_common(ctx, part=part, builder="html", tool_name="sphinx-build", language=language)
     sys.exit(returncode)
 
 
@@ -607,6 +636,12 @@ def html_live(
         "--partly",
         help="Directory relative to the current working directory to build only a part of the document. ",
     ),
+    language: str = typer.Option(
+        None,
+        "--language",
+        "-l",
+        help="Override DOC__LANGUAGE for this build only (e.g. 'de'). Does not modify .hermesbaby.",
+    ),
     verbose: int = typer.Option(
         0,
         "--verbose",
@@ -617,12 +652,12 @@ def html_live(
 ):
     """Build to format HTML with live reload
 
-    Use environment variable DEVCONTAINER=true to modify behaviour:
+    Use environment variable DEVCONTAINER=true to modify behavior:
     Set host address to 0.0.0.0 to listen to all incoming requests inside the container because localhost is not available.
     Do not open browser because the browser will open on 0.0.0.0 which is meaningless on host. Let VSCode DevContainer handle the situation.
     """
 
-    _set_env(ctx, part_dir=part)
+    _set_env(ctx, part_dir=part, language=language)
     _load_config()
 
     jobs = "10"
@@ -646,7 +681,7 @@ def html_live(
     else:
         extra_args.append("--host")
         extra_args.append("0.0.0.0")
-    returncode = _build_common(ctx, part=part, builder="html", tool_name="sphinx-autobuild", extra_args=extra_args)
+    returncode = _build_common(ctx, part=part, builder="html", tool_name="sphinx-autobuild", extra_args=extra_args, language=language)
     sys.exit(returncode)
 
 
@@ -658,6 +693,12 @@ def pdf(
         "--partly",
         help="Directory relative to the current working directory to build only a part of the document. ",
     ),
+    language: str = typer.Option(
+        None,
+        "--language",
+        "-l",
+        help="Override DOC__LANGUAGE for this build only (e.g. 'de'). Does not modify .hermesbaby.",
+    ),
     verbose: int = typer.Option(
         0,
         "--verbose",
@@ -667,7 +708,7 @@ def pdf(
     )
 ):
     """Build to format PDF"""
-    returncode = _build_common(ctx, part=part, builder="latex", tool_name="sphinx-build")
+    returncode = _build_common(ctx, part=part, builder="latex", tool_name="sphinx-build", language=language)
     sys.exit(returncode)
 
 
@@ -679,6 +720,12 @@ def pdf_live(
         "--partly",
         help="Directory relative to the current working directory to build only a part of the document. ",
     ),
+    language: str = typer.Option(
+        None,
+        "--language",
+        "-l",
+        help="Override DOC__LANGUAGE for this build only (e.g. 'de'). Does not modify .hermesbaby.",
+    ),
     verbose: int = typer.Option(
         0,
         "--verbose",
@@ -689,12 +736,12 @@ def pdf_live(
 ):
     """Build to format PDF with live reload
 
-    Use environment variable DEVCONTAINER=true to modify behaviour:
+    Use environment variable DEVCONTAINER=true to modify behavior:
     Set host address to 0.0.0.0 to listen to all incoming requests inside the container because localhost is not available.
     Do not open browser because the browser will open on 0.0.0.0 which is meaningless on host. Let VSCode DevContainer handle the situation.
     """
 
-    _set_env(ctx, part_dir=part)
+    _set_env(ctx, part_dir=part, language=language)
     _load_config()
 
     kconfig = _get_kconfig()
@@ -713,7 +760,7 @@ def pdf_live(
     else:
         extra_args.append("--host")
         extra_args.append("0.0.0.0")
-    returncode = _build_common(ctx, part=part, builder="latex", tool_name="sphinx-autobuild", extra_args=extra_args)
+    returncode = _build_common(ctx, part=part, builder="latex", tool_name="sphinx-autobuild", extra_args=extra_args, language=language)
     sys.exit(returncode)
 
 
@@ -1619,6 +1666,191 @@ def ci_run():
     typer.echo(" ".join(shlex.quote(a) for a in command))
     result = subprocess.run(command, cwd=os.getcwd())
     sys.exit(result.returncode)
+
+@app_i18n.command(name="gettext")
+def i18n_gettext(
+    ctx: typer.Context,
+    part: str = typer.Option(
+        None,
+        "--partly",
+        help="Directory relative to the current working directory to build only a part of the document. ",
+    ),
+    verbose: int = typer.Option(
+        0,
+        "--verbose",
+        "-v",
+        count=True,
+        help="Increase verbosity (can be repeated)",
+    ),
+):
+    """Extract translatable messages into .pot catalogs
+
+    Standalone diagnostic step: checks that extraction succeeds (e.g.
+    surfaces orphan-doc warnings) without touching any .po catalog.
+    'update-po' already performs this same extraction internally, so you
+    don't need to run this first.
+    """
+    returncode = _build_common(
+        ctx,
+        part=part,
+        builder="gettext",
+        tool_name="sphinx-build",
+        verbose=verbose,
+        warn_as_error=False,
+    )
+    sys.exit(returncode)
+
+
+@app_i18n.command(name="update-po")
+def i18n_update_po(
+    ctx: typer.Context,
+    language: List[str] = typer.Option(
+        None,
+        "--language",
+        "-l",
+        help="Language(s) to update catalogs for (repeatable). Defaults to I18N__LANGUAGES.",
+    ),
+):
+    """Extract messages and refresh .po catalogs (preserves existing translations)
+
+    Runs the same extraction as 'gettext' internally, then merges into .po
+    files via sphinx-intl - this is the one command to run regularly.
+    """
+
+    _set_env(ctx)
+    _load_config()
+    kconfig = _get_kconfig()
+
+    languages = language or [
+        lang.strip()
+        for lang in kconfig.syms["I18N__LANGUAGES"].str_value.split(",")
+        if lang.strip()
+    ]
+
+    if not languages:
+        typer.echo(
+            "No languages given. Pass --language/-l or set I18N__LANGUAGES via 'hb configure'.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
+    returncode = _build_common(
+        ctx,
+        part=None,
+        builder="gettext",
+        tool_name="sphinx-build",
+        warn_as_error=False,
+        out_name="gettext",
+    )
+    if returncode != 0:
+        sys.exit(returncode)
+
+    source_dir = Path(kconfig.syms["BUILD__DIRS__SOURCE"].str_value)
+    pot_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / "gettext"
+    locale_dir = source_dir / kconfig.syms["I18N__DIR_LOCALES"].str_value
+
+    executable = _resolve_tool("sphinx-intl")
+    command = [executable, "update", "-p", str(pot_dir), "-d", str(locale_dir)]
+    for lang in languages:
+        command += ["-l", lang]
+
+    typer.echo(" ".join(shlex.quote(a) for a in command))
+    result = subprocess.run(command, cwd=os.getcwd())
+    sys.exit(result.returncode)
+
+
+_I18N_STAT_LINE_RE = re.compile(
+    r"(?P<path>\S*locales[\\/](?P<lang>[^\\/]+)[\\/]LC_MESSAGES\S*):\s*"
+    r"(?P<translated>\d+) translated"
+    r"(?:,\s*(?P<fuzzy>\d+) fuzzy)?"
+    r"(?:,\s*(?P<untranslated>\d+) untranslated)?"
+)
+
+
+def _i18n_run_sphinx_intl_stat(ctx: typer.Context) -> subprocess.CompletedProcess:
+    """Shell out to 'sphinx-intl stat', echoing the command like every other hb subcommand"""
+
+    _set_env(ctx)
+    _load_config()
+    kconfig = _get_kconfig()
+
+    source_dir = Path(kconfig.syms["BUILD__DIRS__SOURCE"].str_value)
+    locale_dir = source_dir / kconfig.syms["I18N__DIR_LOCALES"].str_value
+
+    executable = _resolve_tool("sphinx-intl")
+    command = [executable, "stat", "-d", str(locale_dir)]
+    typer.echo(" ".join(shlex.quote(a) for a in command))
+
+    return subprocess.run(command, cwd=os.getcwd(), capture_output=True, text=True)
+
+
+@app_i18n.command(name="stats")
+def i18n_stats(
+    ctx: typer.Context,
+):
+    """Print translation coverage per catalog (raw 'sphinx-intl stat' output)
+
+    Pass-through of sphinx-intl's own output format, unmodified - safe for
+    tools/scripts that parse it. See 'hb i18n stats-summary' for an
+    aggregated per-language/overall view.
+    """
+
+    result = _i18n_run_sphinx_intl_stat(ctx)
+    typer.echo(result.stdout)
+    if result.stderr:
+        typer.echo(result.stderr, err=True)
+    sys.exit(result.returncode)
+
+
+@app_i18n.command(name="stats-summary")
+def i18n_stats_summary(
+    ctx: typer.Context,
+):
+    """Print aggregated translation coverage (translated/fuzzy/untranslated) per language
+
+    See 'hb i18n stats' for the raw, tool-parseable per-catalog output
+    this is aggregated from.
+    """
+
+    result = _i18n_run_sphinx_intl_stat(ctx)
+    if result.stderr:
+        typer.echo(result.stderr, err=True)
+
+    totals = {}
+    for line in result.stdout.splitlines():
+        match = _I18N_STAT_LINE_RE.search(line)
+        if not match:
+            continue
+        lang = match.group("lang")
+        entry = totals.setdefault(lang, {"translated": 0, "fuzzy": 0, "untranslated": 0})
+        entry["translated"] += int(match.group("translated") or 0)
+        entry["fuzzy"] += int(match.group("fuzzy") or 0)
+        entry["untranslated"] += int(match.group("untranslated") or 0)
+
+    if not totals:
+        typer.echo("No .po catalogs found. Run 'hb i18n update-po' first.")
+        sys.exit(result.returncode)
+
+    grand = {"translated": 0, "fuzzy": 0, "untranslated": 0}
+    for lang in sorted(totals):
+        entry = totals[lang]
+        total = entry["translated"] + entry["fuzzy"] + entry["untranslated"]
+        pct = (entry["translated"] / total * 100) if total else 0.0
+        typer.echo(
+            f"{lang:<4} translated={entry['translated']:<5} fuzzy={entry['fuzzy']:<5} "
+            f"untranslated={entry['untranslated']:<5} total={total:<5} ({pct:.1f}% translated)"
+        )
+        for key in grand:
+            grand[key] += entry[key]
+
+    grand_total = grand["translated"] + grand["fuzzy"] + grand["untranslated"]
+    grand_pct = (grand["translated"] / grand_total * 100) if grand_total else 0.0
+    typer.echo(
+        f"{'ALL':<4} translated={grand['translated']:<5} fuzzy={grand['fuzzy']:<5} "
+        f"untranslated={grand['untranslated']:<5} total={grand_total:<5} ({grand_pct:.1f}% translated)"
+    )
+    sys.exit(result.returncode)
+
 
 if __name__ == "__main__":
     app()

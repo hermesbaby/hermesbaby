@@ -227,9 +227,10 @@ rst_prolog = f"""
 # @see https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 # @see https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-language
-language = kconfig.syms["DOC__LANGUAGE"].str_value
-
-locale_dirs = ['locales/']
+# HERMESBABY_LANGUAGE (set by `hb html/html-live/pdf/pdf-live --language`)
+# overrides DOC__LANGUAGE for a single build without touching .hermesbaby.
+language = os.environ.get("HERMESBABY_LANGUAGE") or kconfig.syms["DOC__LANGUAGE"].str_value
+locale_dirs = [kconfig.syms["I18N__DIR_LOCALES"].str_value + '/']
 gettext_compact = False
 
 templates_path = [
@@ -260,6 +261,7 @@ exclude_patterns = [
     *_exclude_any_depth("_attachments"),
     *_exclude_any_depth("_listings"),
     *_exclude_any_depth("_unused"),
+    *_exclude_any_depth(kconfig.syms["I18N__DIR_LOCALES"].str_value),
 ]
 
 ## Let's expand `some string` to `some string` instead of *some string*
@@ -557,22 +559,13 @@ latex_elements = {
 """,
 }
 
-# Select LaTeX document language based on Kconfig choice flags.
+# Select LaTeX document language based on the resolved `language` (Kconfig
+# choice, or a `--language` override) so a per-invocation override is honored
+# here too, not just for translation lookup.
 # This affects hyphenation/line-breaking only (does not change table generation).
 if builder == "latex":
-    _is_german = False
-    _is_english = False
-    try:
-        _is_german = (
-            kconfig.syms.get("DOC_LANGUAGE_GERMAN")
-            and kconfig.syms["DOC_LANGUAGE_GERMAN"].str_value == "y"
-        )
-        _is_english = (
-            kconfig.syms.get("DOC_LANGUAGE_ENGLISH")
-            and kconfig.syms["DOC_LANGUAGE_ENGLISH"].str_value == "y"
-        )
-    except Exception:
-        pass
+    _is_german = language == "de"
+    _is_english = language == "en"
 
     if _is_german:
         latex_elements["babel"] = r"""
