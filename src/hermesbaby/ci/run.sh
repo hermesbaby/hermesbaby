@@ -141,6 +141,13 @@ build() {
 
             rm -rf "$html_dir"
             mv "$staging" "$html_dir"
+
+            # Provide a top-level .htaccess for the assembled multi-language
+            # tree: every per-language build writes an identical .htaccess
+            # into $html_dir before being staged into its own subfolder, so
+            # reuse the first language's copy.
+            first_lang="${LANGUAGES[0]}"
+            cp "$html_dir/$first_lang/.htaccess" "$html_dir/.htaccess"
         fi
 
         # Build optionally PDF and embed into HTML

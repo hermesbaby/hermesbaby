@@ -56,6 +56,7 @@ prepare_test_dir() {
     run tar -tzf out/docs/html.tar.gz
     assert_success
     assert_output --regexp $'(^|\n)\./?index\.html($|\n)' # Contains /index.html
+    assert_output --regexp $'(^|\n)\./?\.htaccess($|\n)'  # Contains /.htaccess
 }
 
 @test "b-three-languages" {
@@ -75,6 +76,8 @@ prepare_test_dir() {
     assert_output --regexp $'(^|\n)\./?fr/index\.html($|\n)' # Contains /fr/index.html
     assert_output --regexp $'(^|\n)\./?de/index\.html($|\n)' # Contains /de/index.html
     assert_output --regexp $'(^|\n)\./?en/index\.html($|\n)' # Contains /en/index.html
+
+    assert_output --regexp $'(^|\n)\./?\.htaccess($|\n)'  # Contains /.htaccess
 }
 
 @test "c-one-language" {
@@ -92,5 +95,7 @@ prepare_test_dir() {
     run tar -tzf out/docs/html.tar.gz
     assert_success
     assert_output --regexp $'(^|\n)\./?de/index\.html($|\n)' # Contains /de/index.html
+
+    assert_output --regexp $'(^|\n)\./?\.htaccess($|\n)'  # Contains /.htaccess
 }
 
