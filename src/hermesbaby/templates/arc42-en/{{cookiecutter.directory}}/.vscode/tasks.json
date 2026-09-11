@@ -134,11 +134,5 @@
         },
     ],
     "inputs": [
-      {
-        "id": "openSimpleBrowser",
-        "type": "command",
-        "command": "simpleBrowser.show",
-        "args": ["http://127.0.0.1:1976/"]
-      }
     ]
 }
