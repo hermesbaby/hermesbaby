@@ -112,6 +112,26 @@ build() {
         touch "$CONFIG_BUILD__DIRS__BUILD"/html/index.html
         ls "$CONFIG_BUILD__DIRS__BUILD"/html/
 
+        # Build optionally PDF and copy it into a HTML tree.
+        # The switch CONFIG_PUBLISH__CREATE_AND_EMBED_PDF may come from
+        # - the .hermesbaby file
+        # - the build_parameters.json file
+        build_and_embed_pdf() {
+            local target_html_dir="$1"
+            local lang="${2:-}"
+
+            [ "${CONFIG_PUBLISH__CREATE_AND_EMBED_PDF:-n}" == "y" ] || return 0
+
+            echo "### Building HermesBaby project to PDF in $PWD"
+            if [ -n "$lang" ]; then
+                hb pdf --language "$lang"
+            else
+                hb pdf
+            fi
+            pdf_file=$(basename $(ls "$CONFIG_BUILD__DIRS__BUILD"/pdf/*.tex) .tex).pdf
+            cp "$CONFIG_BUILD__DIRS__BUILD"/pdf/$pdf_file "$target_html_dir"
+        }
+
         # Parse CONFIG_I18N__LANGUAGES ("fr, de, en" or empty) into an array
         IFS=',' read -ra RAW_LANGUAGES <<< "${CONFIG_I18N__LANGUAGES:-}"
         LANGUAGES=()
@@ -125,6 +145,7 @@ build() {
         if [ ${#LANGUAGES[@]} -eq 0 ]; then
             # Build HTML
             hb html
+            build_and_embed_pdf "$html_dir"
         else
             # Build one HTML tree per language into "html/<lang>/", since
             # `hb html --language <lang>` always (re-)writes to the same
@@ -136,6 +157,7 @@ build() {
             for lang in "${LANGUAGES[@]}"; do
                 rm -rf "$html_dir"
                 hb html --language "$lang"
+                build_and_embed_pdf "$html_dir" "$lang"
                 mv "$html_dir" "$staging/$lang"
             done
 
@@ -148,17 +170,6 @@ build() {
             # reuse the first language's copy.
             first_lang="${LANGUAGES[0]}"
             cp "$html_dir/$first_lang/.htaccess" "$html_dir/.htaccess"
-        fi
-
-        # Build optionally PDF and embed into HTML
-        # The switch CONFIG_PUBLISH__CREATE_AND_EMBED_PDF may come from
-        # - the .hermesbaby file
-        # - the build_parameters.json file
-        if [ "${CONFIG_PUBLISH__CREATE_AND_EMBED_PDF:-n}" == "y" ]; then
-            echo "### Building HermesBaby project to PDF in $PWD"
-            hb pdf
-            pdf_file=$(basename $(ls "$CONFIG_BUILD__DIRS__BUILD"/pdf/*.tex) .tex).pdf
-            cp "$CONFIG_BUILD__DIRS__BUILD"/pdf/$pdf_file "$CONFIG_BUILD__DIRS__BUILD"/html
         fi
     )
 }

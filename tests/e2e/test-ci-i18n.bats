@@ -56,7 +56,8 @@ prepare_test_dir() {
     run tar -tzf out/docs/html.tar.gz
     assert_success
     assert_output --regexp $'(^|\n)\./?index\.html($|\n)' # Contains /index.html
-    assert_output --regexp $'(^|\n)\./?\.htaccess($|\n)'  # Contains /.htaccess
+    assert_output --regexp $'(^|\n)\./?index\.html($|\n)' # Contains /index.html
+    assert_output --regexp $'(^|\n)\./?the_default_title\.pdf($|\n)'  # Contains /the_default_title.pdf
 }
 
 @test "b-three-languages" {
@@ -77,6 +78,10 @@ prepare_test_dir() {
     assert_output --regexp $'(^|\n)\./?de/index\.html($|\n)' # Contains /de/index.html
     assert_output --regexp $'(^|\n)\./?en/index\.html($|\n)' # Contains /en/index.html
 
+    assert_output --regexp $'(^|\n)\./?fr/the_default_title\.pdf($|\n)'  # Contains /fr/the_default_title.pdf
+    assert_output --regexp $'(^|\n)\./?de/the_default_title\.pdf($|\n)'  # Contains /de/the_default_title.pdf
+    assert_output --regexp $'(^|\n)\./?en/the_default_title\.pdf($|\n)'  # Contains /en/the_default_title.pdf
+
     assert_output --regexp $'(^|\n)\./?\.htaccess($|\n)'  # Contains /.htaccess
 }
 
@@ -95,6 +100,8 @@ prepare_test_dir() {
     run tar -tzf out/docs/html.tar.gz
     assert_success
     assert_output --regexp $'(^|\n)\./?de/index\.html($|\n)' # Contains /de/index.html
+
+    assert_output --regexp $'(^|\n)\./?de/the_default_title\.pdf($|\n)'  # Contains /de/the_default_title.pdf
 
     assert_output --regexp $'(^|\n)\./?\.htaccess($|\n)'  # Contains /.htaccess
 }
