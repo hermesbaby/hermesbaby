@@ -141,6 +141,7 @@ source ./.venv/Scripts/activate
 
 # Enter the TDD-Loop:
 # 1) Run not all tests but the tests focussing on the feature you want to implement, e.g. for bibliographies:
+cd "$(pwd -P)" # Necessary in git-bash on Windows
 tests/e2e/bats/bin/bats tests/e2e/test-bibliographies.bats -x --show-output-of-passing-tests
 # 2) edit your files
 code .
