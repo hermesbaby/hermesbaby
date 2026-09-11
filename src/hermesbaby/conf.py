@@ -202,7 +202,13 @@ _confidential_level = f"{kconfig.syms['DOC__CONFIDENTIALITY_LEVEL_LABEL'].str_va
 
 ### Construct meta-data header:
 
-_metadata = f"commit: {_commit} | branch: {_git_branch} | built at {_print_out_timestamp} by {_username} | {_confidential_level}"
+_metadata = ""
+
+if not ("live" in os.environ.get("HERMESBABY_COMMAND", "")):
+
+    _metadata = f"commit: {_commit} | branch: {_git_branch} | built at {_print_out_timestamp} by {_username} | {_confidential_level}"
+else:
+    _metadata = f"commit: <commit> | branch: <branch> | built at <print_out_timestamp> by <username> | {_confidential_level}"
 
 ## Add CI information
 # Indicator is the environment variable "BUILD_NUMBER" which is set by the CI/CD system.
