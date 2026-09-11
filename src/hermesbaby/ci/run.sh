@@ -112,8 +112,43 @@ build() {
         touch "$CONFIG_BUILD__DIRS__BUILD"/html/index.html
         ls "$CONFIG_BUILD__DIRS__BUILD"/html/
 
-        # Build HTML
-        hb html
+        # Parse CONFIG_I18N__LANGUAGES ("fr, de, en" or empty) into an array
+        IFS=',' read -ra RAW_LANGUAGES <<< "${CONFIG_I18N__LANGUAGES:-}"
+        LANGUAGES=()
+        for lang in "${RAW_LANGUAGES[@]}"; do
+            lang="$(echo "$lang" | xargs)"
+            [ -n "$lang" ] && LANGUAGES+=("$lang")
+        done
+
+        html_dir="$CONFIG_BUILD__DIRS__BUILD/html"
+
+        if [ ${#LANGUAGES[@]} -eq 0 ]; then
+            # Build HTML
+            hb html
+        else
+            # Build one HTML tree per language into "html/<lang>/", since
+            # `hb html --language <lang>` always (re-)writes to the same
+            # $html_dir. Stage each language's output before assembling.
+            staging="$CONFIG_BUILD__DIRS__BUILD/.html_i18n_staging"
+            rm -rf "$staging"
+            mkdir -p "$staging"
+
+            for lang in "${LANGUAGES[@]}"; do
+                rm -rf "$html_dir"
+                hb html --language "$lang"
+                mv "$html_dir" "$staging/$lang"
+            done
+
+            rm -rf "$html_dir"
+            mv "$staging" "$html_dir"
+
+            # Provide a top-level .htaccess for the assembled multi-language
+            # tree: every per-language build writes an identical .htaccess
+            # into $html_dir before being staged into its own subfolder, so
+            # reuse the first language's copy.
+            first_lang="${LANGUAGES[0]}"
+            cp "$html_dir/$first_lang/.htaccess" "$html_dir/.htaccess"
+        fi
 
         # Build optionally PDF and embed into HTML
         # The switch CONFIG_PUBLISH__CREATE_AND_EMBED_PDF may come from
