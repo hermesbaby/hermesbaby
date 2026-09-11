@@ -77,3 +77,20 @@ prepare_test_dir() {
     assert_output --regexp $'(^|\n)\./?en/index\.html($|\n)' # Contains /en/index.html
 }
 
+@test "c-one-language" {
+
+    TEST_DIR="tests/data/ci-i18n/c-one-language"
+    prepare_test_dir "$TEST_DIR"
+
+    run python -m hermesbaby ci run
+    assert_success
+
+    # Challenge actual output against expectations
+
+    assert_file_exist "out/docs/html.tar.gz"
+
+    run tar -tzf out/docs/html.tar.gz
+    assert_success
+    assert_output --regexp $'(^|\n)\./?de/index\.html($|\n)' # Contains /de/index.html
+}
+
