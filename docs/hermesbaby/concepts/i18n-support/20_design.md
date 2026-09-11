@@ -1,0 +1,138 @@
+---
+status: accepted
+owner: dominik.schmundt@vitronic.com
+updated: 2026-08-26
+---
+
+# i18n support — design
+
+## Commands
+
+Four subcommands under `hb i18n` (`app_i18n` Typer group in
+`src/hermesbaby/__main__.py`):
+
+- `hb i18n gettext [--partly DIR] [-v]` — thin wrapper: calls the existing
+  `_build_common()` (shared with `hb text`/`hb html`/`hb pdf`) with
+  `builder="gettext"`. `_build_common` derives the output dir from the
+  command name (`ctx.info_name`), so this lands at `out/docs/gettext`
+  automatically, no new path logic needed.
+- `hb i18n update-po [-l LANG]...` — runs the same extraction, then shells
+  out to `sphinx-intl update -p out/docs/gettext -d <source>/<locales> -l
+  <lang> [-l <lang> ...]`. Language list defaults to the Kconfig
+  `I18N__LANGUAGES` (comma-separated), overridable per-invocation with
+  repeatable `--language/-l`.
+- `hb i18n stats` (deliberately plural, unlike `sphinx-intl stat` — hb's
+  own CLI favors readable plural nouns for report-style commands; the
+  wrapped tool's own subcommand name isn't mirrored) — shells out to
+  `sphinx-intl stat -d <source>/<locales>` and prints its per-catalog
+  `N translated, N fuzzy, N untranslated` output unmodified, so
+  scripts/tools that parse `sphinx-intl stat`'s known format keep
+  working. Always passes `-d` explicitly rather than `-c conf.py`,
+  because `sphinx-intl`'s `-c` resolves `locale_dirs` relative to
+  `conf.py`'s own directory — which for hermesbaby is inside the
+  installed package, not the project — and silently reports nothing.
+- `hb i18n stats-summary` — runs the same `sphinx-intl stat` call as
+  `stats` (factored into a shared `_i18n_run_sphinx_intl_stat()` helper)
+  but aggregates the per-catalog counts into a per-language + overall
+  summary instead of printing the raw lines. Split from `stats` into its
+  own command rather than appended output, precisely so `stats` stays a
+  stable, tool-parseable pass-through — see
+  `docs/hermesbaby/decisions/i18n-stats-split-from-summary.md`.
+  **Parses `result.stdout` regardless of `sphinx-intl`'s exit code** —
+  `sphinx-intl stat` can return nonzero for a fully-populated,
+  successfully-produced stats report (observed on catalogs with
+  fuzzy/untranslated entries), and `stats` already prints its `stdout`
+  unconditionally the same way; `stats-summary` mirrors that rather than
+  bailing out silently on a nonzero code, then propagates the same code
+  at the end via `sys.exit(result.returncode)` so callers/CI still see
+  the failure.
+- `hb html`/`hb html-live`/`hb pdf`/`hb pdf-live` gained `--language/-l`
+  to preview a build in a specific language for one invocation — see
+  "Language override for html/pdf builds" below.
+
+## Key decisions
+
+- **`-W` (warnings-as-error) is dropped for gettext extraction.**
+  `_build_common()` gained a `warn_as_error: bool = True` parameter
+  (default preserves `text`/`html`/`pdf` behavior); `hb i18n gettext` and
+  the extraction step inside `hb i18n update-po` both pass
+  `warn_as_error=False`, since a one-off extraction shouldn't fail on
+  pre-existing orphan-doc warnings that are unrelated to translation.
+- **`sphinx-intl` is a runtime dependency**, not an "external tool"
+  (`external_tools.json` entry). It's a normal PyPI package installed into
+  the same venv as `hermesbaby`/`sphinx`, resolved via the existing
+  `_resolve_tool()` helper exactly like `sphinx-build`/`sphinx-autobuild`
+  already are.
+- **Target languages are a new, separate Kconfig setting** (`I18N__LANGUAGES`,
+  see `docs/hermesbaby/decisions/i18n-languages-as-kconfig-string.md`),
+  distinct from the existing
+  `DOC__LANGUAGE` single choice — one selects what a given build renders
+  as, the other is the set of catalogs to keep up to date. A project may
+  maintain German and English catalogs while still building only English
+  by default.
+- **`I18N__LANGUAGES` defaults to `""`, not a language list** — see
+  `docs/hermesbaby/decisions/i18n-languages-default-empty.md`. Catalog
+  maintenance (`hb i18n update-po`/`stats`) is opt-in per project; with no
+  `.hermesbaby` and no `--language/-l`, `update-po` exits with "No
+  languages given" rather than silently defaulting to `en,de`.
+  `hb html`/`hb pdf` are unaffected either way, since they never read
+  `I18N__LANGUAGES`.
+- **No `.mo`-compiling command.** Sphinx compiles `.po` → `.mo`
+  automatically at build time (`gettext_auto_build` defaults to `True`).
+- **The locales directory is configurable** (`I18N__DIR_LOCALES`, relative
+  to the Source Directory), defaulting to `_locales` to separate it from
+  normal chapter names.
+  Underscore-prefixing matches the existing `_figures`/`_attachments`/
+  `_listings`/`_unused` convention for infrastructure folders, all of
+  which are already excluded from Sphinx's document discovery via
+  `exclude_patterns` in `conf.py` — `I18N__DIR_LOCALES` is now excluded
+  the same way.
+
+## Language override for html/pdf builds
+
+`hb html`/`hb html-live`/`hb pdf`/`hb pdf-live` gained `--language/-l` to
+build in a given language for one invocation, without editing
+`.hermesbaby` — needed to preview/test a translated build.
+
+- Implemented via a `HERMESBABY_LANGUAGE` environment variable (same
+  pattern as the existing `HERMESBABY_CWD`/`HERMESBABY_PART_DIR`),
+  set by `_set_env()` and read by `conf.py`:
+  `language = os.environ.get("HERMESBABY_LANGUAGE") or kconfig.syms["DOC__LANGUAGE"].str_value`.
+  A plain Sphinx `-D language=...` override was considered instead, but
+  Sphinx only applies `-D` overrides *after* `conf.py` finishes running,
+  so `conf.py`'s own module-level code (see next point) can never observe
+  it — an environment variable is visible immediately, at `conf.py`
+  exec time.
+- The LaTeX babel-selection block (which picks `ngerman`/`english` for
+  hyphenation) used to re-derive its own answer from the raw
+  `DOC_LANGUAGE_GERMAN`/`DOC_LANGUAGE_ENGLISH` Kconfig choice symbols,
+  bypassing the `language` value entirely. That would have silently
+  ignored the override for PDF builds (correct translated content, wrong
+  hyphenation language). Fixed by deriving `_is_german`/`_is_english`
+  from the resolved `language` variable instead — one source of truth,
+  correct with or without an override.
+- **Known limitation:** `DOC__CONFIDENTIALITY_LEVEL_LABEL`/
+  `DOC__CONFIDENTIALITY_LEVEL` are Kconfig-conditional defaults keyed off
+  the *persisted* `DOC_LANGUAGE_ENGLISH`/`DOC_LANGUAGE_GERMAN` choice, not
+  off `HERMESBABY_LANGUAGE` — an override only reaches `conf.py`'s own
+  `language` variable, not Kconfig's internal choice state. A `--language
+  de` build still shows the English confidentiality label. Not fixed here:
+  doing so would mean mutating kconfig's own symbol values at runtime, and
+  the override is meant for previewing translated content/layout, not for
+  re-deriving every Kconfig default that happens to branch on language.
+
+## Files touched
+
+- `src/hermesbaby/__main__.py` — four `app_i18n` commands, `warn_as_error`
+  param on `_build_common`; `--language/-l` option on `html`/`html-live`/
+  `pdf`/`pdf-live`, `language` param threaded through `_set_env`/
+  `_build_common`.
+- `src/hermesbaby/Kconfig` — new `menu "i18n"` / `I18N__LANGUAGES` /
+  `I18N__DIR_LOCALES`.
+- `src/hermesbaby/conf.py` — `locale_dirs` reads `I18N__DIR_LOCALES`
+  instead of a hardcoded `'locales/'`; that directory is added to
+  `exclude_patterns` alongside the other underscore-prefixed infra dirs.
+- `pyproject.toml` — `sphinx-intl` runtime dependency.
+- `src/hermesbaby/templates/{hello,zero}/.../.gitignore` — ignore
+  `docs/_locales/**/*.mo` (commit `.po`, not compiled `.mo`).
+- `tests/e2e/test-i18n.bats` — new.

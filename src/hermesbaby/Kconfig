@@ -101,6 +101,31 @@ endmenu
 
 
 
+menu "i18n"
+
+config I18N__DIR_LOCALES
+    string "Locales Directory (relative to Source Directory)"
+    default "_locales"
+    help
+        Where .po/.mo translation catalogs live, relative to the Source
+        Directory. Underscore-prefixed by default (matching _figures,
+        _attachments, _listings, _unused) so it reads as infrastructure
+        rather than a content chapter when it sits alongside other
+        documents.
+
+config I18N__LANGUAGES
+    string "Languages to maintain translation catalogs for (comma-separated)"
+    default ""
+    help
+        Comma-separated language codes that `hb i18n update-po` / `hb i18n stats`
+        maintain .po catalogs for under <source>/<I18N__DIR_LOCALES>/<lang>/LC_MESSAGES/.
+        Override per-invocation with --language/-l (repeatable). Empty by
+        default so a project opts into i18n explicitly (e.g. "en,de").
+
+endmenu
+
+
+
 menu "CM"
 
 config CM__TICKET_KEY

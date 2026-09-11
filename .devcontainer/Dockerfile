@@ -1,4 +1,7 @@
-FROM ubuntu:latest
+# Pinned (not "latest") so the shipped Python stays on the version pyproject.toml
+# requires (python = "^3.12") instead of drifting to whatever Ubuntu ships next,
+# which broke dependency builds (e.g. msgpack, pillow) when it jumped to 3.14.
+FROM ubuntu:24.04
 
 # Avoid warnings by switching to noninteractive
 ENV DEBIAN_FRONTEND=noninteractive
@@ -11,16 +14,24 @@ RUN apt-get update \
     # Required for setup.sh
     && apt-get -y install sudo \
     # Install Python
-    && apt-get -y install python3 python3-pip python3-venv \
+    && apt-get -y install python3 python3-pip python3-venv python3-dev \
     && ln -s /usr/bin/python3 /usr/bin/python \
     # Install PlantUML dependencies
     && apt-get -y install default-jre graphviz \
     # Install other dependencies that might be needed
     && apt-get -y install make gcc g++ \
+    # VS Code's integrated terminal sets LANG=en_US.UTF-8, but this base image
+    # only ships C/C.utf8/POSIX, so Python's locale.setlocale(LC_ALL, '') (called
+    # unconditionally by sphinx-build) fails with "unsupported locale setting"
+    && apt-get -y install locales \
+    && locale-gen en_US.UTF-8 \
+    && update-locale LANG=en_US.UTF-8 \
     # Clean up
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
+
+ENV LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
 
 # Install Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -

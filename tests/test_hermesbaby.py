@@ -252,6 +252,32 @@ def test_globaltoc_depth_default(cli_runner, project_dir):
     assert index_html.exists(), "HTML output should exist with default configuration"
 
 
+def test_i18n_stats_summary_prints_output_on_nonzero_exit(cli_runner, monkeypatch):
+    """sphinx-intl stat can exit nonzero while still writing full stats to
+    stdout (e.g. to signal incomplete translations). stats-summary must
+    still print the aggregated summary in that case - not just bail out
+    silently - while still propagating the nonzero exit code.
+    """
+
+    from src.hermesbaby import __main__ as m
+
+    fake_result = subprocess.CompletedProcess(
+        args=["sphinx-intl", "stat"],
+        returncode=1,
+        stdout=(
+            "docs/_locales/de/LC_MESSAGES/index.po: 1 translated, 1 fuzzy, 1 untranslated.\n"
+        ),
+        stderr="",
+    )
+    monkeypatch.setattr(m, "_i18n_run_sphinx_intl_stat", lambda ctx: fake_result)
+
+    result = cli_runner.invoke(m.app, ["i18n", "stats-summary"])
+
+    assert result.exit_code == 1
+    assert "ALL" in result.output
+    assert "de" in result.output
+
+
 def test_globaltoc_depth_custom(cli_runner, project_dir):
     """Test that globaltoc_depth can be configured via .hermesbaby file."""
     from src.hermesbaby.__main__ import app
