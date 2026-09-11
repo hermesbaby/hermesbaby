@@ -123,6 +123,11 @@ build() {
             [ "${CONFIG_PUBLISH__CREATE_AND_EMBED_PDF:-n}" == "y" ] || return 0
 
             echo "### Building HermesBaby project to PDF in $PWD"
+            # `hb pdf` always (re-)writes to the same $CONFIG_BUILD__DIRS__BUILD/pdf.
+            # When building per language, wipe it first so stale .doctrees/.aux/.toc
+            # state from the previous language's build can't leak into this one
+            # (e.g. leftover babel/TOC state causing bogus babel language errors).
+            rm -rf "$CONFIG_BUILD__DIRS__BUILD"/pdf
             if [ -n "$lang" ]; then
                 hb pdf --language "$lang"
             else

@@ -33,6 +33,7 @@ import urllib3
 import yaml
 from docutils import nodes
 from sphinx.addnodes import tabular_col_spec
+from sphinx.builders.latex.util import ExtBabel
 from docutils.parsers.rst import roles
 from sphinx.util import logging
 
@@ -569,22 +570,30 @@ latex_elements = {
 # choice, or a `--language` override) so a per-invocation override is honored
 # here too, not just for translation lookup.
 # This affects hyphenation/line-breaking only (does not change table generation).
+#
+# IMPORTANT: this must run for every language configured via I18N__LANGUAGES,
+# not just the two built into the DOC__LANGUAGE Kconfig choice (en/de). Any
+# language left without an explicit \selectlanguage here never gets one, so
+# babel's \languagename stays at its uninitialized "nil" placeholder when our
+# custom "tableofcontents" hook (which localizes the LoF/LoT captions) runs
+# before \begin{document}'s own automatic language selection -- causing a
+# "Package babel Error: You haven't defined the language 'nil' yet" crash
+# while writing/reading the .toc.
 if builder == "latex":
-    _is_german = language == "de"
-    _is_english = language == "en"
+    # Resolve the ISO 639-1 / BCP 47 code (as used by DOC__LANGUAGE /
+    # I18N__LANGUAGES / --language) to its classic TeX/Babel language name
+    # using the same table Sphinx itself uses to generate the default babel
+    # setup (docutils.writers.latex2e.Babel.language_codes, ~60 languages,
+    # covers e.g. "de" -> "ngerman" already) -- so any language Sphinx/babel
+    # supports works here too, without listing it out ourselves.
+    _babel_lang = ExtBabel(language, use_polyglossia=False).language if language else ""
 
-    if _is_german:
-        latex_elements["babel"] = r"""
+    if _babel_lang:
+        latex_elements["babel"] = rf"""
 % LuaLaTeX: prefer Babel locale mechanism.
-\usepackage[provide=*]{babel}
-\babelprovide[main]{ngerman}
-\selectlanguage{ngerman}
-"""
-    elif _is_english:
-        latex_elements["babel"] = r"""
-\usepackage[provide=*]{babel}
-\babelprovide[main]{english}
-\selectlanguage{english}
+\usepackage[provide=*]{{babel}}
+\babelprovide[main]{{{_babel_lang}}}
+\selectlanguage{{{_babel_lang}}}
 """
 
 
