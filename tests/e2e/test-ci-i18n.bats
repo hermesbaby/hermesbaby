@@ -12,8 +12,19 @@
 load "test_helper/load.bash"
 
 setup_file() {
-    TEST_DIR="tests/data/ci-i18n/a-no-languages"
-    export TEST_DIR
+    :
+}
+
+setup() {
+    :
+}
+
+teardown() {
+    :
+}
+
+prepare_test_dir() {
+    TEST_DIR="$1"
     cd "$TEST_DIR"
 
     rm -rf out_1/
@@ -30,15 +41,10 @@ setup_file() {
     echo '{ "PUBLISH_SKIP_PUBLISH": "y" }' > $HERMESBABY_CI_OPTIONS_JSON_PATH
 }
 
-setup() {
-    :
-}
-
-teardown() {
-    :
-}
-
 @test "a-no-languages" {
+
+    TEST_DIR="tests/data/ci-i18n/a-no-languages"
+    prepare_test_dir "$TEST_DIR"
 
     run python -m hermesbaby ci run
     assert_success
@@ -50,5 +56,24 @@ teardown() {
     run tar -tzf out/docs/html.tar.gz
     assert_success
     assert_output --regexp $'(^|\n)\./?index\.html($|\n)' # Contains /index.html
+}
+
+@test "b-three-languages" {
+
+    TEST_DIR="tests/data/ci-i18n/b-three-languages"
+    prepare_test_dir "$TEST_DIR"
+
+    run python -m hermesbaby ci run
+    assert_success
+
+    # Challenge actual output against expectations
+
+    assert_file_exist "out/docs/html.tar.gz"
+
+    run tar -tzf out/docs/html.tar.gz
+    assert_success
+    assert_output --regexp $'(^|\n)\./?fr/index\.html($|\n)' # Contains /fr/index.html
+    assert_output --regexp $'(^|\n)\./?de/index\.html($|\n)' # Contains /de/index.html
+    assert_output --regexp $'(^|\n)\./?en/index\.html($|\n)' # Contains /en/index.html
 }
 
