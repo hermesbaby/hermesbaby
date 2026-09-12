@@ -3,11 +3,16 @@
 load "test_helper/load.bash"
 
 setup_file() {
+    TEST_DIR="${TMPDIR:-/tmp}/hermesbaby-test-env-precedence"
+    TOOL_DIR="${TMPDIR:-/tmp}/hermesbaby-test-env-precedence-tools"
+    rm -rf "$TEST_DIR"
+    rm -rf "$TOOL_DIR"
+
     PROJECT_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." >/dev/null 2>&1 && pwd)"
     export PROJECT_ROOT
 
-    TEST_DIR="$(mktemp -d)"
-    TOOL_DIR="$(mktemp -d)"
+    mkdir -p "$TEST_DIR"
+    mkdir -p "$TOOL_DIR"
     export TEST_DIR
     cd "$TEST_DIR"
 
@@ -21,8 +26,7 @@ EOF
 }
 
 teardown_file() {
-    rm -rf "$TEST_DIR"
-    rm -rf "$TOOL_DIR"
+    :
 }
 
 @test "CONFIG_* environment variables override .hermesbaby for hb text" {
