@@ -238,9 +238,6 @@ def _build_common(
 
     _load_config()
     kconfig = _get_kconfig()
-    child_env = os.environ.copy()
-    export_kconfig_to_env(kconfig, prefix=CFG_CONFIG_ENV_PREFIX, environ=child_env)
-    child_env[CFG_CONFIG_PRELOADED_MARKER] = "1"
 
     # Regard partly parameter from Kconfig
     # Precedence: command line over Kconfig
@@ -254,6 +251,9 @@ def _build_common(
         _validate_part_path(part, source_dir)
 
     _set_env(ctx, part_dir=part, language=language)
+    child_env = os.environ.copy()
+    export_kconfig_to_env(kconfig, prefix=CFG_CONFIG_ENV_PREFIX, environ=child_env)
+    child_env[CFG_CONFIG_PRELOADED_MARKER] = "1"
 
     build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / (out_name or ctx.info_name)
     source_dir = _get_source_dir_with_part(part)
