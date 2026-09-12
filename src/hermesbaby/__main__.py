@@ -166,12 +166,10 @@ def _load_config():
     else:
         logger.info("There is no '{hermesbaby__config_file}'. Using default config.")
 
-    for env_key, env_value in os.environ.items():
-        if not env_key.startswith(CFG_CONFIG_ENV_PREFIX):
-            continue
-        symbol_name = env_key[len(CFG_CONFIG_ENV_PREFIX):]
-        symbol = kconfig.syms.get(symbol_name)
-        if symbol is None:
+    for symbol_name, symbol in kconfig.syms.items():
+        env_key = f"{CFG_CONFIG_ENV_PREFIX}{symbol_name}"
+        env_value = os.environ.get(env_key)
+        if env_value is None:
             continue
         symbol.set_value(env_value)
 
