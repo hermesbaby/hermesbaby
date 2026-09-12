@@ -1,4 +1,5 @@
 import os
+from dataclasses import dataclass
 
 CFG_CONFIG_PRELOADED_MARKER = "HERMESBABY_CONFIG_PRELOADED"
 
@@ -15,3 +16,24 @@ def apply_kconfig_env_overrides(kconfig, prefix: str = "CONFIG_") -> None:
 def export_kconfig_to_env(kconfig, prefix: str = "CONFIG_") -> None:
     for symbol_name, symbol in kconfig.syms.items():
         os.environ[f"{prefix}{symbol_name}"] = symbol.str_value
+
+
+@dataclass
+class ConfigSymbol:
+    str_value: str
+    visibility: bool = True
+
+
+@dataclass
+class ConfigCompat:
+    syms: dict
+
+
+def build_config_compat_from_env(prefix: str = "CONFIG_") -> ConfigCompat:
+    syms = {}
+    for env_key, env_value in os.environ.items():
+        if not env_key.startswith(prefix):
+            continue
+        symbol_name = env_key[len(prefix):]
+        syms[symbol_name] = ConfigSymbol(str_value=env_value)
+    return ConfigCompat(syms=syms)
