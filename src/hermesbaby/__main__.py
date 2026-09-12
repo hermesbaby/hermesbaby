@@ -30,6 +30,7 @@ from pathlib import Path
 from typing import List, Optional
 
 import typer
+from hermesbaby.kconfig_overrides import apply_kconfig_env_overrides
 
 __version__ = importlib.metadata.version("hermesbaby")
 
@@ -166,12 +167,7 @@ def _load_config():
     else:
         logger.info("There is no '{hermesbaby__config_file}'. Using default config.")
 
-    for symbol_name, symbol in kconfig.syms.items():
-        env_key = f"{CFG_CONFIG_ENV_PREFIX}{symbol_name}"
-        env_value = os.environ.get(env_key)
-        if env_value is None:
-            continue
-        symbol.set_value(env_value)
+    apply_kconfig_env_overrides(kconfig, prefix=CFG_CONFIG_ENV_PREFIX)
 
 
 def _validate_part_path(part: str, source_dir: Path) -> None:
