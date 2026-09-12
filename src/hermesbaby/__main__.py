@@ -30,7 +30,11 @@ from pathlib import Path
 from typing import List, Optional
 
 import typer
-from hermesbaby.kconfig_overrides import apply_kconfig_env_overrides
+from hermesbaby.kconfig_overrides import (
+    CFG_CONFIG_PRELOADED_MARKER,
+    apply_kconfig_env_overrides,
+    export_kconfig_to_env,
+)
 
 __version__ = importlib.metadata.version("hermesbaby")
 
@@ -234,6 +238,8 @@ def _build_common(
 
     _load_config()
     kconfig = _get_kconfig()
+    export_kconfig_to_env(kconfig, prefix=CFG_CONFIG_ENV_PREFIX)
+    os.environ[CFG_CONFIG_PRELOADED_MARKER] = "1"
 
     # Regard partly parameter from Kconfig
     # Precedence: command line over Kconfig

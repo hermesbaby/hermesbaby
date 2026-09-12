@@ -31,7 +31,10 @@ import requests
 import shutil
 import urllib3
 import yaml
-from hermesbaby.kconfig_overrides import apply_kconfig_env_overrides
+from hermesbaby.kconfig_overrides import (
+    CFG_CONFIG_PRELOADED_MARKER,
+    apply_kconfig_env_overrides,
+)
 from docutils import nodes
 from sphinx.addnodes import tabular_col_spec
 from sphinx.builders.latex.util import ExtBabel
@@ -71,17 +74,21 @@ app_setups = []
 
 kconfig = kconfiglib.Kconfig()
 
-hermesbaby_config_file = os.path.join(_cwd_realpath, ".hermesbaby")
-
-if os.path.exists(hermesbaby_config_file):
-    kconfig.load_config(hermesbaby_config_file)
-    logger.info(f"Using configuration {hermesbaby_config_file}")
+if os.environ.get(CFG_CONFIG_PRELOADED_MARKER) == "1":
+    apply_kconfig_env_overrides(kconfig)
+    logger.info("Using preloaded configuration from HermesBaby main process.")
 else:
-    logger.info(
-        f"There is no '{hermesbaby_config_file}', therefore using default configuration values. You may call 'hb configure' to create a custom configuration."
-    )
+    hermesbaby_config_file = os.path.join(_cwd_realpath, ".hermesbaby")
 
-apply_kconfig_env_overrides(kconfig)
+    if os.path.exists(hermesbaby_config_file):
+        kconfig.load_config(hermesbaby_config_file)
+        logger.info(f"Using configuration {hermesbaby_config_file}")
+    else:
+        logger.info(
+            f"There is no '{hermesbaby_config_file}', therefore using default configuration values. You may call 'hb configure' to create a custom configuration."
+        )
+
+    apply_kconfig_env_overrides(kconfig)
 
 
 ### PATHS #####################################################################
