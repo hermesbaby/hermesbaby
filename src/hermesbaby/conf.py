@@ -80,6 +80,15 @@ else:
         f"There is no '{hermesbaby_config_file}', therefore using default configuration values. You may call 'hb configure' to create a custom configuration."
     )
 
+for env_key, env_value in os.environ.items():
+    if not env_key.startswith("CONFIG_"):
+        continue
+    symbol_name = env_key[len("CONFIG_"):]
+    symbol = kconfig.syms.get(symbol_name)
+    if symbol is None:
+        continue
+    symbol.set_value(env_value)
+
 
 ### PATHS #####################################################################
 

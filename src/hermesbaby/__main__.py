@@ -36,6 +36,7 @@ __version__ = importlib.metadata.version("hermesbaby")
 logger = logging.getLogger(__name__)
 
 CFG_CONFIG_CUSTOM_FILE = ".hermesbaby"
+CFG_CONFIG_ENV_PREFIX = "CONFIG_"
 
 
 def _lazy_import_git():
@@ -164,6 +165,15 @@ def _load_config():
         logger.info(f"Using configuration {hermesbaby__config_file}")
     else:
         logger.info("There is no '{hermesbaby__config_file}'. Using default config.")
+
+    for env_key, env_value in os.environ.items():
+        if not env_key.startswith(CFG_CONFIG_ENV_PREFIX):
+            continue
+        symbol_name = env_key[len(CFG_CONFIG_ENV_PREFIX):]
+        symbol = kconfig.syms.get(symbol_name)
+        if symbol is None:
+            continue
+        symbol.set_value(env_value)
 
 
 def _validate_part_path(part: str, source_dir: Path) -> None:
