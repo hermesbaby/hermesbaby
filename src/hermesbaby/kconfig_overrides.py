@@ -13,9 +13,11 @@ def apply_kconfig_env_overrides(kconfig, prefix: str = "CONFIG_") -> None:
         symbol.set_value(env_value)
 
 
-def export_kconfig_to_env(kconfig, prefix: str = "CONFIG_") -> None:
+def export_kconfig_to_env(kconfig, prefix: str = "CONFIG_", target_env=None) -> None:
+    if target_env is None:
+        target_env = os.environ
     for symbol_name, symbol in kconfig.syms.items():
-        os.environ[f"{prefix}{symbol_name}"] = symbol.str_value
+        target_env[f"{prefix}{symbol_name}"] = symbol.str_value
 
 
 @dataclass
