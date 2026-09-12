@@ -17,6 +17,11 @@ def apply_kconfig_env_overrides(kconfig, prefix: str = "CONFIG_") -> None:
 def export_kconfig_to_env(
     kconfig, prefix: str = "CONFIG_", environ: MutableMapping[str, str] | None = None
 ) -> None:
+    """Export Kconfig symbols into environment-style mappings.
+
+    Defaults to writing into ``os.environ``. Callers may pass an isolated mapping
+    when they need to scope exported ``CONFIG_*`` values to a subprocess only.
+    """
     if environ is None:
         environ = os.environ
     for symbol_name, symbol in kconfig.syms.items():
