@@ -227,7 +227,7 @@ rst_prolog = f"""
 # @see https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 # @see https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-language
-# HERMESBABY_LANGUAGE (set by `hb html/html-live/pdf/pdf-live --language`)
+# HERMESBABY_LANGUAGE (set by `hb text/html/html-live/pdf/pdf-live --language`)
 # overrides DOC__LANGUAGE for a single build.
 language = os.environ.get("HERMESBABY_LANGUAGE") or config.syms["DOC__LANGUAGE"].str_value
 locale_dirs = [config.syms["I18N__DIR_LOCALES"].str_value + '/']

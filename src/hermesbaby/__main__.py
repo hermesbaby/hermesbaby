@@ -600,6 +600,12 @@ def text(
         "--partly",
         help="Directory relative to the current working directory to build only a part of the document. ",
     ),
+    language: str = typer.Option(
+        None,
+        "--language",
+        "-l",
+        help="Override DOC__LANGUAGE for this build only (e.g. 'de'). Does not modify .hermesbaby.",
+    ),
     verbose: int = typer.Option(
         0,
         "--verbose",
@@ -609,7 +615,7 @@ def text(
     )
 ):
     """Build to format text"""
-    returncode = _build_common(ctx, part=part, builder="text", tool_name="sphinx-build")
+    returncode = _build_common(ctx, part=part, builder="text", tool_name="sphinx-build", language=language)
     sys.exit(returncode)
 
 
