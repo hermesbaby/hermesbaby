@@ -38,14 +38,14 @@ teardown() {
     assert_output --partial 'lang="en"'
 }
 
-@test "hb html --language: overrides the build language into a language-specific subfolder without touching .hermesbaby" {
+@test "hb html --language: overrides the build language into a builder-local language subfolder without touching .hermesbaby" {
 
     assert_file_not_exists ".hermesbaby"
 
     run python -m hermesbaby html -l de
     assert_success
 
-    run grep -o '<html[^>]*lang="[^"]*"' out/docs/de/html/index.html
+    run grep -o '<html[^>]*lang="[^"]*"' out/docs/html/de/index.html
     assert_success
     assert_output --partial 'lang="de"'
     assert_file_not_exists "out/docs/html/index.html"
