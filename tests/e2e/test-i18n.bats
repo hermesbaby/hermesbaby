@@ -69,8 +69,8 @@ teardown() {
     run python -m hermesbaby text --language de
     assert_success
 
-    assert_file_exist "out/text/index.txt"
-    assert_file_contains "out/text/index.txt" "Dies ist ein Absatz zum Uebersetzen."
+    assert_file_exist "out/docs/text/index.txt"
+    assert_file_contains "out/docs/text/index.txt" "Dies ist ein Absatz zum Uebersetzen."
 }
 
 @test "hb text --language en: builds source-language text output" {
@@ -78,8 +78,8 @@ teardown() {
     run python -m hermesbaby text --language en
     assert_success
 
-    assert_file_exist "out/text/index.txt"
-    assert_file_contains "out/text/index.txt" "This is a paragraph to translate."
+    assert_file_exist "out/docs/text/index.txt"
+    assert_file_contains "out/docs/text/index.txt" "This is a paragraph to translate."
 }
 
 @test "hb i18n stats: reports raw per-catalog translation coverage" {
