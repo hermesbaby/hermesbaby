@@ -149,6 +149,36 @@ def test_task_config_file(cli_runner, project_dir):
     assert index_html.exists(), f"Build output does not exist: {index_html}"
 
 
+def test_html_does_not_leak_exported_config_between_invocations(
+    cli_runner, project_dir, monkeypatch
+):
+
+    from src.hermesbaby.__main__ import app
+    from src.hermesbaby.kconfig_overrides import CFG_CONFIG_PRELOADED_MARKER
+
+    monkeypatch.delenv(CFG_CONFIG_PRELOADED_MARKER, raising=False)
+    monkeypatch.delenv("CONFIG_BUILD__DIRS__BUILD", raising=False)
+
+    result = cli_runner.invoke(app, ["new", ""])
+    assert result.exit_code == 0, "Setup failed"
+
+    result = cli_runner.invoke(app, ["html"])
+    assert result.exit_code == 0, "Initial build failed"
+    assert CFG_CONFIG_PRELOADED_MARKER not in os.environ
+    assert "CONFIG_BUILD__DIRS__BUILD" not in os.environ
+
+    build_dir = "my-own-build-dir"
+    config_file = project_dir / ".hermesbaby"
+    with config_file.open("w") as f:
+        f.write(f'CONFIG_BUILD__DIRS__BUILD="{build_dir}"' + os.linesep)
+
+    result = cli_runner.invoke(app, ["html"])
+    assert result.exit_code == 0, "Repeated build failed"
+
+    index_html = project_dir / build_dir / "html" / "index.html"
+    assert index_html.exists(), f"Build output does not exist: {index_html}"
+
+
 def test_env_var_overrides_hermesbaby_config(monkeypatch, tmp_path):
     from src.hermesbaby import __main__ as m
 

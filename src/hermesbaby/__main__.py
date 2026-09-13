@@ -252,7 +252,7 @@ def _build_common(
 
     _set_env(ctx, part_dir=part, language=language)
     child_env = os.environ.copy()
-    export_kconfig_to_env(kconfig, prefix=CFG_CONFIG_ENV_PREFIX, target_env=child_env)
+    export_kconfig_to_env(kconfig, prefix=CFG_CONFIG_ENV_PREFIX, environ=child_env)
     child_env[CFG_CONFIG_PRELOADED_MARKER] = "1"
 
     build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / (out_name or ctx.info_name)

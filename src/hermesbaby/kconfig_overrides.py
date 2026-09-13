@@ -1,4 +1,5 @@
 import os
+from collections.abc import MutableMapping
 from dataclasses import dataclass
 
 CFG_CONFIG_PRELOADED_MARKER = "HERMESBABY_CONFIG_PRELOADED"
@@ -13,11 +14,18 @@ def apply_kconfig_env_overrides(kconfig, prefix: str = "CONFIG_") -> None:
         symbol.set_value(env_value)
 
 
-def export_kconfig_to_env(kconfig, prefix: str = "CONFIG_", target_env=None) -> None:
-    if target_env is None:
-        target_env = os.environ
+def export_kconfig_to_env(
+    kconfig, prefix: str = "CONFIG_", environ: MutableMapping[str, str] | None = None
+) -> None:
+    """Export Kconfig symbols into environment-style mappings.
+
+    Defaults to writing into ``os.environ``. Callers may pass an isolated mapping
+    when they need to scope exported ``CONFIG_*`` values to a subprocess only.
+    """
+    if environ is None:
+        environ = os.environ
     for symbol_name, symbol in kconfig.syms.items():
-        target_env[f"{prefix}{symbol_name}"] = symbol.str_value
+        environ[f"{prefix}{symbol_name}"] = symbol.str_value
 
 
 @dataclass
