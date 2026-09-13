@@ -256,6 +256,8 @@ def _build_common(
     child_env[CFG_CONFIG_PRELOADED_MARKER] = "1"
 
     build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / (out_name or ctx.info_name)
+    if language:
+        build_dir /= language
     source_dir = _get_source_dir_with_part(part)
     executable = _resolve_tool(tool_name)
 
