@@ -21,7 +21,7 @@ setup_file() {
 }
 
 setup() {
-    rm -rf out/
+    :
 }
 
 teardown() {
