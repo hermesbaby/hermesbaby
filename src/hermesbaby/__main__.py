@@ -30,12 +30,18 @@ from pathlib import Path
 from typing import List, Optional
 
 import typer
+from hermesbaby.kconfig_overrides import (
+    CFG_CONFIG_PRELOADED_MARKER,
+    apply_kconfig_env_overrides,
+    export_kconfig_to_env,
+)
 
 __version__ = importlib.metadata.version("hermesbaby")
 
 logger = logging.getLogger(__name__)
 
 CFG_CONFIG_CUSTOM_FILE = ".hermesbaby"
+CFG_CONFIG_ENV_PREFIX = "CONFIG_"
 
 
 def _lazy_import_git():
@@ -165,6 +171,8 @@ def _load_config():
     else:
         logger.info("There is no '{hermesbaby__config_file}'. Using default config.")
 
+    apply_kconfig_env_overrides(kconfig, prefix=CFG_CONFIG_ENV_PREFIX)
+
 
 def _validate_part_path(part: str, source_dir: Path) -> None:
     """Validate that the part path exists and is a directory."""
@@ -243,6 +251,9 @@ def _build_common(
         _validate_part_path(part, source_dir)
 
     _set_env(ctx, part_dir=part, language=language)
+    child_env = os.environ.copy()
+    export_kconfig_to_env(kconfig, prefix=CFG_CONFIG_ENV_PREFIX, target_env=child_env)
+    child_env[CFG_CONFIG_PRELOADED_MARKER] = "1"
 
     build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / (out_name or ctx.info_name)
     source_dir = _get_source_dir_with_part(part)
@@ -290,7 +301,8 @@ def _build_common(
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                bufsize=1  # Line buffered
+                bufsize=1,  # Line buffered
+                env=child_env,
             )
 
             import select

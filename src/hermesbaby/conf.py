@@ -26,11 +26,11 @@ import runpy
 import subprocess
 import sys
 
-import kconfiglib
 import requests
 import shutil
 import urllib3
 import yaml
+from hermesbaby.config_runtime import build_config_compat_from_env
 from docutils import nodes
 from sphinx.addnodes import tabular_col_spec
 from sphinx.builders.latex.util import ExtBabel
@@ -66,29 +66,22 @@ app_setups = []
 
 
 ### Import project configuration ##############################################
-# @see https://www.kernel.org/doc/html/next/kbuild/kconfig-language.html
 
-kconfig = kconfiglib.Kconfig()
-
-hermesbaby_config_file = os.path.join(_cwd_realpath, ".hermesbaby")
-
-if os.path.exists(hermesbaby_config_file):
-    kconfig.load_config(hermesbaby_config_file)
-    logger.info(f"Using configuration {hermesbaby_config_file}")
-else:
-    logger.info(
-        f"There is no '{hermesbaby_config_file}', therefore using default configuration values. You may call 'hb configure' to create a custom configuration."
+config = build_config_compat_from_env()
+if not config.syms:
+    raise RuntimeError(
+        "No HermesBaby CONFIG_* values found in environment. Run Sphinx via `hb` commands."
     )
 
 
 ### PATHS #####################################################################
 
 _src_realpath = os.path.realpath(
-    os.path.join(_cwd_realpath, kconfig.syms["BUILD__DIRS__SOURCE"].str_value)
+    os.path.join(_cwd_realpath, config.syms["BUILD__DIRS__SOURCE"].str_value)
 )
 
 _config_realpath = os.path.realpath(
-    os.path.join(_cwd_realpath, kconfig.syms["BUILD__DIRS__CONFIG"].str_value)
+    os.path.join(_cwd_realpath, config.syms["BUILD__DIRS__CONFIG"].str_value)
 )
 
 
@@ -109,7 +102,7 @@ def winning_config_realpath(filename: str) -> str:
 ### SPHINX CONFIGURATION (GENERAL) ############################################
 # @see https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-# The configuration values shall be placed in the same order as they are placed kconfig\.syms\["DOC__PROJECT"\]in the documenting manual.
+# The configuration values shall be placed in the same order as they are placed in the documenting manual.
 # The documenting chapter of the manual shall be reflected by a section in this config file.
 # The hyperlink to that chapter shall be placed in the very first line of that section.
 
@@ -192,14 +185,14 @@ _commit = _git_repo_version
 if "" == _commit:
     _commit = _git_commit_sha_short
 
-project = kconfig.syms["DOC__PROJECT"].str_value
-author = kconfig.syms["DOC__AUTHOR"].str_value
+project = config.syms["DOC__PROJECT"].str_value
+author = config.syms["DOC__AUTHOR"].str_value
 copyright = (
-    f"{kconfig.syms['DOC__YEAR'].str_value}, {kconfig.syms['DOC__AUTHOR'].str_value}"
+    f"{config.syms['DOC__YEAR'].str_value}, {config.syms['DOC__AUTHOR'].str_value}"
 )
 
 
-_confidential_level = f"{kconfig.syms['DOC__CONFIDENTIALITY_LEVEL_LABEL'].str_value}: {kconfig.syms['DOC__CONFIDENTIALITY_LEVEL'].str_value}"
+_confidential_level = f"{config.syms['DOC__CONFIDENTIALITY_LEVEL_LABEL'].str_value}: {config.syms['DOC__CONFIDENTIALITY_LEVEL'].str_value}"
 
 ### Construct meta-data header:
 
@@ -235,9 +228,9 @@ rst_prolog = f"""
 
 # @see https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-language
 # HERMESBABY_LANGUAGE (set by `hb html/html-live/pdf/pdf-live --language`)
-# overrides DOC__LANGUAGE for a single build without touching .hermesbaby.
-language = os.environ.get("HERMESBABY_LANGUAGE") or kconfig.syms["DOC__LANGUAGE"].str_value
-locale_dirs = [kconfig.syms["I18N__DIR_LOCALES"].str_value + '/']
+# overrides DOC__LANGUAGE for a single build.
+language = os.environ.get("HERMESBABY_LANGUAGE") or config.syms["DOC__LANGUAGE"].str_value
+locale_dirs = [config.syms["I18N__DIR_LOCALES"].str_value + '/']
 gettext_compact = False
 
 templates_path = [
@@ -260,7 +253,7 @@ def _exclude_any_depth(dir, ext=""):
 # Hermesbaby focuses on (Myst) Markdown and declares reSTructured text
 # as obsolete
 exclude_patterns = [
-    kconfig.syms["BUILD__DIRS__BUILD"].str_value + "/**",
+    config.syms["BUILD__DIRS__BUILD"].str_value + "/**",
     "README.md",
     *_exclude_any_depth(".git"),
     *_exclude_any_depth(".venv"),
@@ -268,7 +261,7 @@ exclude_patterns = [
     *_exclude_any_depth("_attachments"),
     *_exclude_any_depth("_listings"),
     *_exclude_any_depth("_unused"),
-    *_exclude_any_depth(kconfig.syms["I18N__DIR_LOCALES"].str_value),
+    *_exclude_any_depth(config.syms["I18N__DIR_LOCALES"].str_value),
 ]
 
 ## Let's expand `some string` to `some string` instead of *some string*
@@ -314,7 +307,7 @@ if "sphinx_material" == html_theme:  ###########################################
 
     html_theme_options = {
         "repo_name": "Code",
-        "globaltoc_depth": int(kconfig.syms["STYLING__GLOBALTOC_DEPTH"].str_value),
+        "globaltoc_depth": int(config.syms["STYLING__GLOBALTOC_DEPTH"].str_value),
         "globaltoc_collapse": "true",
         "globaltoc_includehidden": "true",
         # "localtoc_label_text": "Seiteninhalt",
@@ -323,24 +316,24 @@ if "sphinx_material" == html_theme:  ###########################################
 
     ## repo_url ###########################################
     html_theme_options["repo_url"] = (
-        f"https://{kconfig.syms['SCM__HOST'].str_value}/{kconfig.syms['SCM__OWNER_KIND'].str_value}/{kconfig.syms['SCM__OWNER'].str_value}/repos/{kconfig.syms['SCM__REPO'].str_value}/browse"
+        f"https://{config.syms['SCM__HOST'].str_value}/{config.syms['SCM__OWNER_KIND'].str_value}/{config.syms['SCM__OWNER'].str_value}/repos/{config.syms['SCM__REPO'].str_value}/browse"
     )
 
-    if "" != kconfig.syms["SCM__REPO__URL_GIT_CLIENT"].str_value:
-        html_theme_options["repo_url"] = kconfig.syms[
+    if "" != config.syms["SCM__REPO__URL_GIT_CLIENT"].str_value:
+        html_theme_options["repo_url"] = config.syms[
             "SCM__REPO__URL_GIT_CLIENT"
         ].str_value
 
     ## nav_title ##########################################
-    html_theme_options["nav_title"] = kconfig.syms["DOC__TITLE"].str_value
+    html_theme_options["nav_title"] = config.syms["DOC__TITLE"].str_value
 
-    if "" != kconfig.syms["STYLING__COLOR_PRIMARY"].str_value:
-        html_theme_options["color_primary"] = kconfig.syms[
+    if "" != config.syms["STYLING__COLOR_PRIMARY"].str_value:
+        html_theme_options["color_primary"] = config.syms[
             "STYLING__COLOR_PRIMARY"
         ].str_value
 
-    if "" != kconfig.syms["STYLING__COLOR_ACCENT"].str_value:
-        html_theme_options["color_accent"] = kconfig.syms[
+    if "" != config.syms["STYLING__COLOR_ACCENT"].str_value:
+        html_theme_options["color_accent"] = config.syms[
             "STYLING__COLOR_ACCENT"
         ].str_value
 
@@ -408,7 +401,7 @@ latex_table_style = ["longtable"]
 
 # Reuse the global ToC depth for LaTeX/PDF builds as well.
 # LaTeX mapping (tocdepth): 0=chapter, 1=section, 2=subsection, 3=subsubsection, ...
-_latex_toc_depth = max(0, int(kconfig.syms["STYLING__GLOBALTOC_DEPTH"].str_value) - 1)
+_latex_toc_depth = max(0, int(config.syms["STYLING__GLOBALTOC_DEPTH"].str_value) - 1)
 
 # Platform-specific font selection for LaTeX/PDF builds
 # Use fonts that are natively available on each platform
@@ -480,7 +473,7 @@ latex_elements = {
 
 """ + (
         "% HermesBaby: keep PDF ToC depth in sync with STYLING__GLOBALTOC_DEPTH\n"
-        "% (see Kconfig: STYLING__GLOBALTOC_DEPTH)\n"
+        "% (see CONFIG_STYLING__GLOBALTOC_DEPTH)\n"
         f"\\setcounter{{tocdepth}}{{{_latex_toc_depth}}}\n"
         f"\\setcounter{{secnumdepth}}{{{_latex_toc_depth}}}\n\n"
     ) + r"""
@@ -566,13 +559,13 @@ latex_elements = {
 """,
 }
 
-# Select LaTeX document language based on the resolved `language` (Kconfig
-# choice, or a `--language` override) so a per-invocation override is honored
+# Select LaTeX document language based on the resolved `language`
+# (from CONFIG_DOC__LANGUAGE, or a `--language` override) so a per-invocation override is honored
 # here too, not just for translation lookup.
 # This affects hyphenation/line-breaking only (does not change table generation).
 #
 # IMPORTANT: this must run for every language configured via I18N__LANGUAGES,
-# not just the two built into the DOC__LANGUAGE Kconfig choice (en/de). Any
+# not just the two built into DOC__LANGUAGE (en/de). Any
 # language left without an explicit \selectlanguage here never gets one, so
 # babel's \languagename stays at its uninitialized "nil" placeholder when our
 # custom "tableofcontents" hook (which localizes the LoF/LoT captions) runs
@@ -974,7 +967,7 @@ def sanitize_filename(internal_string):
     return safe_string
 
 
-_pdf_basename = sanitize_filename(kconfig.syms["DOC__TITLE"].str_value)
+_pdf_basename = sanitize_filename(config.syms["DOC__TITLE"].str_value)
 
 # Make _pdf_basename available in html templates
 html_context["_pdf_basename"] = _pdf_basename
@@ -1002,7 +995,7 @@ latex_documents = [
     (
         "index",
         f"{_pdf_basename}.tex",
-        handle_latex_special_chars(kconfig.syms["DOC__TITLE"].str_value),
+        handle_latex_special_chars(config.syms["DOC__TITLE"].str_value),
         author,
         "manual",
     )
@@ -1041,7 +1034,7 @@ def _add_files_to_output_folder(app):
             template_env = jinja2.Environment(loader=template_loader)
             template = template_env.get_template("index.html.jinja")
             rendered_content = template.render(
-                title=kconfig.syms["DOC__TITLE"].str_value,
+                title=config.syms["DOC__TITLE"].str_value,
                 basename=_pdf_basename
             )
             with open(dst_file, "w", encoding="utf-8") as f_dst:
@@ -1368,11 +1361,11 @@ if builder == 'latex':
 extensions.append("sphinx.ext.extlinks")
 
 extlinks = {
-    "jira": (kconfig.syms["LINK_PATTERNS__JIRA"].str_value, "%s"),
-    "issue": (kconfig.syms["LINK_PATTERNS__ISSUE"].str_value, "%s"),
-    "repo": (kconfig.syms["LINK_PATTERNS__REPO"].str_value, "%s"),
-    "job": (kconfig.syms["LINK_PATTERNS__JOB"].str_value, "%s"),
-    "user": (kconfig.syms["LINK_PATTERNS__USER"].str_value, "%s"),
+    "jira": (config.syms["LINK_PATTERNS__JIRA"].str_value, "%s"),
+    "issue": (config.syms["LINK_PATTERNS__ISSUE"].str_value, "%s"),
+    "repo": (config.syms["LINK_PATTERNS__REPO"].str_value, "%s"),
+    "job": (config.syms["LINK_PATTERNS__JOB"].str_value, "%s"),
+    "user": (config.syms["LINK_PATTERNS__USER"].str_value, "%s"),
 }
 
 extlinks_detect_hardcoded_links = False
@@ -1565,9 +1558,9 @@ def _intersphinx__workaround_corporate_ssl_certificates():
 intersphinx_mapping = None
 
 _intersphinx_config_path = os.path.join(_src_realpath, "cross-doc-ref.config.yaml")
-_intersphinx_user = (kconfig.syms["PUBLISH__CROSS_REFERENCES__USER"].str_value,) or None
+_intersphinx_user = (config.syms["PUBLISH__CROSS_REFERENCES__USER"].str_value,) or None
 _intersphinx_password = (
-    kconfig.syms["PUBLISH__CROSS_REFERENCES__PASSWORD"].str_value,
+    config.syms["PUBLISH__CROSS_REFERENCES__PASSWORD"].str_value,
 ) or None
 
 _intersphinx_config_as_yaml = None
@@ -1926,7 +1919,7 @@ myst_substitutions = {}
 
 myst_substitutions_from_config = {
     f"CONFIG_{key}": symbol.str_value
-    for key, symbol in kconfig.syms.items()
+    for key, symbol in config.syms.items()
     if symbol.visibility
 }
 
@@ -2052,7 +2045,7 @@ extensions.append("hermesbaby.toctree-only")
 
 
 config_as_dict = {
-    key: symbol.str_value for key, symbol in kconfig.syms.items() if symbol.visibility
+    key: symbol.str_value for key, symbol in config.syms.items() if symbol.visibility
 }
 
 

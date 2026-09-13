@@ -149,6 +149,23 @@ def test_task_config_file(cli_runner, project_dir):
     assert index_html.exists(), f"Build output does not exist: {index_html}"
 
 
+def test_env_var_overrides_hermesbaby_config(monkeypatch, tmp_path):
+    from src.hermesbaby import __main__ as m
+
+    old_kconfig = m._kconfig
+    try:
+        m._kconfig = None
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / ".hermesbaby").write_text('CONFIG_BUILD__DIRS__BUILD="from-file"\n')
+        monkeypatch.setenv("CONFIG_BUILD__DIRS__BUILD", "from-env")
+
+        m._load_config()
+
+        assert m._get_kconfig().syms["BUILD__DIRS__BUILD"].str_value == "from-env"
+    finally:
+        m._kconfig = old_kconfig
+
+
 @pytest.mark.skipif(sys.platform != "linux", reason="Install test only runs on Linux")
 def test_task_install(cli_runner):
 
@@ -303,4 +320,3 @@ def test_globaltoc_depth_custom(cli_runner, project_dir):
     index_html = html_files[0]
     # Verify that the build succeeded with custom configuration
     assert index_html.exists(), "HTML output should exist with custom globaltoc_depth"
-
