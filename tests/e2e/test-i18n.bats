@@ -64,22 +64,24 @@ teardown() {
     assert_success
 }
 
-@test "hb text --language de: builds translated text output" {
+@test "hb text --language de: builds translated text output in a language-specific subfolder" {
 
     run python -m hermesbaby text --language de
     assert_success
 
-    assert_file_exist "out/docs/text/index.txt"
-    assert_file_contains "out/docs/text/index.txt" "Dies ist ein Absatz zum Uebersetzen."
+    assert_file_exist "out/docs/de/text/index.txt"
+    assert_file_contains "out/docs/de/text/index.txt" "Dies ist ein Absatz zum Uebersetzen."
+    assert_file_not_exist "out/docs/text/index.txt"
 }
 
-@test "hb text --language en: builds source-language text output" {
+@test "hb text --language en: builds source-language text output in a language-specific subfolder" {
 
     run python -m hermesbaby text --language en
     assert_success
 
-    assert_file_exist "out/docs/text/index.txt"
-    assert_file_contains "out/docs/text/index.txt" "This is a paragraph to translate."
+    assert_file_exist "out/docs/en/text/index.txt"
+    assert_file_contains "out/docs/en/text/index.txt" "This is a paragraph to translate."
+    assert_file_not_exist "out/docs/text/index.txt"
 }
 
 @test "hb i18n stats: reports raw per-catalog translation coverage" {
