@@ -255,7 +255,8 @@ def _build_common(
     export_kconfig_to_env(kconfig, prefix=CFG_CONFIG_ENV_PREFIX, environ=child_env)
     child_env[CFG_CONFIG_PRELOADED_MARKER] = "1"
 
-    build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / (out_name or ctx.info_name)
+    legacy_build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / (out_name or ctx.info_name)
+    build_dir = legacy_build_dir
     if language:
         build_dir /= language
     source_dir = _get_source_dir_with_part(part)
@@ -283,6 +284,9 @@ def _build_common(
         command.extend(extra_args)
 
     typer.echo(" ".join(shlex.quote(a) for a in command))
+
+    if language and builder == "html":
+        (legacy_build_dir / "index.html").unlink(missing_ok=True)
 
     # Create log directory if it doesn't exist
     build_dir.mkdir(parents=True, exist_ok=True)
