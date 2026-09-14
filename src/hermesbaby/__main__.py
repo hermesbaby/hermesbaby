@@ -256,6 +256,8 @@ def _build_common(
     child_env[CFG_CONFIG_PRELOADED_MARKER] = "1"
 
     build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / (out_name or ctx.info_name)
+    if language:
+        build_dir = Path(build_dir) / language
     source_dir = _get_source_dir_with_part(part)
     executable = _resolve_tool(tool_name)
 
@@ -600,6 +602,12 @@ def text(
         "--partly",
         help="Directory relative to the current working directory to build only a part of the document. ",
     ),
+    language: str = typer.Option(
+        None,
+        "--language",
+        "-l",
+        help="Override DOC__LANGUAGE for this build only (e.g. 'de'). Does not modify .hermesbaby.",
+    ),
     verbose: int = typer.Option(
         0,
         "--verbose",
@@ -609,7 +617,7 @@ def text(
     )
 ):
     """Build to format text"""
-    returncode = _build_common(ctx, part=part, builder="text", tool_name="sphinx-build")
+    returncode = _build_common(ctx, part=part, builder="text", tool_name="sphinx-build", language=language)
     sys.exit(returncode)
 
 

@@ -123,18 +123,17 @@ build() {
             [ "${CONFIG_PUBLISH__CREATE_AND_EMBED_PDF:-n}" == "y" ] || return 0
 
             echo "### Building HermesBaby project to PDF in $PWD"
-            # `hb pdf` always (re-)writes to the same $CONFIG_BUILD__DIRS__BUILD/pdf.
-            # When building per language, wipe it first so stale .doctrees/.aux/.toc
-            # state from the previous language's build can't leak into this one
-            # (e.g. leftover babel/TOC state causing bogus babel language errors).
-            rm -rf "$CONFIG_BUILD__DIRS__BUILD"/pdf
+            local pdf_dir="$CONFIG_BUILD__DIRS__BUILD/pdf"
+            [ -n "$lang" ] && pdf_dir="$pdf_dir/$lang"
+            # `hb pdf` always (re-)writes to the same $pdf_dir, so wipe it first.
+            rm -rf "$pdf_dir"
             if [ -n "$lang" ]; then
                 hb pdf --language "$lang"
             else
                 hb pdf
             fi
-            pdf_file=$(basename $(ls "$CONFIG_BUILD__DIRS__BUILD"/pdf/*.tex) .tex).pdf
-            cp "$CONFIG_BUILD__DIRS__BUILD"/pdf/$pdf_file "$target_html_dir"
+            pdf_file=$(basename $(ls "$pdf_dir"/*.tex) .tex).pdf
+            cp "$pdf_dir/$pdf_file" "$target_html_dir"
         }
 
         # Parse CONFIG_I18N__LANGUAGES ("fr, de, en" or empty) into an array
@@ -152,27 +151,27 @@ build() {
             hb html
             build_and_embed_pdf "$html_dir"
         else
-            # Build one HTML tree per language into "html/<lang>/", since
-            # `hb html --language <lang>` always (re-)writes to the same
-            # $html_dir. Stage each language's output before assembling.
-            staging="$CONFIG_BUILD__DIRS__BUILD/.html_i18n_staging"
-            rm -rf "$staging"
-            mkdir -p "$staging"
+            # `hb html --language <lang>` writes each language's tree into
+            # its own "html/<lang>/" subdirectory. Build all languages
+            # concurrently via run_parallel.sh.
+            source "$(dirname -- "${BASH_SOURCE[0]}")/run_parallel.sh"
+            export -f build_and_embed_pdf
+            export CONFIG_PUBLISH__CREATE_AND_EMBED_PDF CONFIG_BUILD__DIRS__BUILD
 
+            lang_commands=()
             for lang in "${LANGUAGES[@]}"; do
-                rm -rf "$html_dir"
-                hb html --language "$lang"
-                build_and_embed_pdf "$html_dir" "$lang"
-                mv "$html_dir" "$staging/$lang"
+                lang_html_dir="$html_dir/$lang"
+                rm -rf "$lang_html_dir"
+                printf -v lang_command 'hb html --language %q && build_and_embed_pdf %q %q' \
+                    "$lang" "$lang_html_dir" "$lang"
+                lang_commands+=("$lang_command")
             done
 
-            rm -rf "$html_dir"
-            mv "$staging" "$html_dir"
+            run_parallel "${lang_commands[@]}" || exit "$?"
 
             # Provide a top-level .htaccess for the assembled multi-language
             # tree: every per-language build writes an identical .htaccess
-            # into $html_dir before being staged into its own subfolder, so
-            # reuse the first language's copy.
+            # into its own subfolder, so reuse the first language's copy.
             first_lang="${LANGUAGES[0]}"
             cp "$html_dir/$first_lang/.htaccess" "$html_dir/.htaccess"
         fi
