@@ -152,13 +152,22 @@ build() {
             build_and_embed_pdf "$html_dir"
         else
             # `hb html --language <lang>` writes each language's tree into
-            # its own "html/<lang>/" subdirectory.
+            # its own "html/<lang>/" subdirectory. Build all languages
+            # concurrently via run_parallel.sh.
+            source "$(dirname -- "${BASH_SOURCE[0]}")/run_parallel.sh"
+            export -f build_and_embed_pdf
+            export CONFIG_PUBLISH__CREATE_AND_EMBED_PDF CONFIG_BUILD__DIRS__BUILD
+
+            lang_commands=()
             for lang in "${LANGUAGES[@]}"; do
                 lang_html_dir="$html_dir/$lang"
                 rm -rf "$lang_html_dir"
-                hb html --language "$lang"
-                build_and_embed_pdf "$lang_html_dir" "$lang"
+                printf -v lang_command 'hb html --language %q && build_and_embed_pdf %q %q' \
+                    "$lang" "$lang_html_dir" "$lang"
+                lang_commands+=("$lang_command")
             done
+
+            run_parallel "${lang_commands[@]}" || exit "$?"
 
             # Provide a top-level .htaccess for the assembled multi-language
             # tree: every per-language build writes an identical .htaccess
