@@ -83,6 +83,8 @@ prepare_test_dir() {
     assert_output --regexp $'(^|\n)\./?en/the_default_title\.pdf($|\n)'  # Contains /en/the_default_title.pdf
 
     assert_output --regexp $'(^|\n)\./?\.htaccess($|\n)'  # Contains /.htaccess
+
+    refute_output --regexp $'(^|\n)\./?index\.html($|\n)'  # Does not contain /index.html
 }
 
 @test "c-one-language" {
@@ -104,5 +106,7 @@ prepare_test_dir() {
     assert_output --regexp $'(^|\n)\./?de/the_default_title\.pdf($|\n)'  # Contains /de/the_default_title.pdf
 
     assert_output --regexp $'(^|\n)\./?\.htaccess($|\n)'  # Contains /.htaccess
+
+    refute_output --regexp $'(^|\n)\./?index\.html($|\n)'  # Does not contain /index.html
 }
 

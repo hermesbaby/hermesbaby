@@ -109,8 +109,6 @@ build() {
         source .hermesbaby
 
         mkdir -p "$CONFIG_BUILD__DIRS__BUILD"/html
-        touch "$CONFIG_BUILD__DIRS__BUILD"/html/index.html
-        ls "$CONFIG_BUILD__DIRS__BUILD"/html/
 
         # Build optionally PDF and copy it into a HTML tree.
         # The switch CONFIG_PUBLISH__CREATE_AND_EMBED_PDF may come from
