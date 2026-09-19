@@ -1,0 +1,12 @@
+Title of Root Document
+**********************
+
+This is the introduction of the root document.
+
+* Title of Document A
+
+
+First Chapter
+=============
+
+This is the first chapter's own content.

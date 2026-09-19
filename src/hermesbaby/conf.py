@@ -1224,6 +1224,19 @@ if config.syms["DOC__TOCTREE_MODE_FILESYSTEM"].str_value == 'y':
     app_setups.append(setup_app__filesystem_toc_drop_manual_toctrees)
 
 
+### Always render a document's toctree right before its first chapter ########
+# Regardless of toctree mode (directive or filesystem), and regardless of
+# where in the doctree the toctree node(s) ended up.
+# @see hermesbaby/toctree_placement.py
+
+def setup_app__normalize_toctree_placement(app):
+    from hermesbaby.toctree_placement import NormalizeToctreePlacement
+
+    app.add_transform(NormalizeToctreePlacement)
+
+app_setups.append(setup_app__normalize_toctree_placement)
+
+
 ### Manage todos with "todo" ##################################################
 # @see https://www.sphinx-doc.org/en/master/usage/extensions/todo.html
 
