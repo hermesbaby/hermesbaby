@@ -1,0 +1,5 @@
+root: index
+entries:
+- file: normal/index
+  entries:
+  - file: normal/child

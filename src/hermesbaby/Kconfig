@@ -36,6 +36,24 @@ config DOC__PROJECT
     default "The Default Project"
 
 
+config DOC__TOCTREE_MODE
+    string
+    default "directive"  if DOC__TOCTREE_MODE_DIRECTIVE
+    default "filesystem" if DOC__TOCTREE_MODE_FILESYSTEM
+
+    choice
+        prompt "Toctree Definition"
+        default DOC__TOCTREE_MODE_DIRECTIVE
+
+    config DOC__TOCTREE_MODE_DIRECTIVE
+        bool "By directive ```{toctree}"
+
+    config DOC__TOCTREE_MODE_FILESYSTEM
+        bool "By files, folders and frontmatters"
+
+    endchoice
+
+
 config DOC__LANGUAGE
     string
     default "en" if DOC_LANGUAGE_ENGLISH

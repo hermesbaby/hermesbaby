@@ -1,0 +1,28 @@
+root: index
+entries:
+- file: folder-a/index
+  entries:
+  - file: folder-a/x
+  options:
+    hidden: true
+    caption: Folder A
+- file: folder-b/index
+  entries:
+  - file: folder-b/y
+  options:
+    hidden: false
+    caption: Folder B
+- file: folder-c/overview
+  entries:
+  - file: folder-c/z
+  options:
+    maxdepth: 2
+- file: folder-d/index
+  entries:
+  - file: folder-d/sub/index
+    entries:
+    - file: folder-d/sub/w
+    options:
+      titlesonly: true
+  options:
+    numbered: true

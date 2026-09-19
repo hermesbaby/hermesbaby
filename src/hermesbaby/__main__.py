@@ -287,6 +287,8 @@ def _build_common(
     # Create log directory if it doesn't exist
     build_dir.mkdir(parents=True, exist_ok=True)
 
+    _generate_filesystem_toc(kconfig, source_dir, build_dir)
+
     # Open log files
     console_log = build_dir / "console.log"
     stdout_log = build_dir / "stdout.log"
@@ -358,6 +360,45 @@ def _build_common(
     except subprocess.CalledProcessError as e:
         # Exit gracefully without showing traceback
         sys.exit(e.returncode)
+
+def _generate_filesystem_toc(kconfig, source_dir: Path, build_dir: Path) -> None:
+    """Generate _toc.yml in the build dir when the filesystem toctree mode is enabled.
+
+    Does nothing unless DOC__TOCTREE_MODE_FILESYSTEM is set. Otherwise:
+
+    1. Derives the filesystem structure via sphinx-etoc, e.g.:
+       sphinx-etoc from-project docs > out/docs/text/_toc.yml
+    2. Prunes entries that conf.py's exclude_patterns would exclude from the
+       Sphinx build (e.g. a downward-compatibility README.md), since
+       sphinx-etoc knows nothing about them and Sphinx would otherwise fail
+       with a "toctree contains reference to nonexisting document" warning.
+    3. Merges in the sphinx-external-toc options (title, options:
+       caption/hidden/maxdepth/...) declared in the "toctree" frontmatter
+       block of each *.md file, since those cannot be derived from the
+       filesystem layout. See hermesbaby.filesystem_toc.
+    """
+    if kconfig.syms["DOC__TOCTREE_MODE_FILESYSTEM"].str_value != "y":
+        return
+
+    import yaml
+
+    from hermesbaby.exclude_patterns import compute_exclude_patterns
+    from hermesbaby.filesystem_toc import apply_frontmatter_options, prune_excluded_entries
+
+    executable = _resolve_tool("sphinx-etoc")
+    command = [executable, "from-project", str(source_dir)]
+    toc_file = build_dir / "_toc.yml"
+
+    result = subprocess.run(command, check=True, capture_output=True, text=True)
+    toc_data = yaml.safe_load(result.stdout)
+
+    exclude_patterns = compute_exclude_patterns(kconfig)
+    prune_excluded_entries(toc_data, source_dir, exclude_patterns)
+    apply_frontmatter_options(toc_data, source_dir, exclude_patterns)
+
+    with open(toc_file, "w", encoding="utf-8") as f_toc:
+        yaml.safe_dump(toc_data, f_toc, sort_keys=False)
+
 
 def _tools_load_external_tools() -> dict:
     file_path = _get_resource_path("external_tools.json")

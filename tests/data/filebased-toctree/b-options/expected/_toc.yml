@@ -1,0 +1,23 @@
+root: index
+entries:
+- file: null-toctree
+- file: numbered-int-style-list
+  options:
+    numbered: 2
+    style:
+    - romanupper
+    - alphalower
+- file: plain
+- file: title-only
+  title: Custom Title Only
+- file: unrelated
+title: Custom Root Title
+options:
+  caption: Root Caption
+  hidden: true
+  maxdepth: 2
+  numbered: true
+  reversed: true
+  titlesonly: true
+  style: alphaupper
+  restart_numbering: true

@@ -241,28 +241,12 @@ html_context = {}
 
 source_suffix = [".rst", ".md", ".ipynb"]
 
-def _exclude_any_depth(dir, ext=""):
-    return [
-        f"{dir}/*{ext}",
-        f"{dir}/**/*{ext}",
-        f"**/{dir}/*{ext}",
-        f"**/{dir}/**/*{ext}"
-    ]
-
 # Any .rst files place here to be downward compatible.
 # Hermesbaby focuses on (Myst) Markdown and declares reSTructured text
 # as obsolete
-exclude_patterns = [
-    config.syms["BUILD__DIRS__BUILD"].str_value + "/**",
-    "README.md",
-    *_exclude_any_depth(".git"),
-    *_exclude_any_depth(".venv"),
-    *_exclude_any_depth("_attachments"),
-    *_exclude_any_depth("_attachments"),
-    *_exclude_any_depth("_listings"),
-    *_exclude_any_depth("_unused"),
-    *_exclude_any_depth(config.syms["I18N__DIR_LOCALES"].str_value),
-]
+from hermesbaby.exclude_patterns import compute_exclude_patterns
+
+exclude_patterns = compute_exclude_patterns(config)
 
 ## Let's expand `some string` to `some string` instead of *some string*
 default_role = "code"
@@ -1213,6 +1197,24 @@ if False:
 # @see https://sphinx-copybutton.readthedocs.io
 
 extensions.append("sphinx_copybutton")
+
+
+### Manage document hierarchy w/o the need of toctree directives ##############
+# @see https://sphinx-external-toc.readthedocs.io/en/latest/
+
+if config.syms["DOC__TOCTREE_MODE_FILESYSTEM"].str_value == 'y':
+
+    extensions.append("sphinx_external_toc")
+
+    use_multitoc_numbering = True  # optional, default: True
+    # The TOC is generated dynamically in the build output directory before
+    # Sphinx processes the external TOC. ``app.builder.outdir`` is unavailable
+    # while conf.py is evaluated, so resolve the configured output directory here.
+    _build_realpath = os.path.realpath(
+        os.path.join(_cwd_realpath, config.syms["BUILD__DIRS__BUILD"].str_value, os.environ.get("HERMESBABY_COMMAND", ""))
+    )
+    external_toc_path = os.path.join(_build_realpath, "_toc.yml")  # optional, default: _toc.yml
+    external_toc_exclude_missing = False  # optional, default: False
 
 
 ### Manage todos with "todo" ##################################################

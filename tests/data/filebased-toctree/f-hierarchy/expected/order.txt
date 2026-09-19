@@ -1,0 +1,7 @@
+index
+b-top-file
+1-should-still-be-last-folder/index
+2-second-folder/index
+2-second-folder/child
+2-second-folder/sub/index
+2-second-folder/sub/grandchild
