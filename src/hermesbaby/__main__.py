@@ -33,6 +33,7 @@ import typer
 from hermesbaby.kconfig_overrides import (
     CFG_CONFIG_PRELOADED_MARKER,
     apply_kconfig_env_overrides,
+    build_config_compat_from_env,
     export_kconfig_to_env,
 )
 
@@ -42,6 +43,10 @@ logger = logging.getLogger(__name__)
 
 CFG_CONFIG_CUSTOM_FILE = ".hermesbaby"
 CFG_CONFIG_ENV_PREFIX = "CONFIG_"
+
+# Name of the hidden CLI command used as a sphinx-autobuild `--pre-build` hook.
+# See `_generate_filesystem_toc` and `internal_regenerate_filesystem_toc`.
+_REGENERATE_FILESYSTEM_TOC_COMMAND = "internal-regenerate-filesystem-toc"
 
 
 def _lazy_import_git():
@@ -277,6 +282,25 @@ def _build_common(
 
     for _ in range(verbose):
         command.insert(1, "-v")
+
+    # In filesystem toctree mode, sphinx-autobuild would otherwise keep
+    # rebuilding against the _toc.yml generated once before this loop
+    # started: a file added/removed/renamed during the live session never
+    # gets reflected, and Sphinx then fails (via -W) on "document isn't
+    # included in any toctree". Re-derive _toc.yml before every rebuild via
+    # sphinx-autobuild's own --pre-build hook, so the live session picks up
+    # filesystem changes the same way sphinx-autobuild already does for
+    # content changes.
+    if tool_name == "sphinx-autobuild" and kconfig.syms["DOC__TOCTREE_MODE_FILESYSTEM"].str_value == "y":
+        pre_build_argv = [
+            sys.executable,
+            "-m",
+            "hermesbaby",
+            _REGENERATE_FILESYSTEM_TOC_COMMAND,
+            str(source_dir),
+            str(build_dir),
+        ]
+        command += ["--pre-build", " ".join(f'"{arg}"' for arg in pre_build_argv)]
 
     # Add extra arguments if provided
     if extra_args:
@@ -541,6 +565,24 @@ def version(
     )
 ):
     """CLI Tool hb"""
+
+
+@app.command(name=_REGENERATE_FILESYSTEM_TOC_COMMAND, hidden=True)
+def internal_regenerate_filesystem_toc(
+    source_dir: str = typer.Argument(...),
+    build_dir: str = typer.Argument(...),
+):
+    """Regenerate _toc.yml for filesystem toctree mode (internal use only).
+
+    Not meant to be run directly: `_build_common` wires this up as a
+    sphinx-autobuild `--pre-build` hook so `hb *-live` re-derives _toc.yml
+    from the current filesystem layout before every rebuild, picking up
+    files added/removed/renamed during the live session. The CONFIG_* values
+    it needs are inherited from the sphinx-autobuild process's environment
+    (exported there by `_build_common`), not re-read from `.hermesbaby`.
+    """
+    kconfig = build_config_compat_from_env(CFG_CONFIG_ENV_PREFIX)
+    _generate_filesystem_toc(kconfig, Path(source_dir), Path(build_dir))
 
 
 @app.command()
