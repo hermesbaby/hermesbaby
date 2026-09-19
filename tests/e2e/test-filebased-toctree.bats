@@ -76,19 +76,21 @@ teardown() {
     cd ..
 }
 
-# Documents a known conflict: with "filesystem" toctree mode active, a
-# source file that still contains an explicit ```{toctree}``` directive
-# (i.e. "directive" mode syntax) makes sphinx-external-toc raise "toctree
-# directive not expected with external-toc" [etoc.toctree]. hermesbaby
-# builds with -W (warn-as-error) by default, so this currently fails the
-# build rather than being ignored or merged.
+# With "filesystem" toctree mode active, a source file may still contain an
+# explicit ```{toctree}``` directive (i.e. "directive" mode syntax), e.g.
+# left over from a copy-paste. Since the document hierarchy is derived from
+# _toc.yml, such a directive is redundant. It must be tolerated and
+# neglected (silently dropped) rather than making sphinx-external-toc raise
+# "toctree directive not expected with external-toc" [etoc.toctree], which
+# hermesbaby's default -W (warn-as-error) build would otherwise turn into a
+# hard failure.
 @test "h-explicit-toctree-directive" {
 
     cd h-explicit-toctree-directive
     run python -m hermesbaby html
-    assert_failure
-    assert_output --partial "toctree directive not expected with external-toc"
-    assert_output --partial "etoc.toctree"
+    assert_success
+    refute_output --partial "toctree directive not expected with external-toc"
+    refute_output --partial "etoc.toctree"
 
     cd ..
 }

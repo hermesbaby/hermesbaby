@@ -1216,6 +1216,13 @@ if config.syms["DOC__TOCTREE_MODE_FILESYSTEM"].str_value == 'y':
     external_toc_path = os.path.join(_build_realpath, "_toc.yml")  # optional, default: _toc.yml
     external_toc_exclude_missing = False  # optional, default: False
 
+    def setup_app__filesystem_toc_drop_manual_toctrees(app):
+        from hermesbaby.filesystem_toc import DropManualToctrees
+
+        app.add_transform(DropManualToctrees)
+
+    app_setups.append(setup_app__filesystem_toc_drop_manual_toctrees)
+
 
 ### Manage todos with "todo" ##################################################
 # @see https://www.sphinx-doc.org/en/master/usage/extensions/todo.html

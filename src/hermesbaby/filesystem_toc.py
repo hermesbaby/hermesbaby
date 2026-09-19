@@ -28,6 +28,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import yaml
+from sphinx.addnodes import toctree as toctree_node
+from sphinx.transforms import SphinxTransform
 from sphinx.util.matching import Matcher
 
 _FRONTMATTER_RE = re.compile(r"\A---\s*\n(.*?\n)---\s*\n?", re.DOTALL)
@@ -162,3 +164,28 @@ def prune_excluded_entries(
     matcher = Matcher(exclude_patterns)
     _prune(toc_data, source_dir, matcher)
     return toc_data
+
+
+class DropManualToctrees(SphinxTransform):
+    """Silently drop explicit ``toctree`` directives in "filesystem" toctree mode.
+
+    In "filesystem" toctree mode, the document hierarchy is derived from
+    _toc.yml, generated from the source tree's own layout. An author may
+    still leave (or copy-paste from "directive" mode) an explicit
+    ```{toctree}``` directive in a document. Left in place,
+    sphinx-external-toc's own InsertToctrees transform (priority 100) would
+    warn "toctree directive not expected with external-toc" for it and,
+    since hermesbaby builds with warnings-as-errors, fail the build -- even
+    though the directive's content is redundant with _toc.yml and safe to
+    ignore.
+
+    Running at a lower priority than InsertToctrees removes such directives
+    from the doctree beforehand, so they are tolerated and neglected instead
+    of breaking the build.
+    """
+
+    default_priority = 90
+
+    def apply(self, **kwargs: Any) -> None:
+        for node in list(self.document.findall(toctree_node)):
+            node.parent.remove(node)
