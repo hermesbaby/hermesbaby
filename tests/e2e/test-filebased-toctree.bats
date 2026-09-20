@@ -130,3 +130,13 @@ teardown() {
 
     cd ..
 }
+
+@test "k-hierarchy-two" {
+
+    cd k-hierarchy-two
+    run python -m hermesbaby text
+    assert_success
+    assert_files_equal_ignore_eol "out/docs/text/index.txt" expected/index.txt
+
+    cd ..
+}

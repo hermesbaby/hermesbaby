@@ -390,12 +390,15 @@ def _generate_filesystem_toc(kconfig, source_dir: Path, build_dir: Path) -> None
 
     Does nothing unless DOC__TOCTREE_MODE_FILESYSTEM is set. Otherwise:
 
-    1. Derives the filesystem structure via sphinx-etoc, e.g.:
-       sphinx-etoc from-project docs > out/docs/text/_toc.yml
+    1. Derives the filesystem structure by walking source_dir, interleaving
+       files and subfolders sorted together by name (numeric-aware). See
+       hermesbaby.filesystem_toc.build_toc_from_filesystem -- this replaces
+       `sphinx-etoc from-project`, which has no option to do that and always
+       lists a folder's own files before its subfolders regardless of name.
     2. Prunes entries that conf.py's exclude_patterns would exclude from the
-       Sphinx build (e.g. a downward-compatibility README.md), since
-       sphinx-etoc knows nothing about them and Sphinx would otherwise fail
-       with a "toctree contains reference to nonexisting document" warning.
+       Sphinx build (e.g. a downward-compatibility README.md), since Sphinx
+       would otherwise fail with a "toctree contains reference to
+       nonexisting document" warning.
     3. Merges in the sphinx-external-toc options (title, options:
        caption/hidden/maxdepth/...) declared in the "toctree" frontmatter
        block of each *.md file, since those cannot be derived from the
@@ -407,14 +410,14 @@ def _generate_filesystem_toc(kconfig, source_dir: Path, build_dir: Path) -> None
     import yaml
 
     from hermesbaby.exclude_patterns import compute_exclude_patterns
-    from hermesbaby.filesystem_toc import apply_frontmatter_options, prune_excluded_entries
+    from hermesbaby.filesystem_toc import (
+        apply_frontmatter_options,
+        build_toc_from_filesystem,
+        prune_excluded_entries,
+    )
 
-    executable = _resolve_tool("sphinx-etoc")
-    command = [executable, "from-project", str(source_dir)]
     toc_file = build_dir / "_toc.yml"
-
-    result = subprocess.run(command, check=True, capture_output=True, text=True)
-    toc_data = yaml.safe_load(result.stdout)
+    toc_data = build_toc_from_filesystem(source_dir)
 
     exclude_patterns = compute_exclude_patterns(kconfig)
     prune_excluded_entries(toc_data, source_dir, exclude_patterns)

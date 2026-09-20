@@ -65,10 +65,11 @@ assert_doc_order() {
     assert_doc_order e-flat-order
 }
 
-# Folder hierarchy: a plain sibling file and a numerically-earlier-named
-# subfolder at the same level (files always come before subfolders,
-# regardless of name), a two-level-deep nested folder, and depth-first
-# traversal (a folder's own children are visited before its next sibling).
+# Folder hierarchy: a plain sibling file and numerically-earlier-named
+# subfolders at the same level sort together by name (files don't take
+# precedence over subfolders, or vice versa), a two-level-deep nested
+# folder, and depth-first traversal (a folder's own children are visited
+# before its next sibling).
 @test "f-hierarchy" {
     assert_doc_order f-hierarchy
 }

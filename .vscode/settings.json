@@ -27,6 +27,8 @@
         ".pytest_cache": true
     },
 
+    "explorer.sortOrder": "mixed",
+
     "vsicons.presets.hideExplorerArrows": true,
     "vsicons.presets.foldersAllDefaultIcon": true,
 
