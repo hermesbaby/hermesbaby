@@ -1,2 +1,4 @@
 index
+empty-wrapper/nested/index
+empty-wrapper/nested/content
 reachable

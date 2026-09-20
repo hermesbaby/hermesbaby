@@ -64,8 +64,8 @@ teardown() {
 # carrying their own "toctree" options without leaking into siblings or
 # ancestors, a folder whose index file isn't literally named "index"
 # (natural-sort fallback), and a folder containing only a subfolder (no
-# files directly inside it), which sphinx-etoc silently drops from the
-# generated _toc.yml.
+# files directly inside it), whose subfolder's own toctree node bubbles up
+# into the generated _toc.yml instead of being dropped.
 @test "c-nesting" {
 
     cd c-nesting

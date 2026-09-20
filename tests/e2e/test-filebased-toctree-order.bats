@@ -74,11 +74,10 @@ assert_doc_order() {
     assert_doc_order f-hierarchy
 }
 
-# A folder containing only a subfolder (no files of its own): sphinx-etoc
-# never descends into it, so the whole subtree -- including real content
-# further down -- is dropped from the generated document tree. The dropped
-# pages are marked "orphan: true" so the build doesn't fail on Sphinx's
-# "not included in any toctree" warning.
+# A folder containing only a subfolder (no files of its own): it has no page
+# to anchor a toctree node on, so it's transparent -- its subfolder's own
+# toctree node bubbles up directly into the parent instead of the whole
+# subtree being dropped, sorted by the subfolder's own name.
 @test "g-folder-without-files" {
     assert_doc_order g-folder-without-files
 }

@@ -26,3 +26,4 @@ entries:
       titlesonly: true
   options:
     numbered: true
+- file: folder-e/only-sub/index

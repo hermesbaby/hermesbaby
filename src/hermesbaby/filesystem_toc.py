@@ -60,8 +60,9 @@ def _build_toc_item(
     dir_path: Path, source_dir: Path, extensions: List[str], index_name: str
 ) -> Optional[Dict[str, Any]]:
     """Recursively build a _toc.yml-shaped item for dir_path, or None if
-    dir_path has no document files directly inside it (dropped along with
-    its entire subtree, same as a folder containing only subfolders).
+    dir_path has no document files directly inside it -- there is no page to
+    anchor a toctree node on. The caller (_collect_folder_entries) handles
+    that case by making dir_path transparent rather than dropping it.
 
     A file named index_name (default "index") is always the folder's own
     entry; otherwise the folder's own entry is whichever document sorts
@@ -89,9 +90,7 @@ def _build_toc_item(
     for sub_dir in dir_path.iterdir():
         if not sub_dir.is_dir() or _is_hidden(sub_dir.name):
             continue
-        sub_item = _build_toc_item(sub_dir, source_dir, extensions, index_name)
-        if sub_item is not None:
-            children.append((_natural_sort_key(sub_dir.name), sub_item))
+        children.extend(_collect_folder_entries(sub_dir, source_dir, extensions, index_name))
 
     children.sort(key=lambda pair: pair[0])
 
@@ -101,6 +100,31 @@ def _build_toc_item(
     return item
 
 
+def _collect_folder_entries(
+    dir_path: Path, source_dir: Path, extensions: List[str], index_name: str
+) -> List[Tuple[List[Any], Dict[str, Any]]]:
+    """The (sort_key, item) pairs dir_path contributes to its parent's
+    entries list.
+
+    Normally that's a single entry for dir_path's own toctree node, keyed by
+    dir_path's name. A folder with no document file directly inside it has
+    no page of its own to anchor a node on, so instead of dropping it (and
+    everything nested below it), it is treated as transparent: each of its
+    subfolders' own contributions bubbles up directly into the parent, as if
+    dir_path itself didn't exist. A folder that is transparent all the way
+    down (no document file anywhere below it) contributes nothing.
+    """
+    item = _build_toc_item(dir_path, source_dir, extensions, index_name)
+    if item is not None:
+        return [(_natural_sort_key(dir_path.name), item)]
+
+    entries: List[Tuple[List[Any], Dict[str, Any]]] = []
+    for sub_dir in dir_path.iterdir():
+        if sub_dir.is_dir() and not _is_hidden(sub_dir.name):
+            entries.extend(_collect_folder_entries(sub_dir, source_dir, extensions, index_name))
+    return entries
+
+
 def build_toc_from_filesystem(
     source_dir: Path,
     extensions: Optional[List[str]] = None,
@@ -108,15 +132,20 @@ def build_toc_from_filesystem(
 ) -> Dict[str, Any]:
     """Build a _toc.yml-shaped dict by walking source_dir's own layout.
 
-    Replaces `sphinx-etoc from-project`, which has no option to interleave
-    files and subfolders: it always lists a folder's own files before its
-    subfolders, regardless of name. This walks the tree itself so that files
-    and subfolders sort together by name (numeric-aware, e.g. "01" < "2" <
-    "10" < "aaa"), matching how a reader scanning the filesystem would expect
-    the table of contents to read.
+    Replaces `sphinx-etoc from-project`, which has two limitations this
+    doesn't share:
 
-    A folder with no document files directly inside it is dropped, along
-    with its entire subtree, same as sphinx-etoc's own behaviour.
+    - It always lists a folder's own files before its subfolders, regardless
+      of name. This walks the tree itself so that files and subfolders sort
+      together by name (numeric-aware, e.g. "01" < "2" < "10" < "aaa"),
+      matching how a reader scanning the filesystem would expect the table
+      of contents to read.
+    - It silently drops a folder with no document file directly inside it,
+      along with everything nested below it, even if a deeper subfolder has
+      real content. This instead treats such a folder as transparent: its
+      subfolders' own toctree nodes bubble up into its parent directly, so
+      nothing is lost. Only a folder with no document file anywhere below it
+      (an empty branch) contributes nothing.
     """
     extensions = extensions or _DEFAULT_EXTENSIONS
     item = _build_toc_item(source_dir, source_dir, extensions, index_name)
