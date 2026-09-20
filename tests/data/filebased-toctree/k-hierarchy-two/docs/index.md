@@ -2,7 +2,7 @@
 toctree:
     options:
         hidden: false
-        maxdepth: 10
+        maxdepth: 6
 ---
 
 # Root
@@ -14,3 +14,7 @@ toctree:
 #### Chapter II.ii.a
 ### Chapter II.iii
 ## Chapter III
+### Chapter III.i
+### Chapter III.ii
+#### Chapter III.ii.a
+### Chapter III.iii
