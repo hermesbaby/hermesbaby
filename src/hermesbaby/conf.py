@@ -2005,8 +2005,10 @@ def _ensure_requirements(requirements_file):
     if not os.path.isfile(requirements_file):
         # No requirements file, nothing to do
         return
-    import pkg_resources
-    from pkg_resources import DistributionNotFound, VersionConflict
+    from importlib.metadata import PackageNotFoundError, version
+    from importlib.util import find_spec
+    from packaging.requirements import Requirement
+    from packaging.version import Version
 
     with open(requirements_file) as f:
         required = [
@@ -2015,17 +2017,29 @@ def _ensure_requirements(requirements_file):
     if not required:
         # Empty requirements.txt
         return
-    try:
-        pkg_resources.require(required)
-    except (DistributionNotFound, VersionConflict):
-        logger.info(
-            f"[hermesbaby] Installing requirements from {requirements_file} ..."
-        )
-        subprocess.check_call(
-            [sys.executable, "-m", "pip", "install", "-r", requirements_file]
-        )
-        logger.info("[hermesbaby] Relaunching build process...")
-        os.execv(sys.executable, [sys.executable] + sys.argv)
+
+    for requirement_text in required:
+        requirement = Requirement(requirement_text)
+        if requirement.marker and not requirement.marker.evaluate():
+            continue
+        try:
+            installed_version = Version(version(requirement.name))
+        except PackageNotFoundError:
+            break
+        if installed_version not in requirement.specifier:
+            break
+    else:
+        return
+
+    logger.info(f"[hermesbaby] Installing requirements from {requirements_file} ...")
+    if find_spec("pip") is None:
+        subprocess.check_call([sys.executable, "-m", "ensurepip"])
+    subprocess.check_call(
+        [sys.executable, "-m", "pip", "install", "-r", requirements_file]
+    )
+    logger.info("[hermesbaby] Relaunching build process...")
+    os.chdir(_cwd_realpath)
+    os.execv(sys.executable, [sys.executable] + sys.argv)
 
 
 _user_conf_path = os.path.join(_config_realpath, "conf.py")
@@ -2086,6 +2100,85 @@ if _user_conf_path:
     for ext in _mock_extentions:
         if ext not in extensions:
             extensions.append(ext)
+
+
+if "sphinx_needs" in extensions:
+    needs_id_required = False
+    needs_id_regex = "^[a-zA-Z0-9_]{5,}"
+    needs_title_optional = True
+    needs_types = [
+        dict(
+            directive="uc",
+            title="UseCase",
+            prefix="uc_",
+            color="#FFFFFF",
+            style="usecase",
+        ),
+        dict(
+            directive="block",
+            title="Block",
+            prefix="block_",
+            color="#FFFFFF",
+            style="rectangle",
+        ),
+        dict(
+            directive="con",
+            title="Connection",
+            prefix="con_",
+            color="#FFFFFF",
+            style="queue",
+        ),
+        dict(
+            directive="comp",
+            title="Component",
+            prefix="comp_",
+            color="#FFFFFF",
+            style="component",
+        ),
+        dict(
+            directive="if",
+            title="Interface",
+            prefix="if_",
+            color="#FFFFFF",
+            style="interface",
+        ),
+        dict(
+            directive="constraint",
+            title="Constraint",
+            prefix="constraint_",
+            color="#FFFFFF",
+            style="boundary",
+        ),
+        dict(
+            directive="decision",
+            title="Decision",
+            prefix="decision_",
+            color="#FFFFFF",
+            style="hexagon",
+        ),
+        dict(
+            directive="concept",
+            title="Concept",
+            prefix="concept_",
+            color="#FFFFFF",
+            style="cloud",
+        ),
+        dict(
+            directive="spec",
+            title="Specification",
+            prefix="spec_",
+            color="#FFFFFF",
+            style="artifact",
+        ),
+        dict(
+            directive="req",
+            title="Requirement",
+            prefix="req_",
+            color="#FFFFFF",
+            style="artifact",
+        ),
+    ]
+    needs_role_need_template = "{title:*^20s}"
 
 
 ### Support partly builds #####################################################
