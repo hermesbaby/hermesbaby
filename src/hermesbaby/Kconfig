@@ -28,7 +28,7 @@ config DOC__AUTHOR
 
 config DOC__YEAR
     int "Year"
-    default 1976
+    default 0
 
 
 config DOC__PROJECT
