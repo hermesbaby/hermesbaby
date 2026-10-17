@@ -33,7 +33,7 @@ dependencies = [
     "windows-curses>=2.3,<3.0; sys_platform == 'win32'",
     "myst-nb>=1.1.0,<2.0.0",
     "pandas>=2.2.2,<3.0.0",
-    "pillow>=10.3.0,<11.0.0",
+    "pillow>=10.3.0,<13.0.0",
     "pip-system-certs>=4.0,<5.0",
     "pyad>=0.6.0,<0.7.0",
     "pywin32; sys_platform == 'win32'",
