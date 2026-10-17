@@ -1325,7 +1325,8 @@ append_existing_files(bibtex_bibfiles, bibtex_bibfiles_candidates)
 #
 # For techreports, online, and misc references the
 # KeyLabelStyle allows to define a custom label using the
-# 'key' field or the 'number' field
+# 'label' or 'shorthand' field (any entry type), or for these types
+# the 'key' field or the 'number' field
 #
 from pybtex.style.formatting.unsrt import Style as UnsrtStyle
 from pybtex.style.labels.alpha import LabelStyle as AlphaLabelStyle
@@ -1333,6 +1334,10 @@ from pybtex.style.labels.alpha import LabelStyle as AlphaLabelStyle
 class KeyLabelStyle(AlphaLabelStyle):
     def format_label(self, entry):
         label = super(KeyLabelStyle, self).format_label(entry)
+        for custom_field in ('label', 'shorthand'):
+            custom_label = entry.fields.get(custom_field)
+            if custom_label:
+                return custom_label
         if (entry.type in ['techreport', 'online', 'misc']):
             label = entry.fields.get('key', entry.fields.get('number', label))
         return label
