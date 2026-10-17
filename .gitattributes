@@ -2,7 +2,7 @@
 * text=auto eol=lf
 
 # Set lineendings for specific files or filetypes
-poetry.lock text eol=lf
+uv.lock text eol=lf
 *.sh text eol=lf
 
 # Windows files

@@ -3,7 +3,7 @@
 ###############################################################################
 # Local run (pwd is the repo's root):
 #
-# poetry install --with dev
+# uv sync --all-groups
 # source ./.venv/Scripts/activate
 #
 # tests/e2e/bats/bin/bats tests/e2e/test-bibliographies.bats -x --show-output-of-passing-tests
@@ -64,4 +64,3 @@ teardown() {
     assert_file_not_contains "out/docs/text/index.txt" '\[Lei17\]'
     assert_file_not_contains "out/docs/text/index.txt" 'Barry Leiba. Ambiguity of uppercase vs lowercase in rfc 2119'
 }
-

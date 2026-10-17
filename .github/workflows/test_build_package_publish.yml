@@ -10,20 +10,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Install Poetry
-      run: |
-        pip install pipx
-        pipx install poetry
-        pipx runpip poetry install poetry-dynamic-versioning
-
     - name: Checkout code
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
 
+    - name: Install uv
+      uses: astral-sh/setup-uv@v10.3.0
+      with:
+        enable-cache: true
+        python-version: "3.12"
+
     - name: Install dependencies
       run: |
-        poetry install --with dev
+        uv sync --all-groups --locked
 
     - name: Install external tools
       run: |
@@ -31,19 +31,18 @@ jobs:
 
     - name: Run unit tests
       run: |
-        poetry run pytest
+        uv run --locked pytest
 
     - name: Run e2e tests
       run: |
-        poetry run tests/e2e/bats/bin/bats --tap --verbose-run -x tests/e2e/
+        uv run --locked tests/e2e/bats/bin/bats --tap --verbose-run -x tests/e2e/
 
     - name: Build package
       run: |
-        poetry build
+        uv build --no-sources
 
     - name: Publish to PyPI
       env:
-        PYPI_USERNAME: __token__
-        PYPI_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
       run: |
-        poetry publish --username $PYPI_USERNAME --password $PYPI_PASSWORD
+        uv publish --token "$PYPI_TOKEN"

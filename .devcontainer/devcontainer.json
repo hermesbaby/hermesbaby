@@ -36,5 +36,5 @@
 		"ghcr.io/devcontainers/features/github-cli:1": {}
 	},
 
-	"postCreateCommand": "poetry install && sudo ./src/hermesbaby/ci/setup.sh"
+	"postCreateCommand": "uv sync --all-groups && sudo ./src/hermesbaby/ci/setup.sh"
 }
