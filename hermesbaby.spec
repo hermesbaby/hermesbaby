@@ -18,6 +18,7 @@
 
 import sys
 import shutil
+import re
 from pathlib import Path
 import tomllib
 from PyInstaller.utils.hooks import collect_all, collect_submodules
@@ -30,19 +31,13 @@ hermesbaby_dir = src_dir / "hermesbaby"
 # --- Read pyproject.toml ------------------------------------------
 pyproject = tomllib.loads((project_root / "pyproject.toml").read_text(encoding="utf-8"))
 
-# Runtime dependencies (ignore Python itself)
-dependencies = pyproject["tool"]["poetry"]["dependencies"]
-packages_to_collect = [pkg for pkg in dependencies.keys() if pkg.lower() != "python"]
+# Runtime dependencies
+dependencies = pyproject["project"]["dependencies"]
+packages_to_collect = [re.match(r"[\w.-]+", dep).group() for dep in dependencies]
 
 # Also include dev dependencies if desired
-dev_deps = (
-    pyproject.get("tool", {})
-             .get("poetry", {})
-             .get("group", {})
-             .get("dev", {})
-             .get("dependencies", {})
-)
-packages_to_collect += list(dev_deps.keys())
+dev_deps = pyproject.get("dependency-groups", {}).get("dev", [])
+packages_to_collect += [re.match(r"[\w.-]+", dep).group() for dep in dev_deps]
 
 # Add your own package explicitly
 packages_to_collect.append("hermesbaby")

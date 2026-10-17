@@ -162,7 +162,7 @@ install: clean-install .tools/.are-up-to-date
 
 
 .tools/.are-up-to-date:
-	$(PYTHON) -m pipx install poetry
+	$(PYTHON) -m pipx install uv
 	export PATH="$$PATH:$$HOME/.local/bin" # Works for root. Not tested for other users.
 	mkdir .tools/
 	version=1.2025.2 ; curl -L -o .tools/plantuml.jar https://github.com/plantuml/plantuml/releases/download/v$$version/plantuml-$$version.jar
@@ -170,13 +170,13 @@ install: clean-install .tools/.are-up-to-date
 
 
 .PHONY: deps-are-up-to-date
-deps-are-up-to-date: poetry.toml pyproject.toml
-	poetry update --with docs --without docs-dev
+deps-are-up-to-date: uv.lock pyproject.toml
+	uv sync --no-dev
 
 
 .PHONY: deps-are-up-to-date-dev
-deps-are-up-to-date-dev: poetry.toml pyproject.toml
-	poetry update --with docs --with docs-dev
+deps-are-up-to-date-dev: uv.lock pyproject.toml
+	uv sync --all-groups
 
 
 .PHONY: clean
@@ -187,7 +187,6 @@ clean:
 clean-install:
 	rm -rf .venv/
 	rm -rf .tools/
-	rm -f  poetry.lock
 
 
 .PHONY: _doc_build_boilerplate_files
@@ -203,7 +202,7 @@ _doc_build_boilerplate_files: \
 
 $(MAKEFILE_DIR)/.config:
 	cd $(@D) ; \
-        poetry run alldefconfig
+        uv run alldefconfig
 
 
 #$(CFG_DIR_CONFIG)/index.rst:
@@ -225,12 +224,12 @@ $(CFG_DIR_CONFIG)/webroot/.htaccess:
 
 .PHONY: configure
 configure: .tools/.are-up-to-date deps-are-up-to-date-dev
-	(cd "$(CONFIG_BUILD__DIRS__CONFIG)" ; poetry run guiconfig )
+	(cd "$(CONFIG_BUILD__DIRS__CONFIG)" ; uv run guiconfig )
 
 
 .PHONY: htaccess-update
 htaccess-update: .tools/.are-up-to-date deps-are-up-to-date-dev
-	poetry run python \
+	uv run python \
 	sphinx-contrib/web-access-ctrl/src/web_access_ctrl/create-htaccess-entries.py \
 	--yaml docs/htaccess.yaml \
 	--out docs/web_root/.htaccess \
@@ -242,7 +241,7 @@ html-live: .tools/.are-up-to-date deps-are-up-to-date-dev
 	mkdir -p "$(CFG_DIR_BUILD)/$@"
 	# Start continuous build, open browser automatically which reloads on change.
 	@echo "Building sources at $(CFG_DIR_SOURCE)"
-	poetry run sphinx-autobuild \
+	uv run sphinx-autobuild \
         -j 10 \
         -W \
         -c "$(CFG_DIR_CONFIG)" \
@@ -258,7 +257,7 @@ html-live: .tools/.are-up-to-date deps-are-up-to-date-dev
 html: .tools/.are-up-to-date deps-are-up-to-date
 	mkdir -p "$(CFG_DIR_BUILD)/$@"
 	@echo "Building sources at $(CFG_DIR_SOURCE)"
-	poetry run sphinx-build \
+	uv run sphinx-build \
         -W \
         -c "$(CFG_DIR_CONFIG)" \
         "$(CFG_DIR_SOURCE)" \
@@ -267,14 +266,14 @@ html: .tools/.are-up-to-date deps-are-up-to-date
 
 .PHONY: sanitize-refs
 sanitize-refs: .tools/.are-up-to-date deps-are-up-to-date-dev
-	poetry run $(PYTHON) sphinx-contrib/toolbox/src/toolbox/reference_sanitizer.py docs/ --force
+	uv run $(PYTHON) sphinx-contrib/toolbox/src/toolbox/reference_sanitizer.py docs/ --force
 
 
 .PHONY: pdf-live
 pdf-live: .tools/.are-up-to-date deps-are-up-to-date-dev
 	mkdir -p "$(CFG_DIR_BUILD)/$@"
 	@echo "Building sources at $(CFG_DIR_SOURCE)"
-	poetry run sphinx-autobuild \
+	uv run sphinx-autobuild \
         -j 10 \
         -W \
         -b latex \
@@ -289,7 +288,7 @@ pdf-live: .tools/.are-up-to-date deps-are-up-to-date-dev
 pdf: .tools/.are-up-to-date deps-are-up-to-date
 	mkdir -p "$(CFG_DIR_BUILD)/$@"
 	@echo "Building sources at $(CFG_DIR_SOURCE)"
-	poetry run sphinx-build \
+	uv run sphinx-build \
         -W \
         -b latex \
         -c "$(CFG_DIR_CONFIG)" \
@@ -300,7 +299,7 @@ pdf: .tools/.are-up-to-date deps-are-up-to-date
 .PHONY: redirect-check
 redirect-check: html
 	@echo "Building sources at $(CFG_DIR_SOURCE)"
-	poetry run sphinx-build \
+	uv run sphinx-build \
         -W \
         -b rediraffecheckdiff \
         -c "$(CFG_DIR_CONFIG)" \
@@ -311,7 +310,7 @@ redirect-check: html
 .PHONY: redirect-update
 redirect-update: html
 	@echo "Building sources at $(CFG_DIR_SOURCE)"
-	poetry run sphinx-build \
+	uv run sphinx-build \
         -b rediraffewritediff  \
         -c "$(CFG_DIR_CONFIG)" \
         "$(CFG_DIR_SOURCE)" \
@@ -372,7 +371,7 @@ publish-procedure: .tools/.are-up-to-date deps-are-up-to-date  html
 .PHONY: clean-publish-orphans
 clean-publish-orphans: .tools/.are-up-to-date deps-are-up-to-date-dev
 	@echo "Cleaning orphaned branches"
-	existing_branches=$$(poetry run python sphinx-contrib/atlassian-admin/get_branches.py --owner $(CFG_PUBLISH_OWNER) --repo $(CFG_PUBLISH_REPO) )
+	existing_branches=$$(uv run python sphinx-contrib/atlassian-admin/get_branches.py --owner $(CFG_PUBLISH_OWNER) --repo $(CFG_PUBLISH_REPO) )
 	chmod 600 .ci/.ssh/id_rsa
 	# Log on webserver to get the list all directories under the repository folder
 	existing_publish_directories=$$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i .ci/.ssh/id_rsa $(CFG_PUBLISH_OWNER)@$(CFG_PUBLISH_HOST) "( cd /var/www/html/$(CFG_PUBLISH_OWNER_KIND)/$(CFG_PUBLISH_OWNER)/$(CFG_PUBLISH_REPO) ; ls -d */ )" )

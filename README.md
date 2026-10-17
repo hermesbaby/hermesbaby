@@ -128,11 +128,11 @@ Happy coding specifications ;-) "
 
 ### Running End-to-End (E2E) Tests
 
-The E2E tests are written using [BATS](https://github.com/bats-core/bats-core). To run them manually, ensure you have the project dependencies installed via Poetry.
+The E2E tests are written using [BATS](https://github.com/bats-core/bats-core). To run them manually, ensure you have [uv](https://docs.astral.sh/uv/) installed and run `uv sync --all-groups`.
 
 ```bash
 # Enable the virtual environment:
-poetry install --with dev
+uv sync --all-groups
 # Set up the development environment after you have cloned the repository:
 # a) Windows (in git-bash):
 source ./.venv/Scripts/activate
@@ -142,7 +142,7 @@ source ./.venv/Scripts/activate
 # Enter the TDD-Loop:
 # 1) Run not all tests but the tests focussing on the feature you want to implement, e.g. for bibliographies:
 cd "$(pwd -P)" # Necessary in git-bash on Windows
-tests/e2e/bats/bin/bats tests/e2e/test-bibliographies.bats -x --show-output-of-passing-tests
+uv run tests/e2e/bats/bin/bats tests/e2e/test-bibliographies.bats -x --show-output-of-passing-tests
 # 2) edit your files
 code .
 # Go to 1) and repeat until you are happy with the implementation.
@@ -151,5 +151,5 @@ code .
 bcomp tests/data/bibliographies/out_1 tests/data/bibliographies/out &
 
 # After you are done, you can run all tests to check if everything is fine:
-tests/e2e/bats/bin/bats tests/e2e/ -x
+uv run tests/e2e/bats/bin/bats tests/e2e/ -x
 ```
