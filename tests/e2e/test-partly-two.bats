@@ -66,6 +66,15 @@ teardown() {
     assert_file_contains "out/docs/text/named-entry.txt" "Markdown named entry point"
 }
 
+@test "hb html --partly docs/SomeSystem/named-entry/named-entry.md with co-located index" {
+
+    run python -m hermesbaby html --partly docs/SomeSystem/named-entry/named-entry.md
+    assert_success
+
+    assert_file_exist "out/docs/html/named-entry.html"
+    assert_file_contains "out/docs/html/named-entry.html" "Markdown named entry point"
+}
+
 @test "hb text --partly docs/SomeSystem/other-entry/other-entry.rst" {
 
     run python -m hermesbaby text --partly "$PWD/docs/SomeSystem/other-entry/other-entry.rst"

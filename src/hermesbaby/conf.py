@@ -52,6 +52,9 @@ _tools_realpath = os.path.realpath(os.path.join(_conf_realpath, "tools"))
 # @see https://github.com/sphinx-doc/sphinx/issues/12300
 # @see https://github.com/sphinx-doc/sphinx/pull/12203
 suppress_warnings = ["config.cache"]
+_part_dir = os.getenv("HERMESBABY_PART_DIR")
+if _part_dir and os.path.isfile(os.path.join(_cwd_realpath, _part_dir)):
+    suppress_warnings.append("toc.not_included")
 
 import warnings
 from sphinx.deprecation import RemovedInSphinx90Warning
