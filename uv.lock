@@ -821,7 +821,6 @@ dependencies = [
     { name = "sphinx-intl" },
     { name = "sphinx-material" },
     { name = "sphinx-mdinclude" },
-    { name = "sphinx-needs" },
     { name = "sphinx-tags" },
     { name = "sphinx-toolbox" },
     { name = "sphinxcontrib-bibtex" },
@@ -873,7 +872,6 @@ requires-dist = [
     { name = "sphinx-intl", specifier = ">=2.3.1,<3.0.0" },
     { name = "sphinx-material", specifier = ">=0.0.36,<0.0.37" },
     { name = "sphinx-mdinclude", specifier = ">=0.6.1,<0.7.0" },
-    { name = "sphinx-needs", specifier = ">=5.1.0,<6.0.0" },
     { name = "sphinx-tags", specifier = ">=0.3.1,<0.4.0" },
     { name = "sphinx-toolbox", specifier = ">=3.7.0,<4.0.0" },
     { name = "sphinxcontrib-bibtex", specifier = ">=2.6.2,<3.0.0" },
@@ -2481,18 +2479,6 @@ wheels = [
 ]
 
 [[package]]
-name = "requests-file"
-version = "2.1.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "requests" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/72/97/bf44e6c6bd8ddbb99943baf7ba8b1a8485bcd2fe0e55e5708d7fee4ff1ae/requests_file-2.1.0.tar.gz", hash = "sha256:0f549a3f3b0699415ac04d167e9cb39bccfb730cb832b4d20be3d9867356e658", size = 6891, upload-time = "2024-05-21T16:28:00.24Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d7/25/dd878a121fcfdf38f52850f11c512e13ec87c2ea72385933818e5b6c15ce/requests_file-2.1.0-py2.py3-none-any.whl", hash = "sha256:cf270de5a4c5874e84599fc5778303d496c10ae5e870bfa378818f35d21bda5c", size = 4244, upload-time = "2024-05-21T16:27:57.733Z" },
-]
-
-[[package]]
 name = "requests-oauthlib"
 version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2789,18 +2775,6 @@ wheels = [
 ]
 
 [[package]]
-name = "sphinx-data-viewer"
-version = "0.1.5"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "sphinx" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/71/3a/7aeeb805327af5b0e6f072312f9bc660615045e791a5a8f7258276fdddd1/sphinx_data_viewer-0.1.5.tar.gz", hash = "sha256:a7d5e58613562bb745380bfe61ca8b69997998167fd6fa9aea55606c9a4b17e4", size = 103260, upload-time = "2024-08-28T10:34:21.427Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/57/60/5e902d53a5eb3ec7166a8eda602bd78d4b8671a73917567edc8f13a3b366/sphinx_data_viewer-0.1.5-py3-none-any.whl", hash = "sha256:b74b1d304c505c464d07c7b225ed0d84ea02dcc88bc1c49cdad7c2275fbbdad4", size = 8215, upload-time = "2024-08-28T10:34:20.136Z" },
-]
-
-[[package]]
 name = "sphinx-datatables"
 version = "0.2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2895,23 +2869,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/b6/a7/c9a7888bb2187fdb06955d71e75f6f266b7e179b356ac76138d160a5b7eb/sphinx_mdinclude-0.6.2.tar.gz", hash = "sha256:447462e82cb8be61404a2204227f920769eb923d2f57608e3325f3bb88286b4c", size = 65257, upload-time = "2024-08-03T19:07:37.643Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/42/3d/6b41fe1637cd53c4b10d56e0e6f396546f837973dabf9c4b2a1de44620ac/sphinx_mdinclude-0.6.2-py3-none-any.whl", hash = "sha256:648e78edb067c0e4bffc22943278d49d54a0714494743592032fa3ad82a86984", size = 16911, upload-time = "2024-08-03T19:07:30.406Z" },
-]
-
-[[package]]
-name = "sphinx-needs"
-version = "5.1.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "jsonschema" },
-    { name = "requests" },
-    { name = "requests-file" },
-    { name = "sphinx" },
-    { name = "sphinx-data-viewer" },
-    { name = "sphinxcontrib-jquery" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/14/cc/6ec2b659b9b7f453cb5c5bd70efef21d083bee7f68525ecf5a1462d540ff/sphinx_needs-5.1.0.tar.gz", hash = "sha256:23a0ca1dfe733a0a58e884b59ce53a8b63a530f0ac87ae5ab0d40f05f853fbe7", size = 27276848, upload-time = "2025-03-06T15:25:34.315Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/33/51/76e0975800ced3179936ae9544a9c2dd5ddddc70dfef6668f9f22f8b87bf/sphinx_needs-5.1.0-py3-none-any.whl", hash = "sha256:7adf3763478e91171146918d8af4a22aa0fc062a73856f1ebeb6822a62cbe215", size = 2635665, upload-time = "2025-03-06T15:25:31.166Z" },
 ]
 
 [[package]]
