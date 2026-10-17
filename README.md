@@ -118,7 +118,7 @@ git init .
 code .
 ```
 
-Click Statusbar / html-live
+Use the HermesBaby VS Code extension's `$(tools) hb` status bar item or its commands in the Command Palette to run HermesBaby commands.
 
 Apply changes to some `docs/*/index.md` ... and so on.
 

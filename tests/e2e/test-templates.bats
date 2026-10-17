@@ -23,6 +23,8 @@ build_template() {
     # Create a new project directory for this template
     run python3 -m hermesbaby new --template "$template" .
     [ "$status" -eq 0 ]
+    assert_file_not_exists ".vscode/tasks.json"
+    assert_file_contains ".vscode/extensions.json" '"hermesbaby.hermesbaby"'
 
     # Special case for log-ledger
     if [ "$template" = "log-ledger" ]; then
