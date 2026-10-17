@@ -100,7 +100,7 @@
         {
             "label": "html-live-partly",
             "type": "shell",
-            "command": "hb html-live --partly \"${relativeFileDirname}\"",
+            "command": "hb html-live --partly \"${relativeFile}\"",
             "options": {
                 "statusbar": {
                     "hide": false

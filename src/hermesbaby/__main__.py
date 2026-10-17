@@ -174,35 +174,47 @@ def _load_config():
     apply_kconfig_env_overrides(kconfig, prefix=CFG_CONFIG_ENV_PREFIX)
 
 
-def _validate_part_path(part: str, source_dir: Path) -> None:
-    """Validate that the part path exists and is a directory."""
+def _validate_part_path(part: str, source_dir: Path) -> Path | None:
+    """Validate that the part path exists and is a file or directory."""
     if part:
         part_path = Path(part)
-        if not part_path.exists() or not part_path.is_dir():
+        if not part_path.exists() or not (part_path.is_dir() or part_path.is_file()):
             typer.echo(
-                f"Error: Extract path '{part_path}' does not exist or is not a directory.",
+                f"Error: Extract path '{part_path}' does not exist or is not a file or directory.",
                 err=True,
             )
             raise typer.Abort()
+        elif part_path.is_file():
+            typer.echo(f"Building partly from entry point {part_path} appending chapter Outgoing References if needed.")
+            return part_path
         else:
             typer.echo(f"Building partly from subtree {part_path} appending chapter Outgoing References if needed.")
+    return None
 
 
 def _get_source_dir_with_part(part: str) -> Path:
     """Get the source directory, adjusting for part path if provided."""
     source_dir = Path(_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value)
     if part:
-        source_dir = Path(part)
+        part_path = Path(part)
+        source_dir = part_path.parent if part_path.is_file() else part_path
     return source_dir
 
 
-def _set_env(ctx, part_dir: str = None, language: str = None):
+def _set_env(
+    ctx,
+    part_dir: str = None,
+    language: str = None,
+    master_doc: str = None,
+):
     os.environ["HERMESBABY_CWD"] = os.getcwd()
     os.environ["HERMESBABY_COMMAND"] = ctx.info_name
     if part_dir:
         os.environ["HERMESBABY_PART_DIR"] = part_dir
     if language:
         os.environ["HERMESBABY_LANGUAGE"] = language
+    if master_doc is not None:
+        os.environ["HERMESBABY_MASTER_DOC"] = master_doc
 
 
 def _build_common(
@@ -245,12 +257,18 @@ def _build_common(
     if not part and part_config:
         part = part_config
 
-    # Check if part refers to a valid directory
+    # Check if part refers to a valid file or directory
+    part_entry = None
     if part:
         source_dir = Path(_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value)
-        _validate_part_path(part, source_dir)
+        part_entry = _validate_part_path(part, source_dir)
 
-    _set_env(ctx, part_dir=part, language=language)
+    _set_env(
+        ctx,
+        part_dir=part,
+        language=language,
+        master_doc=part_entry.stem if part_entry else "index",
+    )
     child_env = os.environ.copy()
     export_kconfig_to_env(kconfig, prefix=CFG_CONFIG_ENV_PREFIX, environ=child_env)
     child_env[CFG_CONFIG_PRELOADED_MARKER] = "1"
@@ -600,7 +618,7 @@ def text(
     part: str = typer.Option(
         None,
         "--partly",
-        help="Directory relative to the current working directory to build only a part of the document. ",
+        help="File or directory (relative or absolute) for the partial build; files select the entry point.",
     ),
     language: str = typer.Option(
         None,
@@ -627,7 +645,7 @@ def html(
     part: str = typer.Option(
         None,
         "--partly",
-        help="Directory relative to the current working directory to build only a part of the document. ",
+        help="File or directory (relative or absolute) for the partial build; files select the entry point.",
     ),
     language: str = typer.Option(
         None,
@@ -654,7 +672,7 @@ def html_live(
     part: str = typer.Option(
         None,
         "--partly",
-        help="Directory relative to the current working directory to build only a part of the document. ",
+        help="File or directory (relative or absolute) for the partial build; files select the entry point.",
     ),
     language: str = typer.Option(
         None,
@@ -711,7 +729,7 @@ def pdf(
     part: str = typer.Option(
         None,
         "--partly",
-        help="Directory relative to the current working directory to build only a part of the document. ",
+        help="File or directory (relative or absolute) for the partial build; files select the entry point.",
     ),
     language: str = typer.Option(
         None,
@@ -738,7 +756,7 @@ def pdf_live(
     part: str = typer.Option(
         None,
         "--partly",
-        help="Directory relative to the current working directory to build only a part of the document. ",
+        help="File or directory (relative or absolute) for the partial build; files select the entry point.",
     ),
     language: str = typer.Option(
         None,
@@ -1693,7 +1711,7 @@ def i18n_gettext(
     part: str = typer.Option(
         None,
         "--partly",
-        help="Directory relative to the current working directory to build only a part of the document. ",
+        help="File or directory (relative or absolute) for the partial build; files select the entry point.",
     ),
     verbose: int = typer.Option(
         0,

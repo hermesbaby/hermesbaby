@@ -6,4 +6,6 @@
 01-Introduction-and-Goals/index.md
 03-Context-and-Scope/index.md
 05-Building-Block-View/index.md
+named-entry/index.md
+other-entry/other-entry.rst
 ```
