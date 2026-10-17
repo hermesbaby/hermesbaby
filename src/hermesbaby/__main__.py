@@ -201,13 +201,20 @@ def _get_source_dir_with_part(part: str) -> Path:
     return source_dir
 
 
-def _set_env(ctx, part_dir: str = None, language: str = None):
+def _set_env(
+    ctx,
+    part_dir: str = None,
+    language: str = None,
+    master_doc: str = None,
+):
     os.environ["HERMESBABY_CWD"] = os.getcwd()
     os.environ["HERMESBABY_COMMAND"] = ctx.info_name
     if part_dir:
         os.environ["HERMESBABY_PART_DIR"] = part_dir
     if language:
         os.environ["HERMESBABY_LANGUAGE"] = language
+    if master_doc is not None:
+        os.environ["HERMESBABY_MASTER_DOC"] = master_doc
 
 
 def _build_common(
@@ -256,7 +263,12 @@ def _build_common(
         source_dir = Path(_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value)
         part_entry = _validate_part_path(part, source_dir)
 
-    _set_env(ctx, part_dir=part, language=language)
+    _set_env(
+        ctx,
+        part_dir=part,
+        language=language,
+        master_doc=part_entry.stem if part_entry else "index",
+    )
     child_env = os.environ.copy()
     export_kconfig_to_env(kconfig, prefix=CFG_CONFIG_ENV_PREFIX, environ=child_env)
     child_env[CFG_CONFIG_PRELOADED_MARKER] = "1"
@@ -274,8 +286,6 @@ def _build_common(
     ]
     if warn_as_error:
         command.append("-W")
-    if part_entry:
-        command.extend(["-D", f"master_doc={part_entry.stem}"])
     command += [
         "-c",
         f"{_get_resource_path('')}",

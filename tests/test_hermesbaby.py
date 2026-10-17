@@ -215,6 +215,37 @@ def test_part_file_uses_parent_as_source_dir(monkeypatch, tmp_path):
     assert m._get_source_dir_with_part(str(entry_point)) == entry_point.parent
 
 
+def test_set_env_passes_master_doc(monkeypatch):
+    from src.hermesbaby import __main__ as m
+
+    class Context:
+        info_name = "text"
+
+    monkeypatch.delenv("HERMESBABY_MASTER_DOC", raising=False)
+    m._set_env(Context(), master_doc="named-entry")
+
+    assert os.environ["HERMESBABY_MASTER_DOC"] == "named-entry"
+
+
+def test_template_partial_tasks_use_active_file():
+    import json
+    import re
+
+    templates_dir = Path(__file__).parent.parent / "src" / "hermesbaby" / "templates"
+    task_files = list(templates_dir.glob("*/{{cookiecutter.directory}}/.vscode/tasks.json"))
+
+    assert task_files
+    for task_file in task_files:
+        task_text = task_file.read_text(encoding="utf-8")
+        task_text = "\n".join(
+            line for line in task_text.splitlines() if not line.lstrip().startswith("//")
+        )
+        task_text = re.sub(r",\s*([}\]])", r"\1", task_text)
+        tasks = json.loads(task_text)["tasks"]
+        partly_task = next(task for task in tasks if task["label"] == "html-live-partly")
+        assert "${relativeFile}" in partly_task["command"]
+
+
 @pytest.mark.skipif(sys.platform != "linux", reason="Install test only runs on Linux")
 def test_task_install(cli_runner):
 

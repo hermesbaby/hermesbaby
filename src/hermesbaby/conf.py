@@ -267,7 +267,7 @@ exclude_patterns = [
 ## Let's expand `some string` to `some string` instead of *some string*
 default_role = "code"
 
-master_doc = "index"
+master_doc = os.getenv("HERMESBABY_MASTER_DOC", "index")
 
 numfig = True
 
