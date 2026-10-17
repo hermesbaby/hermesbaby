@@ -196,7 +196,9 @@ config BUILD__DIR_PARTLY
         If non-empty, then Partly Build is activated.
 
         Same as option --partly <rel-path>
-            where <rel-path> is the relative path to the directory where .hermesbaby resides.
+            where <rel-path> is the relative path to a directory where .hermesbaby resides.
+        The --partly command-line option also accepts a Markdown or reStructuredText file path,
+            which is used as the entry point for the partial build.
         This enables partly a build of only a sub-section of the documentation.
         Use value same as Source Directory to build the entire document but make the build
             tolerating Unresolved References ({ref}, {term}) and perceive them as Outgoing References
@@ -328,4 +330,3 @@ config PUBLISH__CROSS_REFERENCES__PASSWORD
         Password of the user which has access to cross reference index files of intersphinx `object.inv`
 
 endmenu
-

@@ -196,6 +196,25 @@ def test_env_var_overrides_hermesbaby_config(monkeypatch, tmp_path):
         m._kconfig = old_kconfig
 
 
+def test_part_file_uses_parent_as_source_dir(monkeypatch, tmp_path):
+    from src.hermesbaby import __main__ as m
+
+    entry_point = tmp_path / "docs" / "named-entry.md"
+    entry_point.parent.mkdir()
+    entry_point.touch()
+
+    class Symbol:
+        str_value = str(tmp_path / "docs")
+
+    class Kconfig:
+        syms = {"BUILD__DIRS__SOURCE": Symbol()}
+
+    monkeypatch.setattr(m, "_get_kconfig", lambda: Kconfig())
+
+    assert m._validate_part_path(str(entry_point), Path(Symbol.str_value)) == entry_point
+    assert m._get_source_dir_with_part(str(entry_point)) == entry_point.parent
+
+
 @pytest.mark.skipif(sys.platform != "linux", reason="Install test only runs on Linux")
 def test_task_install(cli_runner):
 

@@ -57,6 +57,24 @@ teardown() {
     assert_file_exist "out/docs/text/index.txt"
 }
 
+@test "hb text --partly docs/SomeSystem/named-entry/named-entry.md" {
+
+    run python -m hermesbaby text --partly docs/SomeSystem/named-entry/named-entry.md
+    assert_success
+
+    assert_file_exist "out/docs/text/named-entry.txt"
+    assert_file_contains "out/docs/text/named-entry.txt" "Markdown named entry point"
+}
+
+@test "hb text --partly docs/SomeSystem/other-entry/other-entry.rst" {
+
+    run python -m hermesbaby text --partly "$PWD/docs/SomeSystem/other-entry/other-entry.rst"
+    assert_success
+
+    assert_file_exist "out/docs/text/other-entry.txt"
+    assert_file_contains "out/docs/text/other-entry.txt" "reStructuredText named entry point"
+}
+
 @test "cd docs/SomeSystem && hb text --partly ." {
 
     cd docs/SomeSystem

@@ -167,6 +167,15 @@ extensions = [
 ]
 ```
 
+When building with HermesBaby, `--partly` accepts either a directory or a
+Markdown/reStructuredText file. A directory uses its `index.md` or `index.rst`
+entry point; a file is used directly as the entry point:
+
+```bash
+hb html --partly docs/architecture
+hb html --partly docs/architecture/system-overview.md
+```
+
 ### Configuration
 
 The extension provides several configuration options:

@@ -174,25 +174,30 @@ def _load_config():
     apply_kconfig_env_overrides(kconfig, prefix=CFG_CONFIG_ENV_PREFIX)
 
 
-def _validate_part_path(part: str, source_dir: Path) -> None:
-    """Validate that the part path exists and is a directory."""
+def _validate_part_path(part: str, source_dir: Path) -> Path | None:
+    """Validate that the part path exists and is a file or directory."""
     if part:
         part_path = Path(part)
-        if not part_path.exists() or not part_path.is_dir():
+        if not part_path.exists() or not (part_path.is_dir() or part_path.is_file()):
             typer.echo(
-                f"Error: Extract path '{part_path}' does not exist or is not a directory.",
+                f"Error: Extract path '{part_path}' does not exist or is not a file or directory.",
                 err=True,
             )
             raise typer.Abort()
+        elif part_path.is_file():
+            typer.echo(f"Building partly from entry point {part_path} appending chapter Outgoing References if needed.")
+            return part_path
         else:
             typer.echo(f"Building partly from subtree {part_path} appending chapter Outgoing References if needed.")
+    return None
 
 
 def _get_source_dir_with_part(part: str) -> Path:
     """Get the source directory, adjusting for part path if provided."""
     source_dir = Path(_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value)
     if part:
-        source_dir = Path(part)
+        part_path = Path(part)
+        source_dir = part_path.parent if part_path.is_file() else part_path
     return source_dir
 
 
@@ -245,10 +250,11 @@ def _build_common(
     if not part and part_config:
         part = part_config
 
-    # Check if part refers to a valid directory
+    # Check if part refers to a valid file or directory
+    part_entry = None
     if part:
         source_dir = Path(_get_kconfig().syms["BUILD__DIRS__SOURCE"].str_value)
-        _validate_part_path(part, source_dir)
+        part_entry = _validate_part_path(part, source_dir)
 
     _set_env(ctx, part_dir=part, language=language)
     child_env = os.environ.copy()
@@ -268,6 +274,8 @@ def _build_common(
     ]
     if warn_as_error:
         command.append("-W")
+    if part_entry:
+        command.extend(["-D", f"master_doc={part_entry.stem}"])
     command += [
         "-c",
         f"{_get_resource_path('')}",
@@ -600,7 +608,7 @@ def text(
     part: str = typer.Option(
         None,
         "--partly",
-        help="Directory relative to the current working directory to build only a part of the document. ",
+        help="File or directory (relative or absolute) for the partial build; files select the entry point.",
     ),
     language: str = typer.Option(
         None,
@@ -627,7 +635,7 @@ def html(
     part: str = typer.Option(
         None,
         "--partly",
-        help="Directory relative to the current working directory to build only a part of the document. ",
+        help="File or directory (relative or absolute) for the partial build; files select the entry point.",
     ),
     language: str = typer.Option(
         None,
@@ -654,7 +662,7 @@ def html_live(
     part: str = typer.Option(
         None,
         "--partly",
-        help="Directory relative to the current working directory to build only a part of the document. ",
+        help="File or directory (relative or absolute) for the partial build; files select the entry point.",
     ),
     language: str = typer.Option(
         None,
@@ -711,7 +719,7 @@ def pdf(
     part: str = typer.Option(
         None,
         "--partly",
-        help="Directory relative to the current working directory to build only a part of the document. ",
+        help="File or directory (relative or absolute) for the partial build; files select the entry point.",
     ),
     language: str = typer.Option(
         None,
@@ -738,7 +746,7 @@ def pdf_live(
     part: str = typer.Option(
         None,
         "--partly",
-        help="Directory relative to the current working directory to build only a part of the document. ",
+        help="File or directory (relative or absolute) for the partial build; files select the entry point.",
     ),
     language: str = typer.Option(
         None,
@@ -1693,7 +1701,7 @@ def i18n_gettext(
     part: str = typer.Option(
         None,
         "--partly",
-        help="Directory relative to the current working directory to build only a part of the document. ",
+        help="File or directory (relative or absolute) for the partial build; files select the entry point.",
     ),
     verbose: int = typer.Option(
         0,
