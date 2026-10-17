@@ -1912,6 +1912,11 @@ myst_enable_extensions = [
     "tasklist",
 ]
 
+# Render fenced ```drawio blocks (VS Code Draw.io Integration) as diagrams.
+# Preserve entries possibly configured earlier.
+myst_fence_as_directive = list(globals().get("myst_fence_as_directive", []))
+if "drawio" not in myst_fence_as_directive:
+    myst_fence_as_directive.append("drawio")
 
 smartquotes = False  #  Prevent (c) → ©, etc.
 

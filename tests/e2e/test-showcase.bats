@@ -32,6 +32,14 @@ _configure_subtree() {
 
     run python -m hermesbaby html
     [ "$status" -eq 0 ]
+
+    # Inline diagrams are rendered as images, not shown as XML code listings
+    html_dir=$(find out/subtrees/drawio -name index.html -path "*html*" | head -n 1)
+    [ -n "$html_dir" ]
+    ! grep -q "&lt;mxfile" "$html_dir"
+    grep -q "drawio" "$html_dir"
+    # No intermediate .drawio files are generated in the source tree
+    [ -z "$(git ls-files --others --exclude-standard tests/data/showcases/drawio | grep '\.drawio$')" ]
 }
 
 @test "hb html --subtree tables)" {
