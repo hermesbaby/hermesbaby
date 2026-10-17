@@ -27,7 +27,7 @@ from sqlalchemy import extract
 @pytest.mark.parametrize(
     "year, current_year, expected",
     [
-        ("", 2026, "The Default Author"),
+        ("0", 2026, "The Default Author"),
         ("1976", 2026, "1976-2026, The Default Author"),
         ("2026", 2026, "2026, The Default Author"),
         ("2027", 2026, "2027, The Default Author"),
