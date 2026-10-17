@@ -8,6 +8,10 @@ on:
     branches:
       - '**'
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   test_build_package:
     runs-on: ubuntu-latest
