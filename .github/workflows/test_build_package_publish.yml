@@ -5,6 +5,9 @@ on:
         tags:
             - 'v*'
 
+permissions:
+  contents: read
+
 jobs:
   test_build_package_publish:
     runs-on: ubuntu-latest
