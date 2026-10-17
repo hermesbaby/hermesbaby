@@ -996,7 +996,7 @@ def handle_latex_special_chars(text: str) -> str:
 
 latex_documents = [
     (
-        "index",
+        master_doc,
         f"{_pdf_basename}.tex",
         handle_latex_special_chars(config.syms["DOC__TITLE"].str_value),
         author,

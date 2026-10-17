@@ -84,6 +84,14 @@ teardown() {
     assert_file_contains "out/docs/text/other-entry.txt" "reStructuredText named entry point"
 }
 
+@test "hb pdf --partly docs/SomeSystem/other-entry/other-entry.rst" {
+
+    run python -m hermesbaby pdf --partly "$PWD/docs/SomeSystem/other-entry/other-entry.rst"
+    assert_success
+
+    assert_file_exist "out/docs/pdf/system_definitions.tex"
+}
+
 @test "cd docs/SomeSystem && hb text --partly ." {
 
     cd docs/SomeSystem
