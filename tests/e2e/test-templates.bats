@@ -24,6 +24,12 @@ build_template() {
     run python3 -m hermesbaby new --template "$template" .
     [ "$status" -eq 0 ]
 
+    if [[ "$template" = arc42-* ]]; then
+        [ -f ./docs/conf.py ]
+        grep -q '^extensions.append("sphinx_needs")$' ./docs/conf.py
+        grep -q '^sphinx-needs>=5.1.0,<6.0.0$' ./docs/requirements.txt
+    fi
+
     # Special case for log-ledger
     if [ "$template" = "log-ledger" ]; then
         chmod +x ./mk-my-day.sh
