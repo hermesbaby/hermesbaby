@@ -28,7 +28,7 @@ if not exist "hermesbaby.spec" (
 
 REM Install dependencies if not already installed
 echo Installing dependencies...
-poetry install --with dev
+uv sync --all-groups
 
 REM Clean previous builds
 echo Cleaning previous builds...
@@ -37,7 +37,7 @@ if exist "dist\" rmdir /s /q dist
 
 REM Build the binary
 echo Building binary with PyInstaller...
-poetry run pyinstaller hermesbaby.spec
+uv run pyinstaller hermesbaby.spec
 
 REM Check if binary was created
 if exist "dist\hermesbaby.exe" (

@@ -1,5 +1,5 @@
 # Pinned (not "latest") so the shipped Python stays on the version pyproject.toml
-# requires (python = "^3.12") instead of drifting to whatever Ubuntu ships next,
+# requires (Python >=3.12) instead of drifting to whatever Ubuntu ships next,
 # which broke dependency builds (e.g. msgpack, pillow) when it jumped to 3.14.
 FROM ubuntu:24.04
 
@@ -33,12 +33,9 @@ RUN apt-get update \
 
 ENV LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
 
-# Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV PATH="/root/.local/bin:$PATH"
-
-# Install poetry-dynamic-versioning
-# RUN pip3 install poetry-dynamic-versioning
 
 # Switch back to dialog for any ad-hoc use of apt-get
 ENV DEBIAN_FRONTEND=dialog

@@ -4,7 +4,7 @@ owner: dominik.schmundt@vitronic.com
 updated: 2026-08-26
 ---
 
-# i18n support: two install paths not yet verified/fixed
+# i18n support: PyInstaller install path gap
 
 Follow-up from adding `sphinx-intl` as a runtime dependency for
 `hb i18n` (see `docs/hermesbaby/concepts/i18n-support/`). The primary
@@ -12,19 +12,15 @@ install path — `pipx install hermesbaby` — was verified end-to-end: a
 real `pipx install --force .` from this branch puts `sphinx-intl.exe`
 in the same venv `Scripts/` dir as `hb.exe`, and `hb i18n update-po`
 resolves it via the existing `_resolve_tool()` helper with `sphinx-intl`
-absent from global PATH. Two other paths are known gaps, not yet fixed:
+absent from global PATH. The remaining gap is the PyInstaller distribution:
 
-## 1. `poetry.lock` out of sync
+## 1. Lockfile out of sync (resolved)
 
-`pyproject.toml` now lists `sphinx-intl`, but `poetry.lock` was not
-regenerated (poetry wasn't available in the environment this was built
-in). Doesn't affect `pip`/`uv tool`/`pipx install` — those build from
-`pyproject.toml`/wheel metadata directly, not the lock file — but breaks
-the documented dev workflow (`poetry install --with dev` in `README.md`
-and `build-windows.cmd`).
+This issue was resolved when the project migrated from Poetry to uv.
+The checked-in `uv.lock` includes `sphinx-intl`, and the development
+workflow uses `uv sync --all-groups`.
 
-**Fix:** run `poetry lock` (or `poetry lock --no-update` to avoid
-bumping unrelated pins) and commit the regenerated `poetry.lock`.
+The PyInstaller binary gap below remains open.
 
 ## 2. PyInstaller frozen binary missing `sphinx-intl`
 

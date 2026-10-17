@@ -43,8 +43,8 @@ def test_help(cli_runner, command_line):
     "command_line",
     [
         f"{sys.executable} -m hermesbaby",
-        f"poetry run hermesbaby",
-        f"poetry run hb",
+        f"uv run hermesbaby",
+        f"uv run hb",
     ],
 )
 def test_entry_points(command_line):

@@ -30,7 +30,7 @@ fi
 
 # Install dependencies if not already installed
 echo "Installing dependencies..."
-poetry install --with dev
+uv sync --all-groups
 
 # Clean previous builds
 echo "Cleaning previous builds..."
@@ -38,7 +38,7 @@ rm -rf build/ dist/
 
 # Build the binary
 echo "Building binary with PyInstaller..."
-poetry run pyinstaller hermesbaby.spec
+uv run pyinstaller hermesbaby.spec
 
 # Check if binary was created
 if [ -f "dist/hermesbaby" ]; then
