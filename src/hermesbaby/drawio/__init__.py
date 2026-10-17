@@ -25,6 +25,8 @@ from sphinx.util import logging
 from sphinx.util.docutils import SphinxDirective
 from sphinx.util.fileutil import copy_asset
 
+from .inline import InlineDrawIO, is_inline_source
+
 __version__ = "0.0.17"
 
 logger = logging.getLogger(__name__)
@@ -177,7 +179,7 @@ class DrawIOConverter(ImageConverter):
         else:
             srcpath = node["candidates"]["*"]
 
-        abs_srcpath = Path(self.app.srcdir) / srcpath
+        abs_srcpath = Path(os.path.normpath(Path(self.app.srcdir) / srcpath))
         if not abs_srcpath.is_file():
             logger.error(
                 f"draw.io input path must be a file, got: {srcpath}"
@@ -216,8 +218,12 @@ class DrawIOConverter(ImageConverter):
 
     def _drawio_export(self, input_abspath, options, out_filename):
         builder = self.app.builder
-        input_relpath = input_abspath.relative_to(builder.srcdir)
-        input_stem = input_abspath.stem
+        inline = is_inline_source(input_abspath, builder.doctreedir)
+        if inline:
+            # Generated content-addressed file: identified by its content, not its location
+            input_relpath = Path(input_abspath.name)
+        else:
+            input_relpath = input_abspath.relative_to(builder.srcdir)
 
         page_name = options.get("page-name", None)
         page_index = options.get("page-index", None)
@@ -268,9 +274,8 @@ class DrawIOConverter(ImageConverter):
         export_relpath = export_abspath.relative_to(builder.doctreedir)
         output_format = export_abspath.suffix[1:]
 
-        if (
-            export_abspath.exists()
-            and export_abspath.stat().st_mtime > input_abspath.stat().st_mtime
+        if export_abspath.exists() and (
+            inline or export_abspath.stat().st_mtime > input_abspath.stat().st_mtime
         ):
             return export_abspath
 
@@ -492,6 +497,7 @@ def setup(app: Sphinx) -> Dict[str, Any]:
     app.add_post_transform(DrawIOConverter)
     app.add_directive("drawio-image", DrawIOImage)
     app.add_directive("drawio-figure", DrawIOFigure)
+    app.add_directive("drawio", InlineDrawIO)
     app.add_config_value("drawio_builder_export_format", {}, "html", dict)
     app.add_config_value("drawio_default_export_scale", 100, "html")
     # noinspection PyTypeChecker
