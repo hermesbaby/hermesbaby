@@ -25,6 +25,21 @@ from sqlalchemy import extract
 
 
 @pytest.mark.parametrize(
+    "year, current_year, expected",
+    [
+        ("0", 2026, "The Default Author"),
+        ("1976", 2026, "1976-2026, The Default Author"),
+        ("2026", 2026, "2026, The Default Author"),
+        ("2027", 2026, "2027, The Default Author"),
+    ],
+)
+def test_format_copyright(year, current_year, expected):
+    from src.hermesbaby.copyright import format_copyright
+
+    assert format_copyright(year, current_year, "The Default Author") == expected
+
+
+@pytest.mark.parametrize(
     "command_line",
     [
         "",

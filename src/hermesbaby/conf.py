@@ -31,6 +31,7 @@ import shutil
 import urllib3
 import yaml
 from hermesbaby.config_runtime import build_config_compat_from_env
+from hermesbaby.copyright import format_copyright
 from docutils import nodes
 from sphinx.addnodes import tabular_col_spec
 from sphinx.builders.latex.util import ExtBabel
@@ -191,7 +192,11 @@ if "" == _commit:
 project = config.syms["DOC__PROJECT"].str_value
 author = config.syms["DOC__AUTHOR"].str_value
 copyright = (
-    f"{config.syms['DOC__YEAR'].str_value}, {config.syms['DOC__AUTHOR'].str_value}"
+    format_copyright(
+        config.syms["DOC__YEAR"].str_value,
+        _current_time.year,
+        config.syms["DOC__AUTHOR"].str_value,
+    )
 )
 
 
