@@ -1,0 +1,63 @@
+# TeX Live packages installed into the hb-managed TinyTeX by
+# `hb tools latex install` (on top of the TinyTeX-1 bundle).
+#
+# tlmgr does not resolve dependencies between ordinary packages, so every
+# package a build needs must be listed here. When a build fails with
+# "File `xyz.sty' not found", run `hb tools latex doctor --fix <file.tex>`
+# to find and install the providing package, then add it here.
+
+# Engine and build driver
+luatex
+luaotfload
+latexmk
+makeindex
+
+# Fonts (the DejaVu family is used on every platform, see conf.py)
+dejavu
+fontspec
+fontawesome5
+
+# Languages
+babel
+babel-english
+babel-german
+hyphen-german
+
+# Sphinx LaTeX writer (sphinx.sty, sphinxmanual.cls, latex.tex template)
+amsfonts
+amsmath
+atbegshi
+booktabs
+capt-of
+caption
+carlisle
+colortbl
+ellipse
+etoolbox
+fancyhdr
+fancyvrb
+float
+fncychap
+framed
+geometry
+hyperref
+kvoptions
+ltxcmds
+luatex85
+needspace
+parskip
+pict2e
+tabulary
+titlesec
+tools
+upquote
+varwidth
+wrapfig
+xcolor
+
+# HermesBaby preamble (conf.py)
+adjustbox
+collectbox
+graphics
+ifoddpage
+setspace

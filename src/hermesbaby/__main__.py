@@ -217,6 +217,35 @@ def _set_env(
         os.environ["HERMESBABY_MASTER_DOC"] = master_doc
 
 
+def _latex_prepare_env(env: dict) -> bool:
+    """Make the LaTeX tools available to a PDF build.
+
+    Prefers the hb-managed TinyTeX. Falls back to a TeX distribution on PATH,
+    e.g. TeX Live installed by `hb ci install-tools`.
+    """
+    from hermesbaby import tinytex
+
+    if tinytex.is_installed():
+        env.update(tinytex.build_env(env))
+        missing = tinytex.missing_packages()
+        if missing:
+            typer.secho(
+                f"LaTeX packages missing: {', '.join(missing)}. Install them with: hb tools latex install",
+                fg=typer.colors.YELLOW,
+            )
+        return True
+
+    path = env.get("PATH")
+    if shutil.which("latexmk", path=path) and shutil.which("lualatex", path=path):
+        return True
+
+    typer.secho(
+        "No LaTeX distribution found. Install it once with: hb tools latex install",
+        fg=typer.colors.RED,
+    )
+    return False
+
+
 def _build_common(
     ctx: typer.Context,
     builder: str,
@@ -272,6 +301,8 @@ def _build_common(
     child_env = os.environ.copy()
     export_kconfig_to_env(kconfig, prefix=CFG_CONFIG_ENV_PREFIX, environ=child_env)
     child_env[CFG_CONFIG_PRELOADED_MARKER] = "1"
+    if builder == "latex" and not _latex_prepare_env(child_env):
+        return 1
 
     build_dir = Path(kconfig.syms["BUILD__DIRS__BUILD"].str_value) / (out_name or ctx.info_name)
     if language:
@@ -492,6 +523,12 @@ app_tools = typer.Typer(
     no_args_is_help=True,
 )
 app.add_typer(app_tools, name="tools")
+
+app_tools_latex = typer.Typer(
+    help="Manage the LaTeX distribution (TinyTeX) used to build PDFs",
+    no_args_is_help=True,
+)
+app_tools.add_typer(app_tools_latex, name="latex")
 
 app_vscode_extensions = typer.Typer(
     help="Manage VSCode extensions",
@@ -1269,6 +1306,108 @@ def check(
     else:
         typer.echo(f"\n{num_tools_missing} tools are missing. Please install them.")
         raise typer.Exit(code=1)
+
+
+def _tinytex_call(func, *args, **kwargs):
+    from hermesbaby import tinytex
+
+    try:
+        return func(*args, **kwargs)
+    except tinytex.TinyTexError as e:
+        typer.secho(f"Error: {e}", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+
+
+@app_tools_latex.command(name="install")
+def tools_latex_install(
+    force: bool = typer.Option(
+        False, "--force", help="Download and unpack TinyTeX again even if it is present"
+    ),
+    version: str = typer.Option(
+        None,
+        "--version",
+        help="TinyTeX release to install, e.g. '2026.10' (default: the daily build of the current TeX Live)",
+    ),
+):
+    """
+    Install TinyTeX and all LaTeX packages needed for 'hb pdf'.
+    No admin rights needed. Running it again brings the installation up to date.
+    """
+    from hermesbaby import tinytex
+
+    root = _tinytex_call(tinytex.install, force=force, version=version, echo=typer.echo)
+    typer.echo(f"\nLaTeX distribution ready at {root}")
+
+
+@app_tools_latex.command(name="check")
+def tools_latex_check():
+    """Check whether the LaTeX distribution is installed and complete"""
+    from hermesbaby import tinytex
+
+    root = tinytex.root_dir()
+    if not tinytex.is_installed():
+        typer.echo(f"TinyTeX: missing (expected at {root})")
+        typer.echo("Install it with: hb tools latex install")
+        raise typer.Exit(code=1)
+
+    typer.echo(f"TinyTeX: found at {root}")
+    missing = tinytex.missing_packages()
+    if missing:
+        typer.echo(f"Packages missing: {', '.join(missing)}")
+        typer.echo("Install them with: hb tools latex install")
+        raise typer.Exit(code=1)
+    typer.echo("Packages: complete")
+
+
+@app_tools_latex.command(name="doctor")
+def tools_latex_doctor(
+    tex_file: Path = typer.Argument(
+        None,
+        help="LaTeX file to compile, e.g. one from the PDF build directory (default: built-in probe document)",
+    ),
+    fix: bool = typer.Option(
+        False, "--fix", help="Install the packages providing missing files"
+    ),
+):
+    """
+    Compile a document and report LaTeX packages missing from the installation.
+    """
+    from hermesbaby import tinytex
+
+    if not _tinytex_call(tinytex.doctor, tex_file, fix=fix, echo=typer.echo):
+        raise typer.Exit(code=1)
+
+
+@app_tools_latex.command(name="update")
+def tools_latex_update():
+    """Update all packages of the LaTeX distribution"""
+    from hermesbaby import tinytex
+
+    _tinytex_call(tinytex.update, echo=typer.echo)
+
+
+@app_tools_latex.command(name="uninstall")
+def tools_latex_uninstall(
+    yes: bool = typer.Option(False, "--yes", "-y", help="Don't ask for confirmation"),
+):
+    """Remove the LaTeX distribution"""
+    from hermesbaby import tinytex
+
+    if not yes:
+        typer.confirm(f"Remove {tinytex.root_dir()}?", abort=True)
+    _tinytex_call(tinytex.uninstall, echo=typer.echo)
+
+
+@app_tools_latex.command(name="path")
+def tools_latex_path():
+    """Print the directory containing the LaTeX executables"""
+    from hermesbaby import tinytex
+
+    directory = tinytex.bin_dir()
+    if directory is None:
+        typer.echo("TinyTeX is not installed. Run: hb tools latex install", err=True)
+        raise typer.Exit(code=1)
+    typer.echo(directory)
 
 
 # Helper functions for VSCode extensions management

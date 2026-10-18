@@ -411,30 +411,13 @@ latex_table_style = ["longtable"]
 # LaTeX mapping (tocdepth): 0=chapter, 1=section, 2=subsection, 3=subsubsection, ...
 _latex_toc_depth = max(0, int(config.syms["STYLING__GLOBALTOC_DEPTH"].str_value) - 1)
 
-# Platform-specific font selection for LaTeX/PDF builds
-# Use fonts that are natively available on each platform
-if platform.system() == "Windows":
-    _latex_main_font = "Segoe UI"
-    _latex_font_config = r"""
-\setmainfont{Segoe UI}[
-  AutoFakeBold=1.5,
-  AutoFakeSlant=0.2
-]"""
-else:
-    # Linux and other Unix-like systems
-    _latex_main_font = "DejaVu Sans"
-    _latex_font_config = r"""
-\setmainfont{DejaVu Sans}[
-  Extension=.ttf,
-  UprightFont=*,
-  BoldFont=*-Bold,
-  ItalicFont=*-Oblique,
-  BoldItalicFont=*-BoldOblique,
-  AutoFakeBold=1.5,
-  AutoFakeSlant=0.2
-]"""
+# Same fonts on every platform (DejaVu family, shipped by the hb-managed
+# TinyTeX, see `hb tools latex install`), so a PDF looks the same wherever
+# it is built. Replaces Sphinx' default GNU FreeFont setup.
+from hermesbaby.tinytex import LATEX_FONTPKG as _latex_fontpkg
 
 latex_elements = {
+    "fontpkg": _latex_fontpkg,
     "papersize": "a4paper",
     "pointsize": "10pt",
     "maxlistdepth": "10",
@@ -498,10 +481,6 @@ latex_elements = {
 % Line spacing
 \usepackage{setspace}
 \onehalfspacing
-
-% Main text font (adapt as you like)
-% Use AutoFakeBold/AutoFakeSlant to generate missing font variants
-""" + _latex_font_config + r"""
 
 
 % Use adjustbox package for intelligent image scaling

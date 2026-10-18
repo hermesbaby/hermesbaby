@@ -100,6 +100,14 @@ Check environment for prerequisites
 hb tools check
 ```
 
+Install the LaTeX distribution for PDF output (once, no admin rights needed; works on Windows, Linux and macOS)
+
+```bash
+hb tools latex install
+```
+
+This installs [TinyTeX](https://yihui.org/tinytex/) plus all LaTeX packages and fonts `hb pdf` needs into a per-user directory owned by hermesbaby (override with `HERMESBABY_TINYTEX_DIR`). It is used by `hb pdf` only and never added to your global `PATH`. Builds run headless: nothing is installed on the fly and nothing prompts. If a build still reports a missing `.sty` file, `hb tools latex doctor --fix <file.tex>` finds and installs the providing package.
+
 Start your first new virtual piece of writing
 
 ```bash
