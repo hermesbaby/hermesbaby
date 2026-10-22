@@ -13,10 +13,7 @@ how it got there:
 
 Either way, the position is incidental rather than intentional, which reads
 oddly to a reader: entries can show up before/after arbitrary subsections
-with no clear rule. This module normalizes it: every toctree found in a
-document is moved to right before that document's first nested chapter
-(the first heading-level child section right under the document's title),
-or appended at the very end if the document has no nested chapter.
+with no clear rule.
 """
 
 from typing import Any, List
@@ -40,7 +37,9 @@ def _movable_node(node: nodes.Node) -> nodes.Node:
 
 
 class NormalizeToctreePlacement(SphinxTransform):
-    """Move every toctree in a document to right before its first chapter."""
+    """Alternative A: Move every toctree in a document to right after its last chapter.
+    Alternative B: Move every toctree in a document to right before its first chapter. <- activated
+    """
 
     # After sphinx-external-toc's InsertToctrees (priority 100), and after
     # docutils/Sphinx have parsed any explicit ``{toctree}`` directives
@@ -74,6 +73,9 @@ class NormalizeToctreePlacement(SphinxTransform):
         insert_index = len(container.children)
         for index, child in enumerate(container.children):
             if isinstance(child, nodes.section):
+                # Alternative A: Right after last nested chapter:
+                # deactivated: insert_index = index + 1
+                # Alternative B: Before first nested chapter:
                 insert_index = index
                 break
 

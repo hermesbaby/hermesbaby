@@ -115,12 +115,7 @@ teardown() {
     cd ..
 }
 
-# A document's toctree must always render right before its first nested
-# chapter, not wherever the underlying mechanism happens to insert/leave it.
-# Left to sphinx-external-toc's own default, this root document's toctree
-# (an "a.md" child) would end up appended after "First Chapter"'s own
-# content, at the very end of the page, rather than right after the root
-# document's own introduction and before "First Chapter" begins.
+
 @test "j-toctree-placement" {
 
     cd j-toctree-placement

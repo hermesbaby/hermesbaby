@@ -17,7 +17,135 @@ Root
 
   * Chapter III
 
+    * Chapter III.i
+
+    * Chapter III.ii
+
+      * Chapter III.ii.a
+
+    * Chapter III.iii
+
 * 02-some-dir/index.md
+
+  * 01-some-file.md
+
+    * Chapter I
+
+    * Chapter II
+
+      * Chapter II.i
+
+      * Chapter II.ii
+
+        * Chapter II.ii.a
+
+      * Chapter II.iii
+
+    * Chapter III
+
+      * Chapter III.i
+
+      * Chapter III.ii
+
+        * Chapter III.ii.a
+
+      * Chapter III.iii
+
+  * 02-some-dir/index.md
+
+    * 01-some-file.md
+
+      * Chapter I
+
+      * Chapter II
+
+        * Chapter II.i
+
+        * Chapter II.ii
+
+          * Chapter II.ii.a
+
+        * Chapter II.iii
+
+      * Chapter III
+
+        * Chapter III.i
+
+        * Chapter III.ii
+
+          * Chapter III.ii.a
+
+        * Chapter III.iii
+
+    * 03-some-file.md
+
+      * Chapter I
+
+      * Chapter II
+
+        * Chapter II.i
+
+        * Chapter II.ii
+
+          * Chapter II.ii.a
+
+        * Chapter II.iii
+
+      * Chapter III
+
+        * Chapter III.i
+
+        * Chapter III.ii
+
+          * Chapter III.ii.a
+
+        * Chapter III.iii
+
+    * Chapter I
+
+    * Chapter II
+
+      * Chapter II.i
+
+      * Chapter II.ii
+
+        * Chapter II.ii.a
+
+      * Chapter II.iii
+
+    * Chapter III
+
+      * Chapter III.i
+
+      * Chapter III.ii
+
+        * Chapter III.ii.a
+
+      * Chapter III.iii
+
+  * 03-some-file.md
+
+    * Chapter I
+
+    * Chapter II
+
+      * Chapter II.i
+
+      * Chapter II.ii
+
+        * Chapter II.ii.a
+
+      * Chapter II.iii
+
+    * Chapter III
+
+      * Chapter III.i
+
+      * Chapter III.ii
+
+        * Chapter III.ii.a
+
+      * Chapter III.iii
 
   * Chapter I
 
@@ -32,6 +160,14 @@ Root
     * Chapter II.iii
 
   * Chapter III
+
+    * Chapter III.i
+
+    * Chapter III.ii
+
+      * Chapter III.ii.a
+
+    * Chapter III.iii
 
 * 03-some-file.md
 
@@ -48,6 +184,14 @@ Root
     * Chapter II.iii
 
   * Chapter III
+
+    * Chapter III.i
+
+    * Chapter III.ii
+
+      * Chapter III.ii.a
+
+    * Chapter III.iii
 
 
 Chapter I
@@ -76,3 +220,19 @@ Chapter II.iii
 
 Chapter III
 ===========
+
+
+Chapter III.i
+-------------
+
+
+Chapter III.ii
+--------------
+
+
+Chapter III.ii.a
+~~~~~~~~~~~~~~~~
+
+
+Chapter III.iii
+---------------
