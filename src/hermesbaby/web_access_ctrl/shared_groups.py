@@ -33,7 +33,7 @@ def main(membernames):
         groups = get_member_groups(membername)
         all_member_groups[membername] = groups
         print(f"Groups for member {membername}:")
-        for group in groups:
+        for group in sorted(groups):
             print(f"  {group}")
         print()
 
@@ -43,7 +43,7 @@ def main(membernames):
             shared_groups &= set(groups)
 
         print("Shared groups between all members:")
-        for group in shared_groups:
+        for group in sorted(shared_groups):
             print(f"  {group}")
 
 if __name__ == "__main__":
