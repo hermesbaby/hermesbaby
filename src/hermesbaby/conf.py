@@ -1206,7 +1206,7 @@ if False:
 # @see https://graphviz.org/gallery/
 # @see https://graphviz.org/docs/attrs/rankdir/
 
-if False:
+if True:
 
     extensions.append("sphinx.ext.graphviz")
 
