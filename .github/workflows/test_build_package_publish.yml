@@ -48,4 +48,4 @@ jobs:
       env:
         PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
       run: |
-        uv publish --token "$PYPI_TOKEN"
+        uv publish --check-url https://pypi.org/simple/ --token "$PYPI_TOKEN"
